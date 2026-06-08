@@ -252,6 +252,22 @@ function hotmess_apply_moderation_action(int $targetUserId, int $adminId, string
         $expiresSql,
     ]);
     hotmess_record_safety_notification($targetUserId, $action, $title, $body);
+    $templateKey = match ($action) {
+        'warn_user' => 'moderation_warning',
+        'restrict_chat' => 'chat_restriction_notice',
+        'temp_suspend_user', 'permanent_suspend_user' => 'account_suspension_notice',
+        default => 'moderation_warning',
+    };
+    if (!empty($user['email']) && $action !== 'lift_safety') {
+        sendTemplateEmail($templateKey, (string) $user['email'], [
+            'name' => (string) ($user['name'] ?? ''),
+            'detail' => $body . ($note !== '' ? "\n\nGrund: " . $note : ''),
+        ], [
+            'trigger' => 'moderation',
+            'action' => $action,
+            'reportId' => $reportId,
+        ]);
+    }
 }
 
 function hotmess_member_safety_rows(string $filter = ''): array

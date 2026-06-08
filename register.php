@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = (int) db()->lastInsertId();
             hotmess_record_customer_signal((int) $_SESSION['user_id'], 'registration', 150, 'Passport profile created', null, 'registered', ['membership' => 8, 'community' => 4]);
             $user = current_user();
+            sendTemplateEmail('welcome_member', $email, ['name' => $name], ['trigger' => 'registration']);
             generate_verification_code($user, 'email');
             generate_verification_code($user, 'phone');
             flash('Account erstellt. Bitte bestätige E-Mail und Telefonnummer.');

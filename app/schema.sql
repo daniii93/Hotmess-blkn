@@ -1320,3 +1320,19 @@ CREATE TABLE IF NOT EXISTS platform_tasks (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX platform_tasks_status_idx (status, priority)
 );
+
+CREATE TABLE IF NOT EXISTS email_logs (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  to_email VARCHAR(190) NOT NULL,
+  subject VARCHAR(190) NOT NULL,
+  template_key VARCHAR(120) NULL,
+  status ENUM('queued', 'sent', 'failed', 'skipped_provider_missing') NOT NULL DEFAULT 'queued',
+  provider VARCHAR(80) NOT NULL DEFAULT 'mock',
+  provider_message_id VARCHAR(190) NULL,
+  error_message TEXT NULL,
+  meta_json JSON NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX email_logs_status_idx (status, created_at),
+  INDEX email_logs_template_idx (template_key, created_at),
+  INDEX email_logs_to_idx (to_email, created_at)
+);

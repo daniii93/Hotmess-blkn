@@ -731,6 +731,22 @@ function hotmess_queue_payment_email(int $userId, int $paymentSessionId, string 
         'INSERT INTO hotmess_email_outbox (user_id, payment_session_id, email_type, recipient, subject, body, status)
          VALUES (?, ?, ?, ?, ?, ?, "queued")'
     )->execute([$userId, $paymentSessionId, $type, $email, $subject, $body]);
+
+    $templateKey = match ($type) {
+        'ticket_confirmation' => 'ticket_confirmation',
+        'membership_welcome' => 'membership_confirmation',
+        'membership_upgrade' => 'membership_upgrade',
+        'package_confirmation' => 'package_inquiry_received',
+        default => 'welcome_member',
+    };
+    sendTemplateEmail($templateKey, $email, [
+        'subject' => $subject,
+        'detail' => $body,
+    ], [
+        'trigger' => 'payment',
+        'paymentSessionId' => $paymentSessionId,
+        'legacyEmailType' => $type,
+    ]);
 }
 
 function hotmess_mark_payment_session_status_by_stripe(string $stripeSessionId, string $status, string $auditAction): void

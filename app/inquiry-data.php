@@ -203,6 +203,23 @@ function hotmess_handle_inquiry_submit(array $data): bool
         $inquiryId = hotmess_store_inquiry($data);
         $leadId = hotmess_lead_id_for_inquiry($inquiryId);
         $suffix = 'Die Anfrage wurde gespeichert. Inquiry #' . $inquiryId . ($leadId ? ' / Lead #' . $leadId : '') . '.';
+        $templateKey = match ((string) ($data['type'] ?? 'general')) {
+            'package' => 'package_inquiry_received',
+            'hotel' => 'hotel_inquiry_received',
+            'vip_table' => 'vip_inquiry_received',
+            'partner' => 'partner_application_received',
+            'ambassador' => 'ambassador_application_received',
+            default => 'concierge_request_received',
+        };
+        sendTemplateEmail($templateKey, (string) ($data['email'] ?? ''), [
+            'name' => (string) ($data['name'] ?? ''),
+            'detail' => (string) ($data['message'] ?? ''),
+        ], [
+            'trigger' => 'inquiry_received',
+            'inquiryId' => $inquiryId,
+            'leadId' => $leadId,
+            'inquiryType' => (string) ($data['type'] ?? 'general'),
+        ]);
         $userId = (int) ($_SESSION['user_id'] ?? 0);
         $type = (string) ($data['type'] ?? 'general');
         if ($userId > 0 && in_array($type, ['package', 'hotel', 'vip_table', 'partner', 'ambassador'], true)) {

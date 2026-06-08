@@ -31,6 +31,7 @@ function db(): PDO
 }
 
 require_once __DIR__ . '/member-safety.php';
+require_once __DIR__ . '/email-service.php';
 
 function authenticated_user(): ?array
 {
@@ -1091,6 +1092,12 @@ function generate_verification_code(array $user, string $type): string
 
 function send_email_code(string $email, string $code): void
 {
+    sendTemplateEmail('verify_email', $email, [
+        'code' => $code,
+        'detail' => 'Der Code ist 10 Minuten gültig.',
+    ], ['trigger' => 'verify_email']);
+    return;
+
     $subject = 'Dein HOTMESS BLKN Verifizierungscode';
     $message = "Dein HOTMESS BLKN Code lautet: {$code}\n\nDer Code ist 10 Minuten gültig.";
     $headers = [

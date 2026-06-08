@@ -9,6 +9,7 @@ require_once __DIR__ . '/app/production-data.php';
 require_once __DIR__ . '/app/city-ops-data.php';
 require_once __DIR__ . '/app/platform-os-data.php';
 require_once __DIR__ . '/app/operations-data.php';
+require_once __DIR__ . '/app/email-log.php';
 
 $admin = require_admin();
 $page = (string) ($_GET['page'] ?? 'system');
@@ -64,6 +65,17 @@ render_header($title[0]);
     <section class="platform-section"><div class="event-admin-grid"><?php foreach (hotmess_security_checks() as $check): ?><article class="premium-card"><span><?= e($check['status']) ?></span><h3><?= e($check['area']) ?></h3><p><?= e($check['detail']) ?></p></article><?php endforeach; ?></div></section>
   <?php elseif ($page === 'system'): ?>
     <?php $status = hotmess_system_status(); admin_metric_cards(['Mode' => $status['mode'], 'Environment' => $status['environment'], 'Open tasks' => count($status['tasks']), 'Integrations' => count($status['integrations'])]); ?>
+    <?php $emailStatus = getEmailProviderStatus(); $lastEmailLog = hotmess_email_latest_log(); ?>
+    <section class="platform-section">
+      <div class="section-heading platform-heading">
+        <p class="eyebrow">E-Mail Infrastruktur</p>
+        <h2>Resend Status und Testversand.</h2>
+        <p>Provider: <?= e($emailStatus['provider']) ?> / From: <?= e($emailStatus['fromEmail']) ?> / Reply-To: <?= e($emailStatus['replyToEmail']) ?></p>
+        <?php if (!$emailStatus['configured']): ?><p class="field-hint">RESEND_API_KEY fehlt. Das System arbeitet im Mock-/Log-Modus.</p><?php endif; ?>
+        <?php if ($lastEmailLog): ?><p class="field-hint">Letzte E-Mail: <?= e((string) $lastEmailLog['template_key']) ?> / <?= e((string) $lastEmailLog['status']) ?> / <?= e((string) $lastEmailLog['created_at']) ?></p><?php endif; ?>
+        <a class="button primary" href="/admin/email">E-Mail-Konsole öffnen</a>
+      </div>
+    </section>
     <section class="platform-section"><div class="event-admin-grid"><?php foreach ($status['integrations'] as $integration): ?><article class="premium-card"><span><?= e($integration['status']) ?></span><h3><?= e($integration['name']) ?></h3><p>Production integration status.</p></article><?php endforeach; ?></div></section>
   <?php elseif ($page === 'audit-log'): ?>
     <section class="platform-section"><div class="table-wrap"><table class="admin-lux-table"><thead><tr><th>Action</th><th>Entity</th><th>User</th><th>Details</th><th>Created</th></tr></thead><tbody><?php foreach (hotmess_audit_logs() as $log): ?><tr><td><?= e($log['action']) ?></td><td><?= e($log['entityType']) ?> / <?= e($log['entityId']) ?></td><td><?= e($log['userId']) ?></td><td><?= e($log['details']) ?></td><td><?= e($log['createdAt']) ?></td></tr><?php endforeach; ?></tbody></table></div></section>
