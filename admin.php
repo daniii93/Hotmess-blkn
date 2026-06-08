@@ -50,6 +50,15 @@ $adminRevenueKpis = hotmess_revenue_kpis();
 $adminAnalyticsKpis = hotmess_analytics_kpis();
 $adminRevenueTransactions = hotmess_revenue_transactions();
 $adminRevenueReports = hotmess_revenue_reports();
+$adminRevenueRange = (string) ($_GET['revenueRange'] ?? '1m');
+$adminRevenueRange = array_key_exists($adminRevenueRange, hotmess_revenue_comparison_ranges()) ? $adminRevenueRange : '1m';
+$adminRevenueRawSources = (array) ($_GET['revenueSourceTypes'] ?? ['all']);
+$adminRevenueSourceTypes = hotmess_revenue_comparison_selected_sources($adminRevenueRawSources);
+$adminRevenueRawEvents = (array) ($_GET['revenueEvents'] ?? []);
+$adminRevenueTooManyEvents = count(array_unique($adminRevenueRawEvents)) > 3;
+$adminRevenueSelectedEvents = hotmess_revenue_validate_event_ids($adminRevenueRawEvents, $adminEvents);
+$adminRevenueComparison = getRevenueComparisonSeries($adminRevenueSelectedEvents, $adminRevenueRange, $adminRevenueSourceTypes, $adminEvents);
+$adminRevenueComparisonKpis = hotmess_revenue_comparison_kpis($adminRevenueSelectedEvents, $adminRevenueSourceTypes, $adminEvents);
 $adminSponsorProducts = hotmess_sponsor_products();
 $adminSponsorPlacements = hotmess_sponsor_placements();
 $adminCommissionRules = hotmess_commission_rules();
@@ -1423,6 +1432,152 @@ render_header($adminTitle[0]);
         <article><span>Sponsoring</span><strong><?= e(number_format((int) $adminRevenueKpis['sponsoring'], 0, ',', '.')) ?> EUR</strong><p>placements</p></article>
         <article><span>VIP / Concierge</span><strong><?= e(number_format((int) ($adminRevenueKpis['vip'] + $adminRevenueKpis['concierge']), 0, ',', '.')) ?> EUR</strong><p>service revenue</p></article>
       </div>
+      <?php
+        $revenueEventOptions = hotmess_revenue_event_options($adminEvents);
+        $revenueSourceOptions = hotmess_revenue_comparison_source_options();
+        $revenueSourceLabels = [
+            'ticket' => 'Verkaufte Tickets',
+            'hotel_package' => 'Hotelpakete',
+            'drink_package' => 'Getränkepakete',
+            'other' => 'Weitere Umsätze',
+        ];
+        $revenueSelectedSourceSet = $adminRevenueSourceTypes === 'all' ? ['ticket', 'hotel_package', 'drink_package', 'other'] : $adminRevenueSourceTypes;
+        $revenueChartMax = 0.0;
+        foreach ($adminRevenueComparison['series'] as $series) {
+            foreach ($series['points'] as $point) {
+                $revenueChartMax = max($revenueChartMax, (float) $point['amount']);
+            }
+        }
+        $revenueChartMax = max(1.0, $revenueChartMax);
+        $revenueChartColors = ['#d6b56d', '#9fb7ff', '#e48c7c'];
+        $revenuePointCount = count($adminRevenueComparison['series'][0]['points'] ?? []);
+      ?>
+      <section class="premium-card revenue-comparison-card" aria-labelledby="revenue-comparison-title">
+        <div class="section-heading platform-heading">
+          <p class="eyebrow">Event-Umsatzvergleich <?= $adminRevenueComparison['demo'] ? '/ Demo-Daten' : '' ?></p>
+          <h2 id="revenue-comparison-title">Event-Umsatzvergleich</h2>
+          <p>Vergleiche die Umsatzentwicklung von bis zu drei Events und wähle aus, welche Umsatzarten berücksichtigt werden sollen.</p>
+          <?php if ($adminRevenueTooManyEvents): ?><p class="field-hint">Du kannst maximal 3 Events vergleichen.</p><?php endif; ?>
+          <?php if (!$adminRevenueSelectedEvents): ?><p class="field-hint">Wähle mindestens ein Event aus, um den Umsatzvergleich zu starten.</p><?php endif; ?>
+        </div>
+        <form class="revenue-comparison-filter" method="get" data-revenue-comparison-filter>
+          <input type="hidden" name="tab" value="revenue" />
+          <div class="revenue-filter-block">
+            <span>Zeitraum</span>
+            <div class="revenue-range-row">
+              <?php foreach (hotmess_revenue_comparison_ranges() as $rangeKey => $rangeLabel): ?>
+                <label class="revenue-chip <?= $adminRevenueRange === $rangeKey ? 'is-active' : '' ?>">
+                  <input type="radio" name="revenueRange" value="<?= e($rangeKey) ?>" <?= $adminRevenueRange === $rangeKey ? 'checked' : '' ?> />
+                  <?= e($rangeLabel) ?>
+                </label>
+              <?php endforeach; ?>
+            </div>
+          </div>
+          <div class="revenue-filter-block revenue-event-select">
+            <span>Event-Auswahl</span>
+            <div class="revenue-event-grid">
+              <?php foreach ($revenueEventOptions as $event): ?>
+                <?php $isSelectedEvent = in_array($event['id'], $adminRevenueSelectedEvents, true); ?>
+                <label class="revenue-event-option <?= $isSelectedEvent ? 'is-active' : '' ?>">
+                  <input type="checkbox" name="revenueEvents[]" value="<?= e($event['id']) ?>" <?= $isSelectedEvent ? 'checked' : '' ?> />
+                  <strong><?= e($event['title']) ?></strong>
+                  <span><?= e($event['city']) ?> / <?= e($event['date']) ?></span>
+                </label>
+              <?php endforeach; ?>
+            </div>
+          </div>
+          <div class="revenue-filter-block">
+            <span>Umsatzarten</span>
+            <div class="revenue-source-row">
+              <?php foreach ($revenueSourceOptions as $sourceKey => $sourceLabel): ?>
+                <?php $sourceActive = $adminRevenueSourceTypes === 'all' ? $sourceKey === 'all' : in_array($sourceKey, $adminRevenueSourceTypes, true); ?>
+                <label class="revenue-chip <?= $sourceActive ? 'is-active' : '' ?> <?= $adminRevenueSourceTypes === 'all' && $sourceKey !== 'all' ? 'is-soft-disabled' : '' ?>">
+                  <input type="checkbox" name="revenueSourceTypes[]" value="<?= e($sourceKey) ?>" <?= $sourceActive ? 'checked' : '' ?> />
+                  <?= e($sourceLabel) ?>
+                </label>
+              <?php endforeach; ?>
+            </div>
+          </div>
+          <button class="button primary" type="submit">Vergleich aktualisieren</button>
+        </form>
+        <div class="admin-kpi-grid revenue-comparison-kpis">
+          <?php foreach ($adminRevenueComparisonKpis as $kpi): ?>
+            <article>
+              <span><?= e($kpi['label']) ?></span>
+              <strong><?= e(number_format((float) $kpi['amount'], 0, ',', '.')) ?> EUR</strong>
+              <p><?= count($adminRevenueSelectedEvents) > 1 ? 'Summe der ausgewählten Events' : 'Ausgewähltes Event' ?></p>
+            </article>
+          <?php endforeach; ?>
+        </div>
+        <div class="revenue-line-chart-wrap" role="img" aria-label="Linien-Diagramm fuer den Event-Umsatzvergleich">
+          <svg class="revenue-line-chart" viewBox="0 0 1080 340" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="revenueGridFade" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="rgba(255,255,255,.16)" />
+                <stop offset="100%" stop-color="rgba(255,255,255,.04)" />
+              </linearGradient>
+            </defs>
+            <?php for ($grid = 0; $grid <= 4; $grid++): $gridY = 30 + ($grid * 65); ?>
+              <line x1="40" y1="<?= e((string) $gridY) ?>" x2="1040" y2="<?= e((string) $gridY) ?>" stroke="rgba(255,255,255,.08)" stroke-width="1" />
+            <?php endfor; ?>
+            <?php foreach ($adminRevenueComparison['series'] as $seriesIndex => $series): ?>
+              <?php
+                $polylinePoints = [];
+                foreach ($series['points'] as $pointIndex => $point) {
+                    $x = 40 + ($revenuePointCount > 1 ? ($pointIndex * (1000 / max(1, $revenuePointCount - 1))) : 0);
+                    $y = 290 - (((float) $point['amount'] / $revenueChartMax) * 240);
+                    $polylinePoints[] = round($x, 2) . ',' . round($y, 2);
+                }
+                $lineColor = $revenueChartColors[$seriesIndex % count($revenueChartColors)];
+              ?>
+              <polyline points="<?= e(implode(' ', $polylinePoints)) ?>" fill="none" stroke="<?= e($lineColor) ?>" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+              <?php foreach ($series['points'] as $pointIndex => $point): ?>
+                <?php
+                  $x = 40 + ($revenuePointCount > 1 ? ($pointIndex * (1000 / max(1, $revenuePointCount - 1))) : 0);
+                  $y = 290 - (((float) $point['amount'] / $revenueChartMax) * 240);
+                  $tooltipLines = [$series['event']['title'], 'Datum: ' . $point['label']];
+                  foreach ($revenueSourceLabels as $sourceKey => $sourceLabel) {
+                      if ($sourceKey === 'other' && $adminRevenueSourceTypes !== 'all') {
+                          continue;
+                      }
+                      if ($adminRevenueSourceTypes !== 'all' && !in_array($sourceKey, $adminRevenueSourceTypes, true)) {
+                          continue;
+                      }
+                      $tooltipLines[] = $sourceLabel . ': ' . number_format((float) ($point['breakdown'][$sourceKey] ?? 0), 0, ',', '.') . ' EUR';
+                  }
+                  $tooltipLines[] = 'Gesamt: ' . number_format((float) $point['amount'], 0, ',', '.') . ' EUR';
+                ?>
+                <circle cx="<?= e((string) round($x, 2)) ?>" cy="<?= e((string) round($y, 2)) ?>" r="7" fill="<?= e($lineColor) ?>" stroke="#101010" stroke-width="3">
+                  <title><?= e(implode("\n", $tooltipLines)) ?></title>
+                </circle>
+              <?php endforeach; ?>
+            <?php endforeach; ?>
+          </svg>
+        </div>
+        <div class="revenue-chart-legend">
+          <?php foreach ($adminRevenueComparison['series'] as $seriesIndex => $series): ?>
+            <span><i style="--legend-color: <?= e($revenueChartColors[$seriesIndex % count($revenueChartColors)]) ?>"></i><?= e($series['event']['title']) ?></span>
+          <?php endforeach; ?>
+        </div>
+        <div class="table-wrap revenue-details-table">
+          <h3>Umsatzdetails</h3>
+          <table class="admin-lux-table">
+            <thead><tr><th>Event</th><th>Verkaufte Tickets</th><th>Hotelpakete</th><th>Getränkepakete</th><th>Gesamt</th></tr></thead>
+            <tbody>
+              <?php foreach ($adminRevenueComparison['series'] as $series): ?>
+                <?php $totals = getRevenueTotalsBySourceTypes((string) $series['event']['id'], $adminRevenueSourceTypes, $adminRevenueRange, $adminEvents); ?>
+                <tr>
+                  <td><strong><?= e($series['event']['title']) ?></strong><span><?= e($series['event']['city']) ?> / <?= e($series['event']['date']) ?></span></td>
+                  <td><?= ($adminRevenueSourceTypes === 'all' || in_array('ticket', $adminRevenueSourceTypes, true)) ? e(number_format((float) $totals['ticket'], 0, ',', '.')) . ' EUR' : '–' ?></td>
+                  <td><?= ($adminRevenueSourceTypes === 'all' || in_array('hotel_package', $adminRevenueSourceTypes, true)) ? e(number_format((float) $totals['hotel_package'], 0, ',', '.')) . ' EUR' : '–' ?></td>
+                  <td><?= ($adminRevenueSourceTypes === 'all' || in_array('drink_package', $adminRevenueSourceTypes, true)) ? e(number_format((float) $totals['drink_package'], 0, ',', '.')) . ' EUR' : '–' ?></td>
+                  <td><strong><?= e(number_format((float) $totals['total'], 0, ',', '.')) ?> EUR</strong></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </section>
       <div class="revenue-report-grid">
         <?php foreach ($adminRevenueReports as $title => $items): ?>
           <article class="premium-card revenue-chart-card">

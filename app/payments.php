@@ -173,7 +173,8 @@ function hotmess_ensure_payment_tables(): void
     db()->exec(
         "CREATE TABLE IF NOT EXISTS platform_revenue_transactions (
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            source_type ENUM('tickets', 'hotels', 'packages', 'memberships', 'partner_offers', 'sponsoring', 'referrals', 'vip_services', 'concierge') NOT NULL,
+            event_id VARCHAR(120) NULL,
+            source_type ENUM('ticket', 'hotel_package', 'drink_package', 'membership', 'package', 'vip', 'partner', 'tickets', 'hotels', 'packages', 'memberships', 'partner_offers', 'sponsoring', 'referrals', 'vip_services', 'concierge') NOT NULL,
             source_id VARCHAR(120) NOT NULL,
             label VARCHAR(190) NULL,
             amount DECIMAL(12,2) NOT NULL DEFAULT 0,
@@ -181,9 +182,12 @@ function hotmess_ensure_payment_tables(): void
             city_id VARCHAR(120) NULL,
             user_id INT UNSIGNED NULL,
             payment_session_id INT UNSIGNED NULL,
+            payment_status ENUM('paid', 'pending', 'failed', 'refunded', 'cancelled') NOT NULL DEFAULT 'paid',
             metadata JSON NULL,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX platform_revenue_transactions_event_idx (event_id, created_at),
             INDEX platform_revenue_transactions_source_idx (source_type, source_id),
+            INDEX platform_revenue_transactions_payment_status_idx (payment_status, created_at),
             INDEX platform_revenue_transactions_created_idx (created_at),
             INDEX platform_revenue_transactions_payment_idx (payment_session_id),
             CONSTRAINT platform_revenue_transactions_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -191,6 +195,8 @@ function hotmess_ensure_payment_tables(): void
     );
     hotmess_payments_add_column('platform_revenue_transactions', 'label', 'VARCHAR(190) NULL');
     hotmess_payments_add_column('platform_revenue_transactions', 'payment_session_id', 'INT UNSIGNED NULL');
+    hotmess_payments_add_column('platform_revenue_transactions', 'event_id', 'VARCHAR(120) NULL');
+    hotmess_payments_add_column('platform_revenue_transactions', 'payment_status', "ENUM('paid', 'pending', 'failed', 'refunded', 'cancelled') NOT NULL DEFAULT 'paid'");
 
     if (hotmess_payments_table_exists('ticket_orders')) {
         db()->exec(
@@ -612,10 +618,12 @@ function hotmess_record_revenue_transaction(string $sourceType, string $sourceId
         return;
     }
 
+    $eventId = in_array($sourceType, ['ticket', 'tickets'], true) ? $sourceId : null;
     db()->prepare(
-        'INSERT INTO platform_revenue_transactions (source_type, source_id, label, amount, currency, city_id, user_id, payment_session_id, metadata)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO platform_revenue_transactions (event_id, source_type, source_id, label, amount, currency, city_id, user_id, payment_session_id, payment_status, metadata)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, "paid", ?)'
     )->execute([
+        $eventId,
         $sourceType,
         $sourceId,
         $label,
@@ -655,7 +663,7 @@ function hotmess_live_revenue_transactions(): array
 {
     hotmess_ensure_payment_tables();
     $stmt = db()->query(
-        'SELECT source_type AS sourceType, source_id AS sourceId, COALESCE(label, source_id) AS label, amount, currency, COALESCE(city_id, "") AS city, COALESCE(CAST(user_id AS CHAR), "") AS userId, created_at AS createdAt
+        'SELECT event_id AS eventId, source_type AS sourceType, source_id AS sourceId, COALESCE(label, source_id) AS label, amount, currency, COALESCE(city_id, "") AS city, COALESCE(CAST(user_id AS CHAR), "") AS userId, payment_status AS paymentStatus, created_at AS createdAt
          FROM platform_revenue_transactions
          ORDER BY created_at DESC
          LIMIT 100'

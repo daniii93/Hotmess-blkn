@@ -1153,16 +1153,20 @@ CREATE TABLE IF NOT EXISTS platform_automation_rules (
 
 CREATE TABLE IF NOT EXISTS platform_revenue_transactions (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  source_type ENUM('tickets', 'hotels', 'packages', 'memberships', 'partner_offers', 'sponsoring', 'referrals', 'vip_services', 'concierge') NOT NULL,
+  event_id VARCHAR(120) NULL,
+  source_type ENUM('ticket', 'hotel_package', 'drink_package', 'membership', 'package', 'vip', 'partner', 'tickets', 'hotels', 'packages', 'memberships', 'partner_offers', 'sponsoring', 'referrals', 'vip_services', 'concierge') NOT NULL,
   source_id VARCHAR(120) NOT NULL,
   amount DECIMAL(12,2) NOT NULL DEFAULT 0,
   currency CHAR(3) NOT NULL DEFAULT 'EUR',
   city_id VARCHAR(120) NULL,
   user_id INT UNSIGNED NULL,
+  payment_status ENUM('paid', 'pending', 'failed', 'refunded', 'cancelled') NOT NULL DEFAULT 'paid',
   metadata JSON NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT platform_revenue_transactions_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX platform_revenue_transactions_event_idx (event_id, created_at),
   INDEX platform_revenue_transactions_source_idx (source_type, source_id),
+  INDEX platform_revenue_transactions_payment_idx (payment_status, created_at),
   INDEX platform_revenue_transactions_city_idx (city_id),
   INDEX platform_revenue_transactions_created_idx (created_at)
 );

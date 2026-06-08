@@ -6411,6 +6411,206 @@ button {
   pointer-events: none;
 }
 
+.revenue-comparison-card {
+  margin: 1.25rem 0;
+  overflow: hidden;
+}
+
+.revenue-comparison-filter {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.revenue-filter-block {
+  display: grid;
+  gap: .75rem;
+  padding: 1rem;
+  border: 1px solid rgba(229, 195, 140, .18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .035);
+}
+
+.revenue-filter-block > span {
+  color: var(--muted);
+  font-size: .76rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.revenue-range-row,
+.revenue-source-row {
+  display: flex;
+  gap: .6rem;
+  overflow-x: auto;
+  padding-bottom: .15rem;
+  scrollbar-width: thin;
+}
+
+.revenue-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: .72rem 1rem;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 999px;
+  background: rgba(20, 20, 22, .82);
+  color: rgba(255, 255, 255, .76);
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, color .2s ease, transform .2s ease;
+}
+
+.revenue-chip input,
+.revenue-event-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.revenue-chip:hover,
+.revenue-chip.is-active {
+  border-color: rgba(229, 195, 140, .72);
+  background: rgba(229, 195, 140, .14);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.revenue-chip.is-soft-disabled {
+  opacity: .55;
+}
+
+.revenue-event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: .75rem;
+}
+
+.revenue-event-option {
+  position: relative;
+  display: grid;
+  gap: .35rem;
+  min-height: 88px;
+  padding: .9rem 1rem;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .035);
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.revenue-event-option strong {
+  color: #fff;
+  line-height: 1.2;
+}
+
+.revenue-event-option span {
+  color: var(--muted);
+  font-size: .86rem;
+}
+
+.revenue-event-option.is-active,
+.revenue-event-option:hover {
+  border-color: rgba(229, 195, 140, .62);
+  background: rgba(229, 195, 140, .11);
+  transform: translateY(-1px);
+}
+
+.revenue-comparison-kpis {
+  margin: 1rem 0;
+}
+
+.revenue-line-chart-wrap {
+  width: 100%;
+  min-height: 310px;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(229, 195, 140, .11), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, .018));
+}
+
+.revenue-line-chart {
+  display: block;
+  min-width: 720px;
+  width: 100%;
+  height: 320px;
+}
+
+.revenue-line-chart circle {
+  cursor: help;
+  transition: r .18s ease, filter .18s ease;
+}
+
+.revenue-line-chart circle:hover {
+  r: 10px;
+  filter: drop-shadow(0 0 12px rgba(229, 195, 140, .45));
+}
+
+.revenue-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem 1rem;
+  margin: .85rem 0 1.2rem;
+}
+
+.revenue-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: rgba(255, 255, 255, .78);
+  font-size: .9rem;
+}
+
+.revenue-chart-legend i {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: var(--legend-color);
+  box-shadow: 0 0 14px rgba(229, 195, 140, .25);
+}
+
+.revenue-details-table h3 {
+  margin: 0 0 .85rem;
+  color: #fff;
+}
+
+@media (min-width: 980px) {
+  .revenue-comparison-filter {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.7fr);
+    align-items: start;
+  }
+
+  .revenue-comparison-filter .revenue-filter-block:last-of-type {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .revenue-comparison-card {
+    margin-inline: -.4rem;
+    border-radius: 18px;
+  }
+
+  .revenue-event-grid {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: .25rem;
+  }
+
+  .revenue-event-option {
+    min-width: 240px;
+  }
+
+  .revenue-details-table table {
+    min-width: 720px;
+  }
+}
+
 .sponsor-product-card {
   display: grid;
   gap: 12px;

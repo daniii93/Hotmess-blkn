@@ -1218,3 +1218,49 @@ if (document.querySelector(".chat-window")) {
     }
   }, 15000);
 }
+
+document.querySelectorAll("[data-revenue-comparison-filter]").forEach((form) => {
+  const eventInputs = [...form.querySelectorAll("input[name='revenueEvents[]']")];
+  const sourceInputs = [...form.querySelectorAll("input[name='revenueSourceTypes[]']")];
+  const allSourceInput = sourceInputs.find((input) => input.value === "all");
+
+  const syncEventLimit = (changedInput) => {
+    const selected = eventInputs.filter((input) => input.checked);
+    if (selected.length > 3 && changedInput) {
+      changedInput.checked = false;
+      window.alert("Du kannst maximal 3 Events vergleichen.");
+    }
+    eventInputs.forEach((input) => {
+      const card = input.closest(".revenue-event-option");
+      if (card) card.classList.toggle("is-active", input.checked);
+    });
+  };
+
+  const syncSourceTypes = (changedInput) => {
+    if (!allSourceInput) return;
+    if (changedInput && changedInput.value === "all" && changedInput.checked) {
+      sourceInputs.forEach((input) => {
+        if (input !== allSourceInput) input.checked = false;
+      });
+    } else if (changedInput && changedInput.value !== "all" && changedInput.checked) {
+      allSourceInput.checked = false;
+    }
+
+    const selectedSpecific = sourceInputs.filter((input) => input.value !== "all" && input.checked);
+    if (selectedSpecific.length === 0) {
+      allSourceInput.checked = true;
+    }
+
+    sourceInputs.forEach((input) => {
+      const chip = input.closest(".revenue-chip");
+      if (!chip) return;
+      chip.classList.toggle("is-active", input.checked);
+      chip.classList.toggle("is-soft-disabled", allSourceInput.checked && input.value !== "all");
+    });
+  };
+
+  eventInputs.forEach((input) => input.addEventListener("change", () => syncEventLimit(input)));
+  sourceInputs.forEach((input) => input.addEventListener("change", () => syncSourceTypes(input)));
+  syncEventLimit();
+  syncSourceTypes();
+});
