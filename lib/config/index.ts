@@ -1,0 +1,1 @@
+export { platformConfig } from "./platform";

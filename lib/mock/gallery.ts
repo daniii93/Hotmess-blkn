@@ -1,0 +1,43 @@
+import type { GalleryItem } from "../../types";
+import { platformConfig } from "../config/platform";
+
+export const galleryItems: GalleryItem[] = [
+  {
+    id: "gallery-innsbruck-aftermovie",
+    title: "Innsbruck Private Weekend Aftermovie",
+    slug: "innsbruck-private-weekend-aftermovie",
+    city: "Innsbruck",
+    eventId: "hm-innsbruck-2026",
+    eventName: "HOTMESS BLKN: Innsbruck Private Weekend",
+    eventDate: "2026-09-12",
+    mediaType: "aftermovie",
+    coverImage: platformConfig.assets.community,
+    images: [platformConfig.assets.community, platformConfig.assets.waitlist, platformConfig.assets.packages],
+    videoUrl: "https://player.vimeo.com/video/000000001",
+    videoLength: "02:48",
+    description: "Cinematic archive of the private Innsbruck weekend.",
+    photographer: "HOTMESS Studio",
+    partnerIds: ["signature-city-stay", "midnight-bar"],
+    sponsorIds: ["black-room-sponsor"],
+    visibility: "public",
+    status: "published",
+  },
+  {
+    id: "gallery-vienna-passport",
+    title: "Vienna Passport Night",
+    slug: "vienna-passport-night",
+    city: "Vienna",
+    eventId: "hm-vienna-2026",
+    eventName: "HOTMESS Passport Night Vienna",
+    eventDate: "2026-10-03",
+    mediaType: "photos",
+    coverImage: platformConfig.assets.waitlist,
+    images: [platformConfig.assets.waitlist, platformConfig.assets.community, platformConfig.assets.editorial],
+    description: "Editorial stills from a members-first Vienna chapter.",
+    photographer: "Mira Studio",
+    partnerIds: ["late-checkout-vienna"],
+    sponsorIds: [],
+    visibility: "members_only",
+    status: "published",
+  },
+];

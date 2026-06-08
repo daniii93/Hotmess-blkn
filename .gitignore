@@ -1,0 +1,31 @@
+.tools/
+hotmess-blkn-hostinger-ready/
+*.zip
+
+# Runtime secrets
+app/config.php
+.env
+.env.local
+
+# Runtime/generated data
+uploads/
+storage/
+logs/
+*.log
+*.sql.gz
+*.bak
+*.tmp
+
+# Local/debug scripts
+migrate-*.php
+debug-*.php
+reset-admin.php
+change-admin-password.php
+create-test-member.php
+simulate-ticket-purchase.php
+app/create-admin.php
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

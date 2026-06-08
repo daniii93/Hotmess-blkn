@@ -1,0 +1,8 @@
+DirectoryIndex ../app-page.php
+<FilesMatch "^(create-admin)\.php$">
+  Require all denied
+</FilesMatch>
+RewriteEngine On
+RewriteRule ^$ ../app-page.php [L,QSA]
+RewriteRule ^concierge/?$ ../app-concierge.php [L,QSA]
+RewriteRule ^(events|tickets|hotels|packages|map|offers|profile)/?$ ../app-section.php?section=$1 [L,QSA]

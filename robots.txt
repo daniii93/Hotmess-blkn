@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /login.php
+
+Sitemap: https://hotmess-blkn.com/sitemap.xml

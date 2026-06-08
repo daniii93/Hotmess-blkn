@@ -1,0 +1,343 @@
+/* HOTMESS kinetic polish: visual-only motion layer */
+body {
+  --hm-motion-rotate: -0.45deg;
+  --hm-motion-float-x: 5px;
+  --hm-motion-float-y: -8px;
+  --hm-motion-pulse: 1.018;
+  --hm-motion-speed: 8.5s;
+  --hm-motion-delay: -0.8s;
+}
+
+body:has(.main-nav a[href="/events"].nav-active) {
+  --hm-motion-rotate: -0.7deg;
+  --hm-motion-float-x: 7px;
+  --hm-motion-float-y: -10px;
+  --hm-motion-speed: 7.4s;
+}
+
+body:has(.main-nav a[href="/tickets"].nav-active) {
+  --hm-motion-rotate: 0.45deg;
+  --hm-motion-float-x: -5px;
+  --hm-motion-float-y: -7px;
+  --hm-motion-speed: 6.8s;
+}
+
+body:has(.main-nav a[href="/hotels"].nav-active),
+body:has(.main-nav a[href="/travel"].nav-active) {
+  --hm-motion-rotate: -0.28deg;
+  --hm-motion-float-x: 4px;
+  --hm-motion-float-y: -12px;
+  --hm-motion-pulse: 1.024;
+  --hm-motion-speed: 9.5s;
+}
+
+body:has(.main-nav a[href="/packages"].nav-active) {
+  --hm-motion-rotate: 0.62deg;
+  --hm-motion-float-x: -7px;
+  --hm-motion-float-y: -8px;
+  --hm-motion-speed: 8.1s;
+}
+
+body:has(.main-nav a[href="/community"].nav-active) {
+  --hm-motion-rotate: -0.5deg;
+  --hm-motion-float-x: 6px;
+  --hm-motion-float-y: -5px;
+  --hm-motion-speed: 7.8s;
+}
+
+body:has(.main-nav a[href="/membership"].nav-active) {
+  --hm-motion-rotate: 0.36deg;
+  --hm-motion-float-x: -3px;
+  --hm-motion-float-y: -10px;
+  --hm-motion-pulse: 1.028;
+  --hm-motion-speed: 10s;
+}
+
+body:has(.main-nav a[href="/app"].nav-active) {
+  --hm-motion-rotate: -0.2deg;
+  --hm-motion-float-x: 8px;
+  --hm-motion-float-y: -6px;
+  --hm-motion-speed: 6.9s;
+}
+
+body:has(.main-nav a[href="/partners"].nav-active) {
+  --hm-motion-rotate: 0.52deg;
+  --hm-motion-float-x: -6px;
+  --hm-motion-float-y: -9px;
+  --hm-motion-speed: 8.8s;
+}
+
+body:has(.main-nav a[href="/gallery"].nav-active) {
+  --hm-motion-rotate: -0.82deg;
+  --hm-motion-float-x: 9px;
+  --hm-motion-float-y: -6px;
+  --hm-motion-pulse: 1.034;
+  --hm-motion-speed: 7.1s;
+}
+
+body:has(.main-nav a[href="/account"].nav-active),
+body:has(.main-nav a[href="/profile.php"].nav-active) {
+  --hm-motion-rotate: 0.22deg;
+  --hm-motion-float-x: -4px;
+  --hm-motion-float-y: -7px;
+  --hm-motion-speed: 9.2s;
+}
+
+body:has(.main-nav a[href="/admin"].nav-active),
+body:has(.main-nav a[href="/admin-sales.php"].nav-active),
+body:has(.main-nav a[href="/organizer-messages.php"].nav-active) {
+  --hm-motion-rotate: -0.16deg;
+  --hm-motion-float-x: 3px;
+  --hm-motion-float-y: -4px;
+  --hm-motion-pulse: 1.012;
+  --hm-motion-speed: 11s;
+}
+
+body:has(.main-nav a[href="/chat"].nav-active) {
+  --hm-motion-rotate: 0.26deg;
+  --hm-motion-float-x: -5px;
+  --hm-motion-float-y: -5px;
+  --hm-motion-speed: 7.6s;
+}
+
+h1,
+.hero-content h1,
+.luxury-hero h1,
+.partners-hero h1,
+.concierge-hero h1,
+.legal-hero h1,
+.platform-page h1 {
+  animation: hmTextAlive var(--hm-motion-speed) ease-in-out infinite;
+  animation-delay: var(--hm-motion-delay);
+  transform-origin: 48% 58%;
+}
+
+.eyebrow,
+.section-kicker {
+  animation: hmTextFlicker calc(var(--hm-motion-speed) * 0.82) steps(2, end) infinite;
+}
+
+.hero-lead,
+.section-header p,
+.luxury-hero p,
+h2,
+h3 {
+  animation: hmSoftSway calc(var(--hm-motion-speed) * 1.22) ease-in-out infinite;
+}
+
+.hero-image,
+.image-band,
+.split-media img,
+.concierge-phone-shell,
+.gallery-featured-video,
+.partners-hero__image,
+.platform-page img {
+  animation: hmImageDrift calc(var(--hm-motion-speed) * 1.35) ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform, filter;
+}
+
+.card,
+.event-card,
+.hotel-card,
+.package-card,
+.partner-card,
+.membership-tier-card,
+.gallery-card,
+.account-card,
+.admin-card,
+.premium-card,
+.concierge-chat-card,
+.concierge-recommendation-card,
+.sponsor-product-card,
+.crm-status-card {
+  animation: hmCardFloat calc(var(--hm-motion-speed) * 1.1) ease-in-out infinite;
+  animation-delay: calc(var(--hm-motion-delay) - 0.5s);
+  will-change: transform;
+}
+
+.card:nth-child(3n + 2),
+.event-card:nth-child(3n + 2),
+.hotel-card:nth-child(3n + 2),
+.package-card:nth-child(3n + 2),
+.partner-card:nth-child(3n + 2),
+.gallery-card:nth-child(3n + 2),
+.account-card:nth-child(3n + 2),
+.admin-card:nth-child(3n + 2) {
+  animation-name: hmCardLean;
+  animation-delay: calc(var(--hm-motion-delay) - 1.7s);
+}
+
+.card:nth-child(3n + 3),
+.event-card:nth-child(3n + 3),
+.hotel-card:nth-child(3n + 3),
+.package-card:nth-child(3n + 3),
+.partner-card:nth-child(3n + 3),
+.gallery-card:nth-child(3n + 3),
+.account-card:nth-child(3n + 3),
+.admin-card:nth-child(3n + 3) {
+  animation-name: hmCardPulse;
+  animation-delay: calc(var(--hm-motion-delay) - 2.6s);
+}
+
+.main-nav .nav-active {
+  animation: hmActiveNav calc(var(--hm-motion-speed) * 0.7) ease-in-out infinite;
+}
+
+@keyframes hmTextAlive {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    text-shadow: 0 0 0 rgba(229, 195, 140, 0);
+  }
+
+  28% {
+    transform: translate3d(calc(var(--hm-motion-float-x) * 0.22), -2px, 0) rotate(var(--hm-motion-rotate));
+  }
+
+  58% {
+    transform: translate3d(calc(var(--hm-motion-float-x) * -0.18), 1px, 0) rotate(calc(var(--hm-motion-rotate) * -0.72));
+    text-shadow: 0 0 22px rgba(229, 195, 140, 0.1);
+  }
+
+  76% {
+    transform: translate3d(1px, -1px, 0) rotate(calc(var(--hm-motion-rotate) * 0.42));
+  }
+}
+
+@keyframes hmTextFlicker {
+  0%,
+  100% {
+    opacity: 0.96;
+    transform: translateX(0);
+  }
+
+  48% {
+    opacity: 1;
+    transform: translateX(1px);
+  }
+
+  52% {
+    opacity: 0.86;
+    transform: translateX(-1px);
+  }
+}
+
+@keyframes hmSoftSway {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(calc(var(--hm-motion-float-x) * 0.18), -2px, 0);
+  }
+}
+
+@keyframes hmImageDrift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1.02);
+    filter: saturate(1);
+  }
+
+  34% {
+    transform: translate3d(calc(var(--hm-motion-float-x) * 0.45), calc(var(--hm-motion-float-y) * 0.42), 0) rotate(calc(var(--hm-motion-rotate) * 0.55)) scale(var(--hm-motion-pulse));
+    filter: saturate(1.08);
+  }
+
+  68% {
+    transform: translate3d(calc(var(--hm-motion-float-x) * -0.34), 3px, 0) rotate(calc(var(--hm-motion-rotate) * -0.48)) scale(1.015);
+    filter: saturate(0.96);
+  }
+}
+
+@keyframes hmCardFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate3d(calc(var(--hm-motion-float-x) * 0.22), calc(var(--hm-motion-float-y) * 0.28), 0) rotate(calc(var(--hm-motion-rotate) * 0.48));
+  }
+}
+
+@keyframes hmCardLean {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  44% {
+    transform: translate3d(calc(var(--hm-motion-float-x) * -0.18), -3px, 0) rotate(calc(var(--hm-motion-rotate) * -0.62));
+  }
+}
+
+@keyframes hmCardPulse {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  52% {
+    transform: translate3d(0, -2px, 0) scale(1.006);
+  }
+}
+
+@keyframes hmActiveNav {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(229, 195, 140, 0);
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    box-shadow: 0 10px 24px rgba(229, 195, 140, 0.14);
+    transform: translateY(-1px) rotate(calc(var(--hm-motion-rotate) * 0.55));
+  }
+}
+
+@media (max-width: 760px) {
+  body {
+    --hm-motion-float-x: 3px;
+    --hm-motion-float-y: -5px;
+    --hm-motion-pulse: 1.01;
+    --hm-motion-speed: 10s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  h1,
+  h2,
+  h3,
+  .eyebrow,
+  .section-kicker,
+  .hero-lead,
+  .section-header p,
+  .luxury-hero p,
+  .hero-image,
+  .image-band,
+  .split-media img,
+  .concierge-phone-shell,
+  .gallery-featured-video,
+  .partners-hero__image,
+  .platform-page img,
+  .card,
+  .event-card,
+  .hotel-card,
+  .package-card,
+  .partner-card,
+  .membership-tier-card,
+  .gallery-card,
+  .account-card,
+  .admin-card,
+  .premium-card,
+  .concierge-chat-card,
+  .concierge-recommendation-card,
+  .sponsor-product-card,
+  .crm-status-card,
+  .main-nav .nav-active {
+    animation: none !important;
+  }
+}
