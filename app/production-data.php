@@ -18,15 +18,20 @@ function hotmess_system_status(): array
         'environment' => 'production-prepared',
         'mode' => getenv('NEXT_PUBLIC_SUPABASE_URL') ? 'supabase-ready' : 'mock-fallback',
         'integrations' => [
-            ['name' => 'Supabase', 'status' => getenv('NEXT_PUBLIC_SUPABASE_URL') ? 'configured' : 'missing'],
+            ['name' => 'Supabase', 'status' => (getenv('SUPABASE_URL') || getenv('NEXT_PUBLIC_SUPABASE_URL')) ? 'configured' : 'missing'],
             ['name' => 'Stripe', 'status' => getenv('STRIPE_SECRET_KEY') ? 'configured' : 'placeholder'],
             ['name' => 'Resend', 'status' => getenv('RESEND_API_KEY') ? 'configured' : 'mock-mail'],
+            ['name' => 'Postmark', 'status' => getenv('POSTMARK_SERVER_TOKEN') ? 'configured' : 'optional-alternative'],
+            ['name' => 'Firebase Push', 'status' => getenv('FIREBASE_PROJECT_ID') ? 'configured' : 'setup-required'],
+            ['name' => 'Clerk', 'status' => getenv('CLERK_SECRET_KEY') ? 'configured' : 'optional-auth-review'],
+            ['name' => 'Auth.js', 'status' => getenv('AUTH_SECRET') ? 'configured' : 'nextjs-only-review'],
+            ['name' => 'Cloudflare R2', 'status' => getenv('R2_BUCKET_NAME') && getenv('R2_ACCOUNT_ID') ? 'configured' : 'storage-placeholder'],
             ['name' => 'OpenAI', 'status' => getenv('OPENAI_API_KEY') ? 'configured' : 'ai-ready-placeholder'],
             ['name' => 'Analytics', 'status' => getenv('ANALYTICS_WRITE_KEY') ? 'configured' : 'placeholder'],
         ],
         'deployments' => [['version' => '2026-06-02-platform', 'status' => 'latest', 'createdAt' => '2026-06-02']],
         'errors' => [['title' => 'No live error tracker connected', 'severity' => 'warning']],
-        'tasks' => ['Connect email provider', 'Legal review', 'Configure backups', 'Production analytics review'],
+        'tasks' => ['Create tech@hotmess-blkn.com', 'Register external service accounts', 'Connect email provider', 'Legal review', 'Configure backups', 'Production analytics review'],
     ];
 }
 
