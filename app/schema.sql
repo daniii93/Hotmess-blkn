@@ -1321,6 +1321,32 @@ CREATE TABLE IF NOT EXISTS platform_tasks (
   INDEX platform_tasks_status_idx (status, priority)
 );
 
+CREATE TABLE IF NOT EXISTS media_assets (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  storage_provider ENUM('local', 'r2') NOT NULL DEFAULT 'local',
+  bucket VARCHAR(190) NULL,
+  folder VARCHAR(190) NOT NULL,
+  path VARCHAR(255) NOT NULL,
+  public_url VARCHAR(500) NULL,
+  media_type VARCHAR(40) NOT NULL,
+  mime_type VARCHAR(120) NOT NULL,
+  file_size INT UNSIGNED NOT NULL DEFAULT 0,
+  width INT UNSIGNED NULL,
+  height INT UNSIGNED NULL,
+  duration DECIMAL(10,2) NULL,
+  thumbnail_url VARCHAR(500) NULL,
+  uploaded_by INT UNSIGNED NULL,
+  related_module VARCHAR(80) NULL,
+  related_id VARCHAR(120) NULL,
+  status ENUM('active', 'processing', 'failed', 'archived', 'deleted') NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX media_assets_status_idx (status, created_at),
+  INDEX media_assets_module_idx (related_module, related_id),
+  INDEX media_assets_type_idx (media_type, mime_type),
+  INDEX media_assets_uploader_idx (uploaded_by, created_at)
+);
+
 CREATE TABLE IF NOT EXISTS email_logs (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   to_email VARCHAR(190) NOT NULL,

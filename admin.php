@@ -16,6 +16,7 @@ require_once __DIR__ . '/app/crm-data.php';
 require_once __DIR__ . '/app/leads-data.php';
 require_once __DIR__ . '/app/admin-crud.php';
 require_once __DIR__ . '/app/revenue-data.php';
+require_once __DIR__ . '/app/storage-service.php';
 
 $admin = require_admin();
 $adminTab = (string) ($_GET['tab'] ?? 'overview');
@@ -81,6 +82,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     $action = $_POST['action'] ?? 'single';
+
+    if ($action === 'media_upload') {
+        try {
+            $asset = hotmess_handle_admin_media_upload($_POST, $_FILES, (int) $admin['id']);
+            flash('Medium wurde gespeichert: ' . (string) ($asset['public_url'] ?? $asset['path']));
+        } catch (Throwable $exception) {
+            flash('Medien-Upload fehlgeschlagen: ' . $exception->getMessage());
+        }
+        redirect('/admin/' . trim((string) ($_POST['return_tab'] ?? 'media'), '/'));
+    }
 
     $crudResult = null;
     try {
@@ -331,6 +342,38 @@ function admin_query(array $overrides = []): string
     return 'admin.php?' . http_build_query($query);
 }
 
+function render_admin_media_upload_panel(string $module, array $categoryKeys): void
+{
+    $categories = hotmess_media_categories();
+    ?>
+    <section class="platform-section admin-media-upload-panel">
+      <div class="section-heading platform-heading">
+        <p class="eyebrow">Medien Upload</p>
+        <h2><?= e(ucfirst($module)) ?> Medien speichern.</h2>
+        <p>Uploads laufen ueber die zentrale Storage-Schicht mit Cloudflare R2 Vorbereitung und lokalem Fallback.</p>
+      </div>
+      <form class="gallery-filter inquiry-admin-filter" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>" />
+        <input type="hidden" name="action" value="media_upload" />
+        <input type="hidden" name="related_module" value="<?= e($module) ?>" />
+        <input type="hidden" name="return_tab" value="<?= e($module) ?>" />
+        <label>Medientyp
+          <select name="media_category" required>
+            <?php foreach ($categoryKeys as $key): ?>
+              <?php if (!isset($categories[$key])) { continue; } ?>
+              <option value="<?= e($key) ?>"><?= e($categories[$key]['label']) ?> / max <?= e(hotmess_media_human_size((int) $categories[$key]['maxSize'])) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+        <label>Bezugs-ID optional<input name="related_id" placeholder="Slug, Gallery-ID oder Partner-ID" /></label>
+        <label>Datei<input type="file" name="media_file" required /></label>
+        <button class="button primary" type="submit">Medium hochladen</button>
+        <a class="button ghost" href="/admin/media">Media Library</a>
+      </form>
+    </section>
+    <?php
+}
+
 $adminTitles = [
     'overview' => ['Admin Control Center', 'Ueberblick ueber Events, Hotels, Packages, Community, Membership, App, Partner und offene Anfragen.'],
     'members' => ['Bewerbermanagement', 'Verwalte Bewerber, Warteliste und Freigaben mit Suche, Filter und Massenaktionen.'],
@@ -378,6 +421,7 @@ render_header($adminTitle[0]);
       <a class="<?= $adminTab === 'app' ? 'is-active' : '' ?>" href="/admin/app">App</a>
       <a class="<?= $adminTab === 'partners' ? 'is-active' : '' ?>" href="/admin/partners">Partner</a>
       <a class="<?= $adminTab === 'gallery' ? 'is-active' : '' ?>" href="/admin/gallery">Gallery</a>
+      <a href="/admin/media">Media</a>
       <a class="<?= $adminTab === 'inquiries' ? 'is-active' : '' ?>" href="/admin/inquiries">Inquiries</a>
       <a class="<?= $adminTab === 'leads' ? 'is-active' : '' ?>" href="/admin/leads">Leads</a>
       <a class="<?= $adminTab === 'pipeline' ? 'is-active' : '' ?>" href="/admin/pipeline">Pipeline</a>
@@ -398,6 +442,18 @@ render_header($adminTitle[0]);
 
   <?php if (isset(hotmess_admin_crud_modules()[$adminTab])): ?>
     <?php render_admin_crud_panel($adminTab); ?>
+  <?php endif; ?>
+
+  <?php if ($adminTab === 'events'): ?>
+    <?php render_admin_media_upload_panel('events', ['event_image']); ?>
+  <?php elseif ($adminTab === 'hotels'): ?>
+    <?php render_admin_media_upload_panel('hotels', ['hotel_image']); ?>
+  <?php elseif ($adminTab === 'packages'): ?>
+    <?php render_admin_media_upload_panel('packages', ['package_image']); ?>
+  <?php elseif ($adminTab === 'partners'): ?>
+    <?php render_admin_media_upload_panel('partners', ['partner_logo', 'event_image']); ?>
+  <?php elseif ($adminTab === 'gallery'): ?>
+    <?php render_admin_media_upload_panel('gallery', ['gallery_image', 'gallery_video']); ?>
   <?php endif; ?>
 
   <?php if ($adminTab === 'overview'): ?>

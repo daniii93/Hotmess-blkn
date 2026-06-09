@@ -32,6 +32,7 @@ function db(): PDO
 
 require_once __DIR__ . '/member-safety.php';
 require_once __DIR__ . '/email-service.php';
+require_once __DIR__ . '/storage-service.php';
 
 function authenticated_user(): ?array
 {
@@ -1001,57 +1002,29 @@ function handle_chat_media_upload(?array $file): array
         return ['text', null];
     }
 
-    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-        throw new RuntimeException('Die Datei konnte nicht hochgeladen werden.');
+    $mime = hotmess_detect_mime_type((string) ($file['tmp_name'] ?? ''));
+    $categoryKey = str_starts_with($mime, 'video/')
+        ? 'chat_video'
+        : (str_starts_with($mime, 'audio/') ? 'chat_audio' : 'chat_image');
+    $category = hotmess_media_category($categoryKey);
+
+    if (!$category) {
+        throw new RuntimeException('Diese Chat-Datei ist nicht erlaubt.');
     }
 
-    $tmpName = (string) ($file['tmp_name'] ?? '');
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mime = (string) $finfo->file($tmpName);
-    $allowed = [
-        'image/jpeg' => ['image', 'jpg'],
-        'image/png' => ['image', 'png'],
-        'image/webp' => ['image', 'webp'],
-        'video/mp4' => ['video', 'mp4'],
-        'video/quicktime' => ['video', 'mov'],
-        'audio/mpeg' => ['audio', 'mp3'],
-        'audio/mp4' => ['audio', 'm4a'],
-        'audio/wav' => ['audio', 'wav'],
-        'audio/webm' => ['audio', 'webm'],
+    $user = authenticated_user();
+    $asset = uploadMedia($file, (string) $category['folder'], $category, (int) $category['maxSize'], [
+        'uploaded_by' => $user ? (int) $user['id'] : null,
+        'related_module' => 'chat',
+        'prefix' => $categoryKey,
+    ]);
+
+    return [
+        (string) $asset['media_type'],
+        ltrim((string) ($asset['public_url'] ?? $asset['path']), '/'),
+        (int) $asset['file_size'],
+        (string) $asset['mime_type'],
     ];
-
-    if (!isset($allowed[$mime])) {
-        throw new RuntimeException('Erlaubt sind Bilder JPG, PNG, WEBP, Videos MP4/MOV und Audio MP3, M4A, WAV oder WEBM.');
-    }
-
-    [$type, $extension] = $allowed[$mime];
-    $size = (int) ($file['size'] ?? 0);
-    $maxSize = match ($type) {
-        'image' => 10 * 1024 * 1024,
-        'video' => 100 * 1024 * 1024,
-        'audio' => 25 * 1024 * 1024,
-        default => 10 * 1024 * 1024,
-    };
-
-    if ($size <= 0 || $size > $maxSize) {
-        $label = $type === 'video' ? '100 MB' : ($type === 'audio' ? '25 MB' : '10 MB');
-        throw new RuntimeException('Diese Chat-Datei ist zu gross. Limit fuer ' . $type . ': ' . $label . '.');
-    }
-
-    $uploadDir = __DIR__ . '/../uploads/chat-media';
-
-    if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true)) {
-        throw new RuntimeException('Upload-Ordner konnte nicht erstellt werden.');
-    }
-
-    $filename = bin2hex(random_bytes(16)) . '.' . $extension;
-    $target = $uploadDir . '/' . $filename;
-
-    if (!move_uploaded_file($tmpName, $target)) {
-        throw new RuntimeException('Datei konnte nicht gespeichert werden.');
-    }
-
-    return [$type, 'uploads/chat-media/' . $filename, $size, $mime];
 }
 
 function generate_verification_code(array $user, string $type): string

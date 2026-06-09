@@ -10,6 +10,7 @@ require_once __DIR__ . '/app/city-ops-data.php';
 require_once __DIR__ . '/app/platform-os-data.php';
 require_once __DIR__ . '/app/operations-data.php';
 require_once __DIR__ . '/app/email-log.php';
+require_once __DIR__ . '/app/storage-service.php';
 
 $admin = require_admin();
 $page = (string) ($_GET['page'] ?? 'system');
@@ -66,6 +67,7 @@ render_header($title[0]);
   <?php elseif ($page === 'system'): ?>
     <?php $status = hotmess_system_status(); admin_metric_cards(['Mode' => $status['mode'], 'Environment' => $status['environment'], 'Open tasks' => count($status['tasks']), 'Integrations' => count($status['integrations'])]); ?>
     <?php $emailStatus = getEmailProviderStatus(); $lastEmailLog = hotmess_email_latest_log(); ?>
+    <?php $storageStatus = getStorageProviderStatus(); ?>
     <section class="platform-section">
       <div class="section-heading platform-heading">
         <p class="eyebrow">E-Mail Infrastruktur</p>
@@ -74,6 +76,17 @@ render_header($title[0]);
         <?php if (!$emailStatus['configured']): ?><p class="field-hint">RESEND_API_KEY fehlt. Das System arbeitet im Mock-/Log-Modus.</p><?php endif; ?>
         <?php if ($lastEmailLog): ?><p class="field-hint">Letzte E-Mail: <?= e((string) $lastEmailLog['template_key']) ?> / <?= e((string) $lastEmailLog['status']) ?> / <?= e((string) $lastEmailLog['created_at']) ?></p><?php endif; ?>
         <a class="button primary" href="/admin/email">E-Mail-Konsole öffnen</a>
+      </div>
+    </section>
+    <section class="platform-section">
+      <div class="section-heading platform-heading">
+        <p class="eyebrow">Storage / Medien</p>
+        <h2>Cloudflare R2 Status und Media Library.</h2>
+        <p>Provider: <?= e($storageStatus['provider']) ?> / Bucket: <?= e((string) $storageStatus['bucket']) ?> / Public URL: <?= e($storageStatus['publicBaseUrl'] ?: 'nicht gesetzt') ?></p>
+        <?php if (!$storageStatus['configured']): ?><p class="field-hint">Cloudflare R2 nicht konfiguriert. Lokaler Upload-Fallback ist aktiv. Fehlend: <?= e(implode(', ', $storageStatus['missingEnv'])) ?></p><?php endif; ?>
+        <?php if ($storageStatus['lastUpload']): ?><p class="field-hint">Letzter Upload: <?= e((string) $storageStatus['lastUpload']['path']) ?> / <?= e((string) $storageStatus['lastUpload']['status']) ?> / <?= e((string) $storageStatus['lastUpload']['created_at']) ?></p><?php endif; ?>
+        <?php if ($storageStatus['lastError']): ?><p class="field-hint">Letzter Fehler: <?= e((string) $storageStatus['lastError']['path']) ?> / <?= e((string) $storageStatus['lastError']['created_at']) ?></p><?php endif; ?>
+        <a class="button primary" href="/admin/media">Media Library Ã¶ffnen</a>
       </div>
     </section>
     <section class="platform-section"><div class="event-admin-grid"><?php foreach ($status['integrations'] as $integration): ?><article class="premium-card"><span><?= e($integration['status']) ?></span><h3><?= e($integration['name']) ?></h3><p>Production integration status.</p></article><?php endforeach; ?></div></section>
