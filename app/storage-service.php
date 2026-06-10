@@ -262,7 +262,53 @@ function hotmess_store_file_locally(string $source, string $folder, string $file
 
 function createMediaThumbnail(string $path): ?string
 {
-    return null;
+    if (!is_file($path) || !function_exists('imagecreatefromjpeg')) {
+        return null;
+    }
+
+    $mime = hotmess_detect_mime_type($path);
+    $src = match ($mime) {
+        'image/jpeg' => @imagecreatefromjpeg($path),
+        'image/png'  => @imagecreatefrompng($path),
+        'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($path) : null,
+        default      => null,
+    };
+
+    if (!$src) {
+        return null;
+    }
+
+    $srcW = (int) imagesx($src);
+    $srcH = (int) imagesy($src);
+    if ($srcW <= 0) {
+        imagedestroy($src);
+        return null;
+    }
+
+    $thumbW = 320;
+    $thumbH = (int) round($srcH * $thumbW / $srcW);
+    $thumb = imagecreatetruecolor($thumbW, max(1, $thumbH));
+    if (!$thumb) {
+        imagedestroy($src);
+        return null;
+    }
+
+    imagecopyresampled($thumb, $src, 0, 0, 0, 0, $thumbW, $thumbH, $srcW, $srcH);
+    imagedestroy($src);
+
+    $thumbPath = (string) preg_replace('/\.[^.]+$/', '-thumb.jpg', $path);
+    if ($thumbPath === $path || !imagejpeg($thumb, $thumbPath, 85)) {
+        imagedestroy($thumb);
+        return null;
+    }
+
+    imagedestroy($thumb);
+
+    $docRoot = rtrim(str_replace('\\', '/', (string) (realpath(__DIR__ . '/../') ?: dirname(__DIR__))), '/');
+    $absPath = rtrim(str_replace('\\', '/', $thumbPath), '/');
+    $relPath = str_starts_with($absPath, $docRoot) ? ltrim(substr($absPath, strlen($docRoot)), '/') : null;
+
+    return $relPath ? '/' . $relPath : null;
 }
 
 function logMediaUpload(?int $userId, string $path, string $type, int $size, string $status, array $meta = []): ?int

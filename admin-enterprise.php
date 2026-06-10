@@ -86,7 +86,7 @@ render_header($title[0]);
         <?php if (!$storageStatus['configured']): ?><p class="field-hint">Cloudflare R2 nicht konfiguriert. Lokaler Upload-Fallback ist aktiv. Fehlend: <?= e(implode(', ', $storageStatus['missingEnv'])) ?></p><?php endif; ?>
         <?php if ($storageStatus['lastUpload']): ?><p class="field-hint">Letzter Upload: <?= e((string) $storageStatus['lastUpload']['path']) ?> / <?= e((string) $storageStatus['lastUpload']['status']) ?> / <?= e((string) $storageStatus['lastUpload']['created_at']) ?></p><?php endif; ?>
         <?php if ($storageStatus['lastError']): ?><p class="field-hint">Letzter Fehler: <?= e((string) $storageStatus['lastError']['path']) ?> / <?= e((string) $storageStatus['lastError']['created_at']) ?></p><?php endif; ?>
-        <a class="button primary" href="/admin/media">Media Library Ã¶ffnen</a>
+        <a class="button primary" href="/admin/media">Media Library öffnen</a>
       </div>
     </section>
     <section class="platform-section"><div class="event-admin-grid"><?php foreach ($status['integrations'] as $integration): ?><article class="premium-card"><span><?= e($integration['status']) ?></span><h3><?= e($integration['name']) ?></h3><p>Production integration status.</p></article><?php endforeach; ?></div></section>
