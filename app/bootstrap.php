@@ -35,6 +35,7 @@ require_once __DIR__ . '/email-service.php';
 require_once __DIR__ . '/storage-service.php';
 require_once __DIR__ . '/loyalty-data.php';
 require_once __DIR__ . '/referral-data.php';
+require_once __DIR__ . '/checkin-data.php';
 
 function authenticated_user(): ?array
 {
