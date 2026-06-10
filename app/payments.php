@@ -578,6 +578,12 @@ function hotmess_fulfill_ticket_payment(array $payment, array $meta, ?string $st
 
     hotmess_record_revenue_transaction('tickets', (string) ($meta['event_slug'] ?? $payment['source_id']), (string) $payment['source_label'], (float) $payment['amount'], (string) $payment['currency'], (int) $payment['user_id'], (int) $payment['id'], (string) ($meta['event_city'] ?? ''));
     hotmess_queue_payment_email((int) $payment['user_id'], (int) $payment['id'], 'ticket_confirmation', 'Dein HOTMESS Ticket', 'Dein Ticket wurde bezahlt. QR-Tickets findest du in deinem HOTMESS Account unter Ticket Wallet.');
+    try {
+        $loyaltyPoints = max(1, (int) round((float) $payment['amount']));
+        hotmess_loyalty_earn((int) $payment['user_id'], $loyaltyPoints, 'earn', 'ticket', 'Ticket: ' . ($meta['event_title'] ?? $payment['source_label']), (string) $payment['local_reference']);
+        hotmess_loyalty_check_first_event_bonus((int) $payment['user_id']);
+    } catch (Throwable) {}
+
 }
 
 function hotmess_fulfill_membership_payment(array $payment, array $meta, ?string $stripeCustomerId, ?string $stripeSubscriptionId): void
@@ -594,6 +600,13 @@ function hotmess_fulfill_membership_payment(array $payment, array $meta, ?string
 
     hotmess_record_revenue_transaction('memberships', $tierSlug, (string) $payment['source_label'], (float) $payment['amount'], (string) $payment['currency'], (int) $payment['user_id'], (int) $payment['id'], 'Multi-city');
     hotmess_queue_payment_email((int) $payment['user_id'], (int) $payment['id'], 'membership_welcome', 'Willkommen im HOTMESS Passport', 'Deine Membership ist aktiv. Deine digitale Member Card und Benefits findest du in deinem HOTMESS Account.');
+    try {
+        if (in_array($tierSlug, ['plus', 'black'], true)) {
+            $loyaltyPoints = max(1, (int) round((float) $payment['amount']));
+            hotmess_loyalty_earn((int) $payment['user_id'], $loyaltyPoints, 'earn', 'membership', 'Passport ' . ucfirst($tierSlug) . ' Gebühr', (string) $payment['local_reference']);
+        }
+    } catch (Throwable) {}
+
 }
 
 function hotmess_fulfill_package_payment(array $payment, array $meta, ?string $stripeSessionId): void

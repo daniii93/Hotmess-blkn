@@ -33,6 +33,7 @@ function db(): PDO
 require_once __DIR__ . '/member-safety.php';
 require_once __DIR__ . '/email-service.php';
 require_once __DIR__ . '/storage-service.php';
+require_once __DIR__ . '/loyalty-data.php';
 
 function authenticated_user(): ?array
 {
