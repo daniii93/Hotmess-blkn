@@ -583,6 +583,9 @@ function hotmess_fulfill_ticket_payment(array $payment, array $meta, ?string $st
         hotmess_loyalty_earn((int) $payment['user_id'], $loyaltyPoints, 'earn', 'ticket', 'Ticket: ' . ($meta['event_title'] ?? $payment['source_label']), (string) $payment['local_reference']);
         hotmess_loyalty_check_first_event_bonus((int) $payment['user_id']);
     } catch (Throwable) {}
+    try {
+        hotmess_referral_process_conversion((int) $payment['user_id'], 'ticket', (string) $payment['local_reference'], (float) $payment['amount']);
+    } catch (Throwable) {}
 
 }
 
@@ -606,6 +609,10 @@ function hotmess_fulfill_membership_payment(array $payment, array $meta, ?string
             hotmess_loyalty_earn((int) $payment['user_id'], $loyaltyPoints, 'earn', 'membership', 'Passport ' . ucfirst($tierSlug) . ' Gebühr', (string) $payment['local_reference']);
         }
     } catch (Throwable) {}
+    try {
+        $conversionType = $tierSlug === 'black' ? 'passport_black' : 'passport_plus';
+        hotmess_referral_process_conversion((int) $payment['user_id'], $conversionType, (string) $payment['local_reference'], (float) $payment['amount']);
+    } catch (Throwable) {}
 
 }
 
@@ -621,6 +628,9 @@ function hotmess_fulfill_package_payment(array $payment, array $meta, ?string $s
 
     hotmess_record_revenue_transaction('packages', (string) ($meta['package_slug'] ?? $payment['source_id']), (string) $payment['source_label'], (float) $payment['amount'], (string) $payment['currency'], (int) $payment['user_id'], (int) $payment['id'], (string) ($meta['package_city'] ?? ''));
     hotmess_queue_payment_email((int) $payment['user_id'], (int) $payment['id'], 'package_confirmation', 'Dein HOTMESS Weekend', 'Dein Package wurde bezahlt. Details und Concierge-Hinweise findest du in deinem HOTMESS Account.');
+    try {
+        hotmess_referral_process_conversion((int) $payment['user_id'], 'package', (string) $payment['local_reference'], (float) $payment['amount']);
+    } catch (Throwable) {}
 }
 
 function hotmess_record_revenue_transaction(string $sourceType, string $sourceId, string $label, float $amount, string $currency, int $userId, int $paymentSessionId, string $city = ''): void

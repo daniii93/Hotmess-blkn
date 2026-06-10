@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/app/bootstrap.php';
 require_once __DIR__ . '/app/layout.php';
 require_once __DIR__ . '/app/loyalty-data.php';
+require_once __DIR__ . '/app/referral-data.php';
 
 $user = require_approved_member_or_admin();
 $userId = (int) $user['id'];
@@ -199,6 +200,52 @@ render_header('Passport Wallet | HOTMESS BLKN');
           <?php endif; ?>
         </tbody>
       </table>
+    </div>
+  </section>
+
+  <?php
+    $referralStats = hotmess_referral_stats_for_user($userId);
+    $siteUrl = rtrim((string) (getenv('SITE_URL') ?: (defined('APP_URL') ? APP_URL : 'https://hotmess-blkn.com')), '/');
+    $referralLink = $siteUrl . '/referral?ref=' . urlencode($referralStats['code']);
+    $recentReferrals = hotmess_referral_list_for_user($userId, 5);
+  ?>
+  <section class="platform-section">
+    <div class="section-heading platform-heading">
+      <p class="eyebrow">Einladungen &amp; Empfehlungen</p>
+      <h2>Freunde einladen. Punkte sammeln.</h2>
+    </div>
+    <div style="background:#141210;border:1px solid rgba(214,181,109,.2);border-radius:16px;padding:24px;margin-bottom:16px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:.18em;color:#d6b56d;text-transform:uppercase;margin:0 0 8px;">Dein Referral-Code</p>
+      <p style="font-size:20px;font-weight:900;letter-spacing:.15em;color:#f2d28f;font-family:monospace;margin:0 0 14px;"><?= e($referralStats['code']) ?></p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;">
+        <a href="/account/referrals" class="button primary" style="font-size:13px;padding:9px 18px;">Alle Einladungen ansehen</a>
+        <button onclick="navigator.clipboard.writeText('<?= e(addslashes($referralLink)) ?>').then(()=>alert('Link kopiert!'))" style="padding:9px 18px;border-radius:999px;background:rgba(214,181,109,.12);border:1px solid rgba(214,181,109,.3);color:#d6b56d;font-size:13px;font-weight:700;cursor:pointer;">Link kopieren</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;">
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:22px;font-weight:900;color:#fff;"><?= $referralStats['total'] ?></div>
+          <div style="font-size:11px;color:#6e6660;">Eingeladen</div>
+        </div>
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:22px;font-weight:900;color:#fff;"><?= $referralStats['converted'] ?></div>
+          <div style="font-size:11px;color:#6e6660;">Conversions</div>
+        </div>
+        <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:22px;font-weight:900;color:#d6b56d;"><?= number_format($referralStats['total_points'], 0, ',', '.') ?></div>
+          <div style="font-size:11px;color:#6e6660;">Referral Punkte</div>
+        </div>
+      </div>
+      <?php if (!empty($recentReferrals)): ?>
+        <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,.06);padding-top:14px;">
+          <p style="font-size:11px;font-weight:700;letter-spacing:.12em;color:#6e6660;text-transform:uppercase;margin:0 0 10px;">Letzte Empfehlungen</p>
+          <?php foreach ($recentReferrals as $r): ?>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;">
+              <span style="color:#d9d2c6;"><?= e($r['referred_name']) ?></span>
+              <span style="padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(214,181,109,.1);color:#d6b56d;"><?= e(hotmess_referral_status_label($r['status'])) ?></span>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
     </div>
   </section>
 
