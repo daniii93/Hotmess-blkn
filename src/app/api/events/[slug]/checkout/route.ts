@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getEventBySlug, getRequestUserProfile, signQrToken } from "@/features/events/live-service";
+import { getPublicEnv } from "@/config/env";
+import { getEventBySlug, getRequestUserProfile } from "@/features/events/live-service";
+import { createStripeServerClient } from "@/lib/stripe/server";
+import { createPayPalOrder } from "@/lib/paypal/server";
 
 const checkoutSchema = z.object({
   ticketTypeId: z.string().uuid(),
+  paymentProvider: z.enum(["stripe", "paypal"]).default("stripe"),
+  addons: z
+    .object({
+      tableId: z.string().uuid().optional(),
+      drinkPackageId: z.string().uuid().optional(),
+      birthdayPackageId: z.string().uuid().optional(),
+      fastlane: z.boolean().default(false),
+      hotmessGirlsService: z.boolean().default(false),
+    })
+    .default({ fastlane: false, hotmessGirlsService: false }),
 });
 
 type CheckoutParams = {
@@ -29,6 +42,9 @@ export async function POST(request: Request, { params }: CheckoutParams) {
 
   const ticketType = event.ticketTypes.find((item) => item.id === parsed.data.ticketTypeId);
   if (!ticketType) return NextResponse.json({ error: "Tickettyp nicht gefunden." }, { status: 404 });
+  if (ticketType.quantityTotal !== null && ticketType.quantitySold >= ticketType.quantityTotal) {
+    return NextResponse.json({ error: "Dieser Tickettyp ist ausverkauft." }, { status: 409 });
+  }
 
   const supabase = createSupabaseAdminClient();
   const { data: existing } = await supabase
@@ -58,18 +74,54 @@ export async function POST(request: Request, { params }: CheckoutParams) {
   }
 
   const ticketId = reservation.ticket_id as string;
-  const items = [{ type: "ticket", ticket_type_id: ticketType.id, user_id: profile.id, price_cents: ticketType.priceCents }];
+  const selectedTable = parsed.data.addons.tableId ? event.tables.find((item) => item.id === parsed.data.addons.tableId) : null;
+  const selectedDrink = parsed.data.addons.drinkPackageId
+    ? event.drinkPackages.find((item) => item.id === parsed.data.addons.drinkPackageId)
+    : null;
+  const selectedBirthday = parsed.data.addons.birthdayPackageId
+    ? event.birthdayPackages.find((item) => item.id === parsed.data.addons.birthdayPackageId)
+    : null;
+
+  if (parsed.data.addons.tableId && !selectedTable) return NextResponse.json({ error: "Tisch nicht gefunden." }, { status: 404 });
+  if (parsed.data.addons.drinkPackageId && !selectedDrink) return NextResponse.json({ error: "Getraenkepaket nicht gefunden." }, { status: 404 });
+  if (parsed.data.addons.birthdayPackageId && !selectedBirthday) return NextResponse.json({ error: "Geburtstagspaket nicht gefunden." }, { status: 404 });
+  if (selectedDrink?.requiresTable && !selectedTable) {
+    return NextResponse.json({ error: "Dieses Getraenkepaket braucht einen Tisch." }, { status: 400 });
+  }
+  if (selectedBirthday && !selectedTable) {
+    return NextResponse.json({ error: "Geburtstagspaket braucht einen Tisch." }, { status: 400 });
+  }
+
+  const items = [
+    { type: "ticket", ticket_type_id: ticketType.id, user_id: profile.id, price_cents: ticketType.priceCents },
+    ...(selectedTable ? [{ type: "table", table_id: selectedTable.id, price_cents: selectedTable.priceCents }] : []),
+    ...(selectedDrink
+      ? [
+          {
+            type: "drinks",
+            package_id: selectedDrink.id,
+            service: parsed.data.addons.hotmessGirlsService ? "hotmess_girls" : "discreet",
+            price_cents: selectedDrink.priceCents,
+          },
+        ]
+      : []),
+    ...(parsed.data.addons.fastlane ? [{ type: "fastlane", user_id: profile.id, price_cents: 1200 }] : []),
+    ...(selectedBirthday
+      ? [{ type: "birthday", birthday_package_id: selectedBirthday.id, person_id: profile.id, surprise: false, price_cents: selectedBirthday.priceCents }]
+      : []),
+  ];
+  const totalCents = items.reduce((sum, item) => sum + item.price_cents, 0);
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
       user_id: profile.id,
       event_id: event.id,
       status: "pending",
-      provider: "stripe",
+      provider: parsed.data.paymentProvider,
       items,
-      amount_cents: ticketType.priceCents,
-      subtotal_cents: ticketType.priceCents,
-      total_cents: ticketType.priceCents,
+      amount_cents: totalCents,
+      subtotal_cents: totalCents,
+      total_cents: totalCents,
       currency: ticketType.currency,
     })
     .select("id")
@@ -77,36 +129,70 @@ export async function POST(request: Request, { params }: CheckoutParams) {
 
   if (orderError) return NextResponse.json({ error: orderError.message }, { status: 400 });
 
-  const qrToken = signQrToken(ticketId, event.id, profile.id);
   const { error: ticketError } = await supabase
     .from("tickets")
     .update({
       order_id: order.id,
-      status: "valid",
-      qr_token: qrToken,
-      purchased_at: new Date().toISOString(),
+      status: "reserved",
     })
     .eq("id", ticketId);
 
   if (ticketError) return NextResponse.json({ error: ticketError.message }, { status: 400 });
 
-  await supabase
-    .from("ticket_types")
-    .update({ quantity_sold: ticketType.quantitySold + 1 })
-    .eq("id", ticketType.id);
+  const appUrl = getPublicEnv().appUrl || new URL(request.url).origin;
+  const successUrl = `${appUrl}/checkout/success?order=${order.id}`;
+  const cancelUrl = `${appUrl}/events/${event.slug}/checkout?cancelled=1`;
+
+  if (parsed.data.paymentProvider === "paypal") {
+    const paypalOrder = await createPayPalOrder({
+      orderId: order.id,
+      totalCents,
+      currency: ticketType.currency,
+      returnUrl: `${appUrl}/api/paypal/capture?order_id=${order.id}`,
+      cancelUrl,
+    });
+
+    await supabase
+      .from("orders")
+      .update({ provider_session_id: paypalOrder.paypalOrderId, provider_order_id: paypalOrder.paypalOrderId, payment_method: "paypal" })
+      .eq("id", order.id);
+
+    return NextResponse.json({ ok: true, orderId: order.id, ticketId, checkoutUrl: paypalOrder.approveUrl });
+  }
+
+  const stripe = createStripeServerClient();
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    customer_email: profile.email,
+    metadata: { order_id: order.id },
+    payment_intent_data: { metadata: { order_id: order.id } },
+    line_items: items.map((item) => ({
+      quantity: 1,
+      price_data: {
+        currency: ticketType.currency.toLowerCase(),
+        unit_amount: item.price_cents,
+        product_data: {
+          name:
+            item.type === "ticket"
+              ? `${event.title} · ${ticketType.name}`
+              : item.type === "table"
+                ? `Tisch · ${selectedTable?.name ?? "HotMess"}`
+                : item.type === "drinks"
+                  ? `Getraenkepaket · ${selectedDrink?.name ?? "HotMess"}`
+                  : item.type === "fastlane"
+                    ? "Fast-Lane"
+                    : `Geburtstag · ${selectedBirthday?.name ?? "HotMess"}`,
+        },
+      },
+    })),
+  });
 
   await supabase
     .from("orders")
-    .update({ status: "paid", paid_at: new Date().toISOString(), payment_method: "stripe", payment_id: `test_${order.id}` })
+    .update({ provider_session_id: session.id, payment_method: "stripe" })
     .eq("id", order.id);
 
-  await supabase.from("event_attendees").upsert({ event_id: event.id, user_id: profile.id, status: "going" }, { onConflict: "event_id,user_id" });
-  await supabase.from("friend_activity").insert({
-    user_id: profile.id,
-    type: "ticket_purchase",
-    event_id: event.id,
-    metadata: { order_id: order.id, ticket_id: ticketId },
-  });
-
-  return NextResponse.json({ ok: true, orderId: order.id, ticketId });
+  return NextResponse.json({ ok: true, orderId: order.id, ticketId, checkoutUrl: session.url });
 }

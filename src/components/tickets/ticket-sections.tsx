@@ -25,10 +25,11 @@ export function TicketCard({ ticket }: { ticket: UserTicket }) {
     <article className="rounded-card border border-hm-border bg-hm-porcelain p-5 shadow-luxury sm:p-8">
       <div className="grid gap-6 lg:grid-cols-[0.42fr_0.58fr]">
         <div className="grid aspect-square place-items-center rounded-card border border-hm-gold bg-hm-ivory p-4 text-center">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-luxury text-hm-goldDeep">QR Token</p>
-            <p className="mt-3 break-all font-mono text-xs text-hm-inkSoft">{ticket.qrToken ?? "Noch nicht erzeugt"}</p>
-          </div>
+          {ticket.qrToken ? (
+            <img alt={`QR Ticket ${ticket.event?.title ?? "HotMess"}`} className="h-full w-full object-contain" src={`/api/tickets/${ticket.id}/qr`} />
+          ) : (
+            <p className="text-sm text-hm-inkSoft">QR-Code wird nach Zahlungsbestaetigung erzeugt.</p>
+          )}
         </div>
         <div className="space-y-4">
           <p className="text-xs font-semibold uppercase tracking-luxury text-hm-goldDeep">{ticket.status === "used" ? "Benutztes Ticket" : "Gueltiges Ticket"}</p>

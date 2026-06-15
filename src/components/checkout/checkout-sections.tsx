@@ -12,12 +12,12 @@ type Step = {
 
 const steps: Step[] = [
   { title: "Guard", description: "Eingeloggt, verifiziert und nicht gesperrt." },
-  { title: "Ticket", description: "Tickettyp wählen und 20 Minuten reservieren." },
+  { title: "Ticket", description: "Tickettyp waehlen und 20 Minuten reservieren." },
   { title: "Gruppe", description: "Allein buchen oder verifizierte Mitglieder zuordnen." },
-  { title: "Add-ons", description: "Tisch, Getränke, Fast-Lane und Geburtstag." },
-  { title: "Rabatt", description: "Code prüfen und Preis live aktualisieren." },
-  { title: "Übersicht", description: "Alle Positionen und AGB bestätigen." },
-  { title: "Zahlung", description: "Stripe oder PayPal abschließen." },
+  { title: "Add-ons", description: "Tisch, Getraenke, Fast-Lane und Geburtstag." },
+  { title: "Rabatt", description: "Code pruefen und Preis live aktualisieren." },
+  { title: "Uebersicht", description: "Alle Positionen und AGB bestaetigen." },
+  { title: "Zahlung", description: "Stripe oder PayPal abschliessen." },
 ];
 
 export function ReservationTimer() {
@@ -31,44 +31,88 @@ export function ReservationTimer() {
 export function GroupMemberPicker() {
   return (
     <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4">
-      <p className="font-semibold text-hm-ink">Für Gruppe buchen?</p>
-      <p className="mt-2 text-sm leading-6 text-hm-inkSoft">Mitgliedersuche ist für verifizierte Profile vorbereitet.</p>
+      <p className="font-semibold text-hm-ink">Fuer Gruppe buchen?</p>
+      <p className="mt-2 text-sm leading-6 text-hm-inkSoft">Gruppenbuchung bleibt vorbereitet. Dieser Checkout bucht aktuell ein personalisiertes Ticket.</p>
     </div>
   );
 }
 
-export function TableSelector() {
+export function TableSelector({ tables, value, onChange }: { tables: LiveEvent["tables"]; value: string; onChange: (value: string) => void }) {
   return (
     <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4">
-      <p className="font-semibold text-hm-ink">Tisch wählen</p>
-      <p className="mt-2 text-sm text-hm-inkSoft">2er, 4er, 6er oder 8er mit Mindestpersonen und Mindestkonsum.</p>
+      <p className="font-semibold text-hm-ink">Tisch waehlen</p>
+      <select className="mt-3 w-full rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm" value={value} onChange={(event) => onChange(event.target.value)}>
+        <option value="">Kein Tisch</option>
+        {tables.map((table) => (
+          <option key={table.id} value={table.id}>
+            {table.name} · {formatMoney(table.priceCents)}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
 
-export function DrinkPackagePicker() {
+export function DrinkPackagePicker({
+  packages,
+  value,
+  onChange,
+  hotmessGirlsService,
+  onHotmessGirlsServiceChange,
+}: {
+  packages: LiveEvent["drinkPackages"];
+  value: string;
+  onChange: (value: string) => void;
+  hotmessGirlsService: boolean;
+  onHotmessGirlsServiceChange: (value: boolean) => void;
+}) {
+  const selected = packages.find((item) => item.id === value);
+
   return (
     <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4">
-      <p className="font-semibold text-hm-ink">Getränkepaket</p>
-      <p className="mt-2 text-sm text-hm-inkSoft">Basic, Standard oder VIP. Girls-Service nur mit Tisch und passenden Paketen.</p>
+      <p className="font-semibold text-hm-ink">Getraenkepaket</p>
+      <select className="mt-3 w-full rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm" value={value} onChange={(event) => onChange(event.target.value)}>
+        <option value="">Kein Paket</option>
+        {packages.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.name} · {formatMoney(item.priceCents)}
+          </option>
+        ))}
+      </select>
+      {selected?.allowsGirlsService ? (
+        <label className="mt-3 flex items-center gap-2 text-sm text-hm-inkSoft">
+          <input checked={hotmessGirlsService} onChange={(event) => onHotmessGirlsServiceChange(event.target.checked)} type="checkbox" />
+          HotMess Girls Service
+        </label>
+      ) : null}
     </div>
   );
 }
 
-export function BirthdayOption() {
+export function BirthdayOption({ packages, value, onChange }: { packages: LiveEvent["birthdayPackages"]; value: string; onChange: (value: string) => void }) {
   return (
     <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4">
       <p className="font-semibold text-hm-ink">Geburtstag</p>
-      <p className="mt-2 text-sm text-hm-inkSoft">Nur mit Tisch. Überraschung bleibt für die betroffene Person unsichtbar.</p>
+      <select className="mt-3 w-full rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm" value={value} onChange={(event) => onChange(event.target.value)}>
+        <option value="">Kein Geburtstagspaket</option>
+        {packages.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.name} · {formatMoney(item.priceCents)}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
 
-export function FastlaneToggle() {
+export function FastlaneToggle({ checked, onChange }: { checked: boolean; onChange: (value: boolean) => void }) {
   return (
     <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4">
       <p className="font-semibold text-hm-ink">Fast-Lane</p>
-      <p className="mt-2 text-sm text-hm-inkSoft">Pro Person buchbar und auf dem QR-Ticket sichtbar.</p>
+      <label className="mt-3 flex items-center gap-2 text-sm text-hm-inkSoft">
+        <input checked={checked} onChange={(event) => onChange(event.target.checked)} type="checkbox" />
+        Fast-Lane fuer {formatMoney(1200)} buchen
+      </label>
     </div>
   );
 }
@@ -85,29 +129,57 @@ export function DiscountField() {
   );
 }
 
-export function CartSummary({ totalCents = 3700 }: { totalCents?: number }) {
+export function CartSummary({ ticketCents, addonCents }: { ticketCents: number; addonCents: number }) {
   return (
     <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4">
-      <p className="font-semibold text-hm-ink">Übersicht</p>
+      <p className="font-semibold text-hm-ink">Uebersicht</p>
       <div className="mt-4 space-y-2 text-sm text-hm-inkSoft">
-        <div className="flex justify-between"><span>Ticket</span><span>{formatMoney(totalCents)}</span></div>
-        <div className="flex justify-between"><span>Add-ons</span><span>0 EUR</span></div>
-        <div className="flex justify-between border-t border-hm-borderSoft pt-3 font-semibold text-hm-ink"><span>Gesamt</span><span>{formatMoney(totalCents)}</span></div>
+        <div className="flex justify-between">
+          <span>Ticket</span>
+          <span>{formatMoney(ticketCents)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Add-ons</span>
+          <span>{formatMoney(addonCents)}</span>
+        </div>
+        <div className="flex justify-between border-t border-hm-borderSoft pt-3 font-semibold text-hm-ink">
+          <span>Gesamt</span>
+          <span>{formatMoney(ticketCents + addonCents)}</span>
+        </div>
       </div>
     </div>
   );
 }
 
-export function PaymentStep({ disabled = false, onPay }: { disabled?: boolean; onPay?: () => void }) {
+export function PaymentStep({
+  disabled,
+  provider,
+  onProviderChange,
+  onPay,
+}: {
+  disabled: boolean;
+  provider: "stripe" | "paypal";
+  onProviderChange: (provider: "stripe" | "paypal") => void;
+  onPay: () => void;
+}) {
   return (
     <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4">
       <p className="font-semibold text-hm-ink">Zahlung</p>
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button className="rounded-pill bg-hm-ink px-5 py-3 text-sm font-semibold text-white disabled:opacity-60" disabled={disabled} onClick={onPay} type="button">
-          Testzahlung bestaetigen
-        </button>
-        <button className="rounded-pill border border-hm-gold px-5 py-3 text-sm font-semibold text-hm-ink opacity-60" disabled type="button">PayPal folgt</button>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        {(["stripe", "paypal"] as const).map((item) => (
+          <button
+            className={`rounded-pill border px-4 py-3 text-sm font-semibold ${provider === item ? "border-hm-gold bg-hm-champagne text-hm-ink" : "border-hm-border text-hm-inkSoft"}`}
+            key={item}
+            onClick={() => onProviderChange(item)}
+            type="button"
+          >
+            {item === "stripe" ? "Stripe / Karte" : "PayPal"}
+          </button>
+        ))}
       </div>
+      <button className="mt-4 rounded-pill bg-hm-ink px-5 py-3 text-sm font-semibold text-white disabled:opacity-60" disabled={disabled} onClick={onPay} type="button">
+        {disabled ? "Bereite Zahlung vor..." : "Zur Zahlung"}
+      </button>
     </div>
   );
 }
@@ -115,11 +187,21 @@ export function PaymentStep({ disabled = false, onPay }: { disabled?: boolean; o
 export function CheckoutWizard({ event }: { event: LiveEvent }) {
   const [activeStep, setActiveStep] = useState(1);
   const [ticketTypeId, setTicketTypeId] = useState(event.ticketTypes[0]?.id ?? "");
+  const [paymentProvider, setPaymentProvider] = useState<"stripe" | "paypal">("stripe");
+  const [tableId, setTableId] = useState("");
+  const [drinkPackageId, setDrinkPackageId] = useState("");
+  const [birthdayPackageId, setBirthdayPackageId] = useState("");
+  const [fastlane, setFastlane] = useState(false);
+  const [hotmessGirlsService, setHotmessGirlsService] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const router = useRouter();
   const current = useMemo(() => steps[activeStep], [activeStep]);
   const selectedTicket = event.ticketTypes.find((ticketType) => ticketType.id === ticketTypeId);
+  const selectedTable = event.tables.find((table) => table.id === tableId);
+  const selectedDrink = event.drinkPackages.find((item) => item.id === drinkPackageId);
+  const selectedBirthday = event.birthdayPackages.find((item) => item.id === birthdayPackageId);
+  const addonCents = (selectedTable?.priceCents ?? 0) + (selectedDrink?.priceCents ?? 0) + (selectedBirthday?.priceCents ?? 0) + (fastlane ? 1200 : 0);
 
   const completeCheckout = async () => {
     if (!ticketTypeId) {
@@ -134,9 +216,19 @@ export function CheckoutWizard({ event }: { event: LiveEvent }) {
     const response = await fetch(`/api/events/${event.slug}/checkout`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ticketTypeId }),
+      body: JSON.stringify({
+        ticketTypeId,
+        paymentProvider,
+        addons: {
+          tableId: tableId || undefined,
+          drinkPackageId: drinkPackageId || undefined,
+          birthdayPackageId: birthdayPackageId || undefined,
+          fastlane,
+          hotmessGirlsService,
+        },
+      }),
     });
-    const payload = (await response.json().catch(() => null)) as { error?: string; waitlisted?: boolean; position?: number } | null;
+    const payload = (await response.json().catch(() => null)) as { error?: string; waitlisted?: boolean; position?: number; checkoutUrl?: string } | null;
 
     if (!response.ok || payload?.error) {
       setStatus("error");
@@ -151,10 +243,13 @@ export function CheckoutWizard({ event }: { event: LiveEvent }) {
       return;
     }
 
-    setStatus("success");
-    setMessage("Ticket bestaetigt. Dein QR-Code ist jetzt unter Tickets sichtbar.");
-    router.replace("/tickets");
-    router.refresh();
+    if (payload?.checkoutUrl) {
+      window.location.assign(payload.checkoutUrl);
+      return;
+    }
+
+    setStatus("error");
+    setMessage("Zahlungslink fehlt. Bitte versuche es erneut.");
   };
 
   return (
@@ -208,14 +303,20 @@ export function CheckoutWizard({ event }: { event: LiveEvent }) {
           </div>
           <GroupMemberPicker />
           <div className="grid gap-4 sm:grid-cols-2">
-            <TableSelector />
-            <DrinkPackagePicker />
-            <BirthdayOption />
-            <FastlaneToggle />
+            <TableSelector tables={event.tables} value={tableId} onChange={setTableId} />
+            <DrinkPackagePicker
+              packages={event.drinkPackages}
+              value={drinkPackageId}
+              onChange={setDrinkPackageId}
+              hotmessGirlsService={hotmessGirlsService}
+              onHotmessGirlsServiceChange={setHotmessGirlsService}
+            />
+            <BirthdayOption packages={event.birthdayPackages} value={birthdayPackageId} onChange={setBirthdayPackageId} />
+            <FastlaneToggle checked={fastlane} onChange={setFastlane} />
           </div>
           <DiscountField />
-          <CartSummary totalCents={selectedTicket?.priceCents ?? 0} />
-          <PaymentStep disabled={status === "loading"} onPay={completeCheckout} />
+          <CartSummary ticketCents={selectedTicket?.priceCents ?? 0} addonCents={addonCents} />
+          <PaymentStep disabled={status === "loading"} provider={paymentProvider} onProviderChange={setPaymentProvider} onPay={completeCheckout} />
           {message ? (
             <p className={`rounded-card px-4 py-3 text-sm ${status === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"}`}>
               {message}
@@ -231,7 +332,7 @@ export function SuccessConfetti() {
   return (
     <div className="rounded-card border border-hm-gold bg-hm-champagne p-5 text-hm-ink">
       <p className="font-semibold">Du bist dabei.</p>
-      <p className="mt-2 text-sm text-hm-inkSoft">Bestellstatus wird geprüft, danach erscheint dein QR-Ticket.</p>
+      <p className="mt-2 text-sm text-hm-inkSoft">Nach Zahlungsbestaetigung erscheint dein QR-Ticket automatisch unter Tickets.</p>
     </div>
   );
 }

@@ -51,6 +51,7 @@
     "src/lib/utils/**/*.ts",
     "src/middleware.ts",
     "src/pages/**/*.tsx",
+    "src/types/**/*.d.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [

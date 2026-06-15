@@ -1,4 +1,4 @@
-import { EventPicker, OfflineCache, QRScanner, ScanResult } from "@/components/scanner/scanner-sections";
+import { EventPicker, OfflineCache, ScannerExperience } from "@/components/scanner/scanner-sections";
 
 export default function ScannerPage() {
   return (
@@ -13,10 +13,9 @@ export default function ScannerPage() {
             </p>
           </div>
           <EventPicker />
-          <ScanResult />
+          <ScannerExperience />
           <OfflineCache />
         </div>
-        <QRScanner />
       </section>
     </main>
   );

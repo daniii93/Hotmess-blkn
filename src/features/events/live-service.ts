@@ -17,6 +17,36 @@ export type LiveTicketType = {
   isActive: boolean;
 };
 
+export type LiveEventTable = {
+  id: string;
+  name: string;
+  minPersons: number;
+  maxPersons: number;
+  priceCents: number;
+  quantityTotal: number;
+  quantitySold: number;
+  isActive: boolean;
+};
+
+export type LiveDrinkPackage = {
+  id: string;
+  name: string;
+  description: string | null;
+  priceCents: number;
+  requiresTable: boolean;
+  allowsGirlsService: boolean;
+  quantityAvailable: number | null;
+  quantitySold: number;
+  isActive: boolean;
+};
+
+export type LiveBirthdayPackage = {
+  id: string;
+  name: string;
+  priceCents: number;
+  isActive: boolean;
+};
+
 export type LiveEvent = {
   id: string;
   slug: string;
@@ -48,6 +78,9 @@ export type LiveEvent = {
     tolerance: number;
   } | null;
   ticketTypes: LiveTicketType[];
+  tables: LiveEventTable[];
+  drinkPackages: LiveDrinkPackage[];
+  birthdayPackages: LiveBirthdayPackage[];
 };
 
 type EventRow = {
@@ -88,6 +121,34 @@ type EventRow = {
     is_active: boolean;
     active: boolean;
   }>;
+  event_tables: Array<{
+    id: string;
+    name: string;
+    min_persons: number;
+    max_persons: number;
+    price_cents: number;
+    quantity_total: number;
+    quantity_sold: number;
+    active: boolean;
+  }>;
+  drink_packages: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    price_cents: number;
+    requires_table: boolean;
+    allows_girls_service: boolean;
+    hotmess_girls_service_available: boolean;
+    quantity_available: number | null;
+    quantity_sold: number;
+    active: boolean;
+  }>;
+  birthday_packages: Array<{
+    id: string;
+    name: string;
+    price_cents: number;
+    active: boolean;
+  }>;
 };
 
 const firstRelation = <T>(value: T | T[] | null | undefined): T | null => {
@@ -101,7 +162,10 @@ const eventSelect = `
   cover_image_url, hero_image_url, capacity_total,
   venue:venues(name,address,city,country,maps_url),
   event_gender_config(capacity_female,capacity_male,capacity_diverse,sold_female,sold_male,sold_diverse,tolerance),
-  ticket_types(id,name,description,price_cents,currency,quantity_total,quantity_sold,is_active,active)
+  ticket_types(id,name,description,price_cents,currency,quantity_total,quantity_sold,is_active,active),
+  event_tables(id,name,min_persons,max_persons,price_cents,quantity_total,quantity_sold,active),
+  drink_packages(id,name,description,price_cents,requires_table,allows_girls_service,hotmess_girls_service_available,quantity_available,quantity_sold,active),
+  birthday_packages(id,name,price_cents,active)
 `;
 
 const mapEvent = (row: EventRow): LiveEvent => {
@@ -154,6 +218,39 @@ const mapEvent = (row: EventRow): LiveEvent => {
         quantityTotal: ticketType.quantity_total,
         quantitySold: ticketType.quantity_sold,
         isActive: ticketType.is_active ?? ticketType.active,
+      })),
+    tables: (row.event_tables ?? [])
+      .filter((table) => table.active)
+      .map((table) => ({
+        id: table.id,
+        name: table.name,
+        minPersons: table.min_persons,
+        maxPersons: table.max_persons,
+        priceCents: table.price_cents,
+        quantityTotal: table.quantity_total,
+        quantitySold: table.quantity_sold,
+        isActive: table.active,
+      })),
+    drinkPackages: (row.drink_packages ?? [])
+      .filter((item) => item.active)
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        priceCents: item.price_cents,
+        requiresTable: item.requires_table,
+        allowsGirlsService: item.allows_girls_service ?? item.hotmess_girls_service_available,
+        quantityAvailable: item.quantity_available,
+        quantitySold: item.quantity_sold,
+        isActive: item.active,
+      })),
+    birthdayPackages: (row.birthday_packages ?? [])
+      .filter((item) => item.active)
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        priceCents: item.price_cents,
+        isActive: item.active,
       })),
   };
 };
@@ -248,6 +345,44 @@ export type UserTicket = {
     priceCents: number;
     currency: string;
   } | null;
+};
+
+export type UserWaitlistEntry = {
+  id: string;
+  eventId: string;
+  userId: string;
+  gender: string;
+  position: number;
+  status: string;
+  promotedUntil: string | null;
+  ticketTypeId: string | null;
+};
+
+export const getCurrentUserWaitlistEntry = async (eventId: string): Promise<UserWaitlistEntry | null> => {
+  const profile = await getCurrentUserProfile();
+  if (!profile) return null;
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("waitlist")
+    .select("id,event_id,user_id,gender,position,status,promoted_until,ticket_type_id")
+    .eq("event_id", eventId)
+    .eq("user_id", profile.id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data
+    ? {
+        id: data.id,
+        eventId: data.event_id,
+        userId: data.user_id,
+        gender: data.gender,
+        position: data.position,
+        status: data.status,
+        promotedUntil: data.promoted_until,
+        ticketTypeId: data.ticket_type_id,
+      }
+    : null;
 };
 
 export const getCurrentUserTickets = async (): Promise<UserTicket[]> => {

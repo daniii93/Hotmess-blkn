@@ -109,5 +109,24 @@ export async function POST(request: Request) {
 
   if (ticketError) return NextResponse.json({ error: ticketError.message }, { status: 400 });
 
+  await supabase.from("event_tables").insert([
+    { event_id: event.id, name: "VIP 2er", table_type: "2er", min_persons: 2, max_persons: 2, price_cents: 8000, min_spend_cents: 8000, quantity_total: 4, active: true },
+    { event_id: event.id, name: "VIP 4er", table_type: "4er", min_persons: 3, max_persons: 4, price_cents: 18000, min_spend_cents: 18000, quantity_total: 8, active: true },
+    { event_id: event.id, name: "VIP 6er", table_type: "6er", min_persons: 5, max_persons: 6, price_cents: 32000, min_spend_cents: 32000, quantity_total: 4, active: true },
+  ]);
+
+  await supabase.from("drink_packages").insert([
+    { event_id: event.id, name: "Basic", description: "Shots und Mixer", price_cents: 8900, requires_table: false, allows_girls_service: false, active: true },
+    { event_id: event.id, name: "Standard", description: "Flasche, Shots und Mixer", price_cents: 14900, requires_table: true, allows_girls_service: true, active: true },
+    { event_id: event.id, name: "VIP", description: "Premium Paket mit Service", price_cents: 24900, requires_table: true, allows_girls_service: true, active: true },
+  ]);
+
+  await supabase.from("birthday_packages").insert({
+    event_id: event.id,
+    name: "Geburtstag",
+    price_cents: 5000,
+    active: true,
+  });
+
   return NextResponse.json({ ok: true, slug: event.slug, id: event.id });
 }

@@ -1,9 +1,9 @@
 import { PageShell } from "@/components/shell/page-shell";
 import { AdminLiveSales } from "@/components/admin/admin-live-sales";
+import { AdminCancelEventButton } from "@/components/admin/admin-cancel-event-button";
 import { getEventBySlug } from "@/features/events/live-service";
 import { notFound } from "next/navigation";
 import {
-  CancelEventButton,
   GenderBreakdown,
   GuestListExport,
   LiveSalesDashboard,
@@ -30,7 +30,7 @@ export default async function AdminEventSalesPage({ params }: AdminEventSalesPag
         <GenderBreakdown />
         <div className="flex flex-wrap gap-3">
           <GuestListExport />
-          <CancelEventButton />
+          <AdminCancelEventButton eventId={event.id} />
         </div>
       </section>
     </>
