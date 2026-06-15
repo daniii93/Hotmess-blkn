@@ -1,7 +1,13 @@
+import Link from "next/link";
 import { PrivacyToggle } from "@/components/settings/privacy-toggle";
 import { SessionList } from "@/components/settings/session-list";
+import { getCurrentUserProfile } from "@/features/events/live-service";
 
-export default function SettingsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function SettingsPage() {
+  const profile = await getCurrentUserProfile();
+
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-4 py-8">
       <section className="rounded-card border border-hm-border bg-hm-porcelain p-6 shadow-luxury">
@@ -14,7 +20,12 @@ export default function SettingsPage() {
           <PrivacyToggle label="Online-Status zeigen" />
           <PrivacyToggle label="Zuletzt aktiv zeigen" />
           <PrivacyToggle label="Profilbesuche-Liste zeigen" />
-          <PrivacyToggle label="Dating aktivieren" enabled={false} />
+          <div className="flex items-center justify-between gap-4 rounded-card border border-hm-border bg-hm-porcelain p-4 text-sm text-hm-ink">
+            <span>Dating {profile?.dating_enabled ? "aktiv" : "aktivieren"}</span>
+            <Link className="rounded-pill bg-hm-dating px-4 py-2 text-xs font-semibold text-white" href="/dating/profile">
+              {profile?.dating_enabled ? "Bearbeiten" : "Aktivieren"}
+            </Link>
+          </div>
           <PrivacyToggle label="Business aktivieren" enabled={false} />
         </div>
       </section>

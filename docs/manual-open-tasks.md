@@ -22,3 +22,13 @@ Diese Punkte sind bewusst nicht im Code automatisiert, weil sie externe Provider
   - `https://www.hotmess-blkn.app/api/cron/expire-reservations`
 - Stripe/PayPal im Testmodus je einmal komplett durchspielen.
 - Danach Service Role/Secret Key rotieren, weil ein Supabase Secret im Chat sichtbar geteilt wurde.
+
+## Teil 3a - Social-Kern
+
+- Supabase Migration `supabase/migrations/010_social_core_runtime.sql` im Supabase SQL Editor ausfuehren.
+- Danach Feed, Chat, Notifications und Explore mit einem echten eingeloggten Testnutzer pruefen.
+
+## Teil 4 - Dating
+
+- Supabase Migration `supabase/migrations/004_dating_part4.sql` im Supabase SQL Editor ausfuehren, falls noch nicht passiert.
+- Danach die neue Dating-Runtime-Migration aus diesem Arbeitsblock ebenfalls im Supabase SQL Editor ausfuehren.
