@@ -194,6 +194,30 @@ export const getCurrentUserProfile = async () => {
   return profile;
 };
 
+export const getRequestUserProfile = async (request: Request) => {
+  const authHeader = request.headers.get("authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : null;
+
+  if (!token) return getCurrentUserProfile();
+
+  const supabase = createSupabaseAdminClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser(token);
+
+  if (userError || !user) return null;
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("id,email,first_name,last_name,gender,avatar_url,role,verification_status,is_banned")
+    .eq("id", user.id)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return profile;
+};
+
 export type UserTicket = {
   id: string;
   status: string;

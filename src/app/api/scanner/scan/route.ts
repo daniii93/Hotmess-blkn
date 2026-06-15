@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getCurrentUserProfile } from "@/features/events/live-service";
+import { getRequestUserProfile } from "@/features/events/live-service";
 
 const scanSchema = z.object({
   qrToken: z.string().min(10),
@@ -9,7 +9,7 @@ const scanSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const profile = await getCurrentUserProfile();
+  const profile = await getRequestUserProfile(request);
   if (!profile || (profile.role !== "admin" && profile.role !== "scanner")) {
     return NextResponse.json({ error: "Scanner-Zugriff erforderlich." }, { status: 403 });
   }

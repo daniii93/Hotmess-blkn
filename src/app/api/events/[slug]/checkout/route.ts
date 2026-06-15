@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getCurrentUserProfile, getEventBySlug, signQrToken } from "@/features/events/live-service";
+import { getEventBySlug, getRequestUserProfile, signQrToken } from "@/features/events/live-service";
 
 const checkoutSchema = z.object({
   ticketTypeId: z.string().uuid(),
@@ -13,7 +13,7 @@ type CheckoutParams = {
 
 export async function POST(request: Request, { params }: CheckoutParams) {
   const { slug } = await params;
-  const profile = await getCurrentUserProfile();
+  const profile = await getRequestUserProfile(request);
 
   if (!profile) return NextResponse.json({ error: "Bitte zuerst einloggen." }, { status: 401 });
   if (profile.is_banned) return NextResponse.json({ error: "Dieses Konto ist gesperrt." }, { status: 403 });

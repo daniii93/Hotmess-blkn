@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getCurrentUserProfile } from "@/features/events/live-service";
+import { getRequestUserProfile } from "@/features/events/live-service";
 
 const createEventSchema = z.object({
   title: z.string().min(3),
@@ -24,7 +24,7 @@ const createEventSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const profile = await getCurrentUserProfile();
+  const profile = await getRequestUserProfile(request);
   if (!profile || profile.role !== "admin") {
     return NextResponse.json({ error: "Admin-Zugriff erforderlich." }, { status: 403 });
   }
