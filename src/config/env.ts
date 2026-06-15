@@ -40,11 +40,11 @@ export type EnvValidationResult = {
 export const getEnv = (key: EnvKey): string => process.env[key] ?? "";
 
 export const getPublicEnv = () => ({
-  supabaseUrl: getEnv("NEXT_PUBLIC_SUPABASE_URL"),
-  supabaseAnonKey: getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-  stripePublishableKey: getEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
-  oneSignalAppId: getEnv("NEXT_PUBLIC_ONESIGNAL_APP_ID"),
-  appUrl: getEnv("NEXT_PUBLIC_APP_URL"),
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
+  oneSignalAppId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID ?? "",
+  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
 });
 
 export const getServerEnv = () => ({
@@ -74,4 +74,3 @@ export const validateEnv = (): EnvValidationResult => {
     optionalMissing,
   };
 };
-
