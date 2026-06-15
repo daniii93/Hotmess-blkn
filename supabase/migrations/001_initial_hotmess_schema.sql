@@ -458,7 +458,7 @@ create table public.profile_visits (
   visitor_user_id uuid not null references public.profiles(id) on delete cascade,
   is_anonymous boolean not null default false,
   visited_at timestamptz not null default now(),
-  expires_at timestamptz generated always as (visited_at + interval '24 hours') stored
+  expires_at timestamptz not null default now() + interval '24 hours'
 );
 
 create index idx_visits_visited on public.profile_visits(visited_user_id, visited_at desc);
@@ -625,6 +625,8 @@ create or replace function public.is_admin()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1 from public.profiles

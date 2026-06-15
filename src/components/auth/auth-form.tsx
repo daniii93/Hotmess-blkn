@@ -90,23 +90,31 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
         .replace(/\.+/g, ".")
         .replace(/^\.|\.$/g, "")
         .slice(0, 20);
-      const username = `${usernameBase || "user"}.${Math.random().toString(36).slice(2, 7)}`.slice(0, 30);
 
-      const { data, error } = await supabase.auth.signUp({
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          email: registerValues.email,
+          password: registerValues.password,
+          firstName: registerValues.firstName,
+          lastName: registerValues.lastName,
+          dateOfBirth: registerValues.dateOfBirth,
+          gender: registerValues.gender,
+          username: usernameBase || "user",
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        setStatus("error");
+        setMessage(payload?.error ?? "Konto konnte nicht erstellt werden.");
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
         email: registerValues.email,
         password: registerValues.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
-          data: {
-            first_name: registerValues.firstName,
-            last_name: registerValues.lastName,
-            date_of_birth: registerValues.dateOfBirth,
-            gender: registerValues.gender,
-            username,
-            onboarding_completed: false,
-            role: "user",
-          },
-        },
       });
 
       if (error) {
@@ -116,14 +124,8 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
       }
 
       setStatus("success");
-
-      if (data.session) {
-        router.replace("/onboarding");
-        router.refresh();
-        return;
-      }
-
-      router.replace("/register/check-email");
+      router.replace("/onboarding");
+      router.refresh();
       return;
     }
 

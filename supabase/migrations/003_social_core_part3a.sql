@@ -8,6 +8,7 @@ alter type public.message_type add value if not exists 'system';
 
 alter table public.posts
   add column if not exists user_id uuid references public.profiles(id) on delete cascade,
+  add column if not exists content text check (char_length(content) <= 2200),
   add column if not exists media_urls text[] default '{}',
   add column if not exists media_aspect text check (media_aspect in ('square','portrait','landscape')),
   add column if not exists hashtags text[] default '{}',
