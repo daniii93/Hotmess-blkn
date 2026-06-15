@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { LiveEvent } from "@/features/events/live-service";
+import { formatMoney } from "@/features/events/format";
 
 type Step = {
   title: string;
@@ -82,34 +85,77 @@ export function DiscountField() {
   );
 }
 
-export function CartSummary() {
+export function CartSummary({ totalCents = 3700 }: { totalCents?: number }) {
   return (
     <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4">
       <p className="font-semibold text-hm-ink">Übersicht</p>
       <div className="mt-4 space-y-2 text-sm text-hm-inkSoft">
-        <div className="flex justify-between"><span>Regular Ticket</span><span>25 EUR</span></div>
-        <div className="flex justify-between"><span>Fast-Lane</span><span>12 EUR</span></div>
-        <div className="flex justify-between border-t border-hm-borderSoft pt-3 font-semibold text-hm-ink"><span>Gesamt</span><span>37 EUR</span></div>
+        <div className="flex justify-between"><span>Ticket</span><span>{formatMoney(totalCents)}</span></div>
+        <div className="flex justify-between"><span>Add-ons</span><span>0 EUR</span></div>
+        <div className="flex justify-between border-t border-hm-borderSoft pt-3 font-semibold text-hm-ink"><span>Gesamt</span><span>{formatMoney(totalCents)}</span></div>
       </div>
     </div>
   );
 }
 
-export function PaymentStep() {
+export function PaymentStep({ disabled = false, onPay }: { disabled?: boolean; onPay?: () => void }) {
   return (
     <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4">
       <p className="font-semibold text-hm-ink">Zahlung</p>
       <div className="mt-4 flex flex-wrap gap-3">
-        <button className="rounded-pill bg-hm-ink px-5 py-3 text-sm font-semibold text-white" type="button">Stripe</button>
-        <button className="rounded-pill border border-hm-gold px-5 py-3 text-sm font-semibold text-hm-ink" type="button">PayPal</button>
+        <button className="rounded-pill bg-hm-ink px-5 py-3 text-sm font-semibold text-white disabled:opacity-60" disabled={disabled} onClick={onPay} type="button">
+          Testzahlung bestaetigen
+        </button>
+        <button className="rounded-pill border border-hm-gold px-5 py-3 text-sm font-semibold text-hm-ink opacity-60" disabled type="button">PayPal folgt</button>
       </div>
     </div>
   );
 }
 
-export function CheckoutWizard() {
+export function CheckoutWizard({ event }: { event: LiveEvent }) {
   const [activeStep, setActiveStep] = useState(1);
+  const [ticketTypeId, setTicketTypeId] = useState(event.ticketTypes[0]?.id ?? "");
+  const [message, setMessage] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const router = useRouter();
   const current = useMemo(() => steps[activeStep], [activeStep]);
+  const selectedTicket = event.ticketTypes.find((ticketType) => ticketType.id === ticketTypeId);
+
+  const completeCheckout = async () => {
+    if (!ticketTypeId) {
+      setStatus("error");
+      setMessage("Bitte waehle einen Tickettyp.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage(null);
+
+    const response = await fetch(`/api/events/${event.slug}/checkout`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ticketTypeId }),
+    });
+    const payload = (await response.json().catch(() => null)) as { error?: string; waitlisted?: boolean; position?: number } | null;
+
+    if (!response.ok || payload?.error) {
+      setStatus("error");
+      setMessage(payload?.error ?? "Checkout konnte nicht abgeschlossen werden.");
+      return;
+    }
+
+    if (payload?.waitlisted) {
+      setStatus("success");
+      setMessage(`Dein Kontingent ist voll. Du bist auf Wartelisten-Position ${payload.position}.`);
+      router.replace(`/events/${event.slug}/waitlist`);
+      return;
+    }
+
+    setStatus("success");
+    setMessage("Ticket bestaetigt. Dein QR-Code ist jetzt unter Tickets sichtbar.");
+    router.replace("/tickets");
+    router.refresh();
+  };
 
   return (
     <section className="rounded-card border border-hm-border bg-hm-porcelain p-5 shadow-luxury sm:p-8">
@@ -141,6 +187,25 @@ export function CheckoutWizard() {
             <h2 className="text-xl font-semibold text-hm-ink">{current.title}</h2>
             <p className="mt-2 text-sm leading-6 text-hm-inkSoft">{current.description}</p>
           </div>
+          <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-5">
+            <p className="font-semibold text-hm-ink">Tickettyp</p>
+            <div className="mt-4 grid gap-3">
+              {event.ticketTypes.map((ticketType) => (
+                <label
+                  className={`flex cursor-pointer items-center justify-between rounded-card border p-4 ${
+                    ticketTypeId === ticketType.id ? "border-hm-gold bg-hm-champagne" : "border-hm-border bg-hm-porcelain"
+                  }`}
+                  key={ticketType.id}
+                >
+                  <span>
+                    <span className="block font-semibold text-hm-ink">{ticketType.name}</span>
+                    <span className="text-sm text-hm-inkSoft">{formatMoney(ticketType.priceCents, ticketType.currency)}</span>
+                  </span>
+                  <input checked={ticketTypeId === ticketType.id} onChange={() => setTicketTypeId(ticketType.id)} type="radio" />
+                </label>
+              ))}
+            </div>
+          </div>
           <GroupMemberPicker />
           <div className="grid gap-4 sm:grid-cols-2">
             <TableSelector />
@@ -149,8 +214,13 @@ export function CheckoutWizard() {
             <FastlaneToggle />
           </div>
           <DiscountField />
-          <CartSummary />
-          <PaymentStep />
+          <CartSummary totalCents={selectedTicket?.priceCents ?? 0} />
+          <PaymentStep disabled={status === "loading"} onPay={completeCheckout} />
+          {message ? (
+            <p className={`rounded-card px-4 py-3 text-sm ${status === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"}`}>
+              {message}
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

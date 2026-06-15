@@ -1,41 +1,12 @@
 import Link from "next/link";
-
-type EventCardData = {
-  title: string;
-  slug: string;
-  city: string;
-  date: string;
-  category: string;
-  priceFrom: string;
-  status: string;
-};
+import type { LiveEvent } from "@/features/events/live-service";
+import { formatEventDate, formatMoney } from "@/features/events/format";
 
 type Capacity = {
   label: string;
   sold: number;
   capacity: number;
 };
-
-const demoEvents: EventCardData[] = [
-  {
-    title: "HotMess Innsbruck",
-    slug: "innsbruck-2026-09",
-    city: "Innsbruck",
-    date: "12.09.2026",
-    category: "Club",
-    priceFrom: "ab 25 EUR",
-    status: "Veröffentlicht",
-  },
-  {
-    title: "HotMess Wien",
-    slug: "wien-2026-10",
-    city: "Wien",
-    date: "10.10.2026",
-    category: "Konzert",
-    priceFrom: "ab 32 EUR",
-    status: "Fast voll",
-  },
-];
 
 export function EventFilter() {
   return (
@@ -53,7 +24,9 @@ export function EventFilter() {
   );
 }
 
-export function EventCard({ event }: { event: EventCardData }) {
+export function EventCard({ event }: { event: LiveEvent }) {
+  const priceFrom = event.ticketTypes.length > 0 ? formatMoney(Math.min(...event.ticketTypes.map((ticket) => ticket.priceCents))) : "Preis folgt";
+
   return (
     <article className="overflow-hidden rounded-card border border-hm-border bg-hm-porcelain shadow-luxury">
       <div className="aspect-[16/10] bg-[linear-gradient(135deg,var(--hm-champagne),var(--hm-porcelain))]" />
@@ -65,7 +38,7 @@ export function EventCard({ event }: { event: EventCardData }) {
         <div>
           <h2 className="hm-display text-3xl text-hm-ink">{event.title}</h2>
           <p className="mt-2 text-sm text-hm-inkSoft">
-            {event.date} · {event.category} · {event.priceFrom}
+            {formatEventDate(event.dateStart)} · {event.category} · ab {priceFrom}
           </p>
         </div>
         <Link
@@ -79,32 +52,39 @@ export function EventCard({ event }: { event: EventCardData }) {
   );
 }
 
-export function EventGrid() {
+export function EventGrid({ events }: { events: LiveEvent[] }) {
+  if (events.length === 0) {
+    return (
+      <div className="rounded-card border border-hm-border bg-hm-porcelain p-6 text-sm text-hm-inkSoft shadow-luxury">
+        Noch keine publizierten Events. Lege im Admin-Bereich das erste Event an.
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-5 md:grid-cols-2">
-      {demoEvents.map((event) => (
+      {events.map((event) => (
         <EventCard event={event} key={event.slug} />
       ))}
     </div>
   );
 }
 
-export function EventHero({ slug }: { slug: string }) {
+export function EventHero({ event }: { event: LiveEvent }) {
   return (
     <section className="overflow-hidden rounded-card border border-hm-border bg-hm-porcelain shadow-luxury">
       <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="min-h-80 bg-[radial-gradient(circle_at_25%_20%,rgba(198,163,93,.28),transparent_32%),linear-gradient(135deg,var(--hm-champagne),var(--hm-ivory))]" />
         <div className="flex flex-col justify-end p-6 sm:p-10">
           <p className="text-xs font-semibold uppercase tracking-luxury text-hm-goldDeep">Event</p>
-          <h1 className="hm-display mt-4 text-5xl text-hm-ink">HotMess {slug.replaceAll("-", " ")}</h1>
-          <p className="mt-5 leading-8 text-hm-inkSoft">
-            Live-Kontingent, Teilnehmer, Hotel-Vorteil und personalisierte Tickets in einem geschlossenen Kaufkreis.
-          </p>
+          <h1 className="hm-display mt-4 text-5xl text-hm-ink">{event.title}</h1>
+          <p className="mt-3 text-sm font-semibold text-hm-inkSoft">{formatEventDate(event.dateStart)} · {event.venue?.name ?? event.city}</p>
+          <p className="mt-5 leading-8 text-hm-inkSoft">{event.description ?? event.subtitle ?? "HotMess Event mit Live-Kontingent und personalisiertem QR-Ticket."}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link className="rounded-pill bg-hm-ink px-5 py-3 text-sm font-semibold text-white hover:bg-hm-goldDeep" href={`/events/${slug}/checkout`}>
+            <Link className="rounded-pill bg-hm-ink px-5 py-3 text-sm font-semibold text-white hover:bg-hm-goldDeep" href={`/events/${event.slug}/checkout`}>
               Ticket kaufen
             </Link>
-            <Link className="rounded-pill border border-hm-gold px-5 py-3 text-sm font-semibold text-hm-ink hover:bg-hm-champagne" href={`/events/${slug}/waitlist`}>
+            <Link className="rounded-pill border border-hm-gold px-5 py-3 text-sm font-semibold text-hm-ink hover:bg-hm-champagne" href={`/events/${event.slug}/waitlist`}>
               Warteliste ansehen
             </Link>
           </div>
@@ -114,20 +94,22 @@ export function EventHero({ slug }: { slug: string }) {
   );
 }
 
-export function GenderCapacityLive({
-  capacities = [
-    { label: "Weiblich", sold: 180, capacity: 200 },
-    { label: "Männlich", sold: 195, capacity: 200 },
-  ],
-}: {
-  capacities?: Capacity[];
-}) {
+export function GenderCapacityLive({ event }: { event: LiveEvent }) {
+  const config = event.genderConfig;
+  const capacities: Capacity[] = config
+    ? [
+        { label: "Weiblich", sold: config.soldFemale, capacity: config.capacityFemale },
+        { label: "Maennlich", sold: config.soldMale, capacity: config.capacityMale },
+        ...(config.capacityDiverse > 0 ? [{ label: "Divers", sold: config.soldDiverse, capacity: config.capacityDiverse }] : []),
+      ]
+    : [];
+
   return (
     <section className="rounded-card border border-hm-border bg-hm-porcelain p-6 shadow-luxury">
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-goldDeep">Live 50/50 Kontingent</p>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         {capacities.map((item) => {
-          const percent = Math.min(100, Math.round((item.sold / item.capacity) * 100));
+          const percent = item.capacity > 0 ? Math.min(100, Math.round((item.sold / item.capacity) * 100)) : 0;
           return (
             <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4" key={item.label}>
               <div className="flex justify-between text-sm font-semibold text-hm-ink">
@@ -151,14 +133,7 @@ export function WhoIsGoing() {
   return (
     <section className="rounded-card border border-hm-border bg-hm-porcelain p-6 shadow-luxury">
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-goldDeep">Wer geht noch</p>
-      <div className="mt-5 flex items-center gap-3">
-        {["A", "M", "D", "S"].map((name) => (
-          <span className="grid size-11 place-items-center rounded-full border border-hm-gold bg-hm-ivory text-sm font-semibold text-hm-ink" key={name}>
-            {name}
-          </span>
-        ))}
-        <p className="text-sm text-hm-inkSoft">+ 47 weitere aus deiner HotMess Umgebung</p>
-      </div>
+      <p className="mt-5 text-sm text-hm-inkSoft">Wird aus echten Ticket-Inhabern gefuellt, sobald die ersten Tickets verkauft sind.</p>
     </section>
   );
 }
@@ -175,14 +150,14 @@ export function HotelPerkCard() {
   );
 }
 
-export function TicketTypeList() {
+export function TicketTypeList({ event }: { event: LiveEvent }) {
   return (
     <section className="rounded-card border border-hm-border bg-hm-porcelain p-6 shadow-luxury">
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-goldDeep">Tickets</p>
       <div className="mt-5 grid gap-3">
-        {["Early Bird · 20 EUR", "Regular · 25 EUR", "VIP · 45 EUR"].map((item) => (
-          <div className="flex items-center justify-between rounded-card border border-hm-borderSoft bg-hm-ivory p-4" key={item}>
-            <span className="font-semibold text-hm-ink">{item}</span>
+        {event.ticketTypes.map((ticketType) => (
+          <div className="flex items-center justify-between rounded-card border border-hm-borderSoft bg-hm-ivory p-4" key={ticketType.id}>
+            <span className="font-semibold text-hm-ink">{ticketType.name} · {formatMoney(ticketType.priceCents, ticketType.currency)}</span>
             <span className="text-sm text-hm-inkSoft">personalisiert</span>
           </div>
         ))}
@@ -196,7 +171,7 @@ export function AddonPreview() {
     <section className="rounded-card border border-hm-border bg-hm-porcelain p-6 shadow-luxury">
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-goldDeep">Add-ons</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {["Tische", "Getränkepakete", "Fast-Lane", "Geburtstag"].map((item) => (
+        {["Tische", "Getraenkepakete", "Fast-Lane", "Geburtstag"].map((item) => (
           <div className="rounded-card border border-hm-borderSoft bg-hm-ivory p-4 text-sm font-semibold text-hm-ink" key={item}>
             {item}
           </div>
