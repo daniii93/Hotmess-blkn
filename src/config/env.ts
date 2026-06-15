@@ -14,6 +14,7 @@ export const requiredServerEnvKeys = [
 ] as const;
 
 export const optionalServerEnvKeys = [
+  "SUPABASE_SECRET_KEY",
   "STRIPE_IDENTITY_WEBHOOK_SECRET",
   "PAYPAL_CLIENT_ID",
   "PAYPAL_CLIENT_SECRET",
@@ -48,7 +49,7 @@ export const getPublicEnv = () => ({
 });
 
 export const getServerEnv = () => ({
-  supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY"),
+  supabaseServiceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY") || getEnv("SUPABASE_SECRET_KEY"),
   stripeSecretKey: getEnv("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: getEnv("STRIPE_WEBHOOK_SECRET"),
   stripeIdentityWebhookSecret: getEnv("STRIPE_IDENTITY_WEBHOOK_SECRET"),
@@ -66,11 +67,13 @@ export const getServerEnv = () => ({
 
 export const validateEnv = (): EnvValidationResult => {
   const missing = requiredServerEnvKeys.filter((key) => getEnv(key) === "");
+  const hasSupabaseAdminKey = getEnv("SUPABASE_SERVICE_ROLE_KEY") !== "" || getEnv("SUPABASE_SECRET_KEY") !== "";
+  const effectiveMissing = hasSupabaseAdminKey ? missing.filter((key) => key !== "SUPABASE_SERVICE_ROLE_KEY") : missing;
   const optionalMissing = optionalServerEnvKeys.filter((key) => getEnv(key) === "");
 
   return {
-    ok: missing.length === 0,
-    missing,
+    ok: effectiveMissing.length === 0,
+    missing: effectiveMissing,
     optionalMissing,
   };
 };
