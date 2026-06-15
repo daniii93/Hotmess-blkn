@@ -293,7 +293,7 @@ export const getCurrentUserProfile = async () => {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id,email,first_name,last_name,gender,avatar_url,role,verification_status,is_banned")
+    .select("id,email,first_name,last_name,username,city,gender,avatar_url,role,verification_status,is_banned")
     .eq("id", user.id)
     .single();
 
@@ -317,7 +317,7 @@ export const getRequestUserProfile = async (request: Request) => {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id,email,first_name,last_name,gender,avatar_url,role,verification_status,is_banned")
+    .select("id,email,first_name,last_name,username,city,gender,avatar_url,role,verification_status,is_banned")
     .eq("id", user.id)
     .single();
 
