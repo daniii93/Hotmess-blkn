@@ -11,6 +11,55 @@ export type {
   ChatType,
 } from "./chat";
 
+export type {
+  FeatureFlagKey,
+  FeatureFlags,
+  FeatureState,
+} from "../src/types/features";
+
+export type {
+  Permission,
+  RoleDefinition,
+  UserRole,
+  VerificationStatus,
+} from "../src/types/roles";
+
+export type {
+  CorePrincipleKey,
+  GenderQuota,
+  JourneyDefinition,
+  JourneyStep,
+  LegalRuleKey,
+  PaymentProvider,
+  ProductPriority,
+  ProductRule,
+  ScanResult,
+  SellableProduct,
+  TargetMarket,
+} from "../src/types/product";
+
+export type {
+  BookingStatus,
+  EventStatus as MasterplanEventStatus,
+  OrderStatus,
+  ScanResult as MasterplanScanResult,
+  TicketStatus,
+  VerificationStatus as MasterplanVerificationStatus,
+  WaitlistStatus,
+} from "../src/types/status";
+
+export type {
+  ApiError,
+  ApiResponse,
+  ApiSuccess,
+} from "../src/types/api";
+
+export type {
+  AuditAction,
+  AuditActor,
+  AuditEvent,
+} from "../src/types/audit";
+
 export type FAQItem = {
   question: string;
   answer: string;

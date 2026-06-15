@@ -32,12 +32,12 @@ Wenn keine Price IDs gesetzt sind, erzeugt HOTMESS Stripe Checkout Sessions mit 
 - `POST /payment/checkout`
 - `GET /payment/success`
 - `GET /payment/cancel`
-- `POST /api/stripe/webhook`
+- `POST /api/webhooks/stripe`
 
 Webhook in Stripe konfigurieren:
 
 ```text
-https://hotmess-blkn.com/api/stripe/webhook
+https://hotmess-blkn.app/api/webhooks/stripe
 ```
 
 Aktive Events:

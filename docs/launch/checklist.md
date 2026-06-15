@@ -1,0 +1,36 @@
+# HOTMESS Launch Checklist
+
+- [ ] `.env` lokal und auf Hosting vollstaendig gesetzt.
+- [ ] Keine Secrets committed.
+- [ ] PHP-Seiten erreichbar.
+- [ ] Supabase Projekt angelegt.
+- [ ] Migrationen in Staging getestet.
+- [ ] Staging Seed-Daten aus `supabase/seed/staging_launch_seed.sql` getestet.
+- [ ] Stripe Webhooks getestet.
+- [ ] E-Mail Provider verifiziert.
+- [ ] Storage Provider oder lokaler Fallback getestet.
+- [ ] Scanner Smoke-Test bestanden.
+- [ ] Chat Moderation getestet.
+- [ ] Admin Audit Log aktiv.
+- [ ] Vercel Deployment vorbereitet.
+- [ ] Supabase Backups aktiviert.
+- [ ] Restore-Test ausgefuehrt.
+- [ ] Stripe Webhook Signatur getestet.
+- [ ] PayPal Webhook Signatur getestet.
+- [ ] Stripe Identity Webhook getestet.
+- [ ] OneSignal App pro Environment vorbereitet.
+- [ ] Resend Domain verifiziert.
+- [ ] Cron Jobs fuer Reservierungen, Waitlist und Reminder eingerichtet.
+- [ ] Webhook-Idempotenz fuer Stripe, PayPal und Identity geprueft.
+- [ ] System Health Checks im Admin/Ops-Prozess sichtbar.
+- [ ] Impressum sichtbar.
+- [ ] Datenschutzerklaerung sichtbar.
+- [ ] AGB sichtbar.
+- [ ] Cookie Hinweis sichtbar.
+- [ ] Kein-Refund-Hinweis sichtbar.
+- [ ] Ticket-nicht-uebertragbar-Hinweis sichtbar.
+- [ ] Verifikationspflicht-Hinweis sichtbar.
+- [ ] 18+ Hinweis sichtbar.
+- [ ] Lighthouse Public Pages > 90 Ziel geprueft.
+- [ ] Mobile Performance > 85 Ziel geprueft.
+- [ ] Rollback-Prozess in Staging getestet.

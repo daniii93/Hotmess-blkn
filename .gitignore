@@ -1,11 +1,17 @@
 .tools/
 hotmess-blkn-hostinger-ready/
 *.zip
+node_modules/
+.next/
+tsconfig.tsbuildinfo
 
 # Runtime secrets
 app/config.php
 .env
 .env.local
+.env.*.local
+.env.production.local
+.claude/
 
 # Runtime/generated data
 uploads/
@@ -29,3 +35,9 @@ app/create-admin.php
 .DS_Store
 Thumbs.db
 .vscode/
+
+.vercel
+
+# Legacy local secrets/scripts
+legacy-php-app/config.php
+legacy-php-app/create-admin.php

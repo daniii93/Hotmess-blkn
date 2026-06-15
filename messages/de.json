@@ -1,0 +1,427 @@
+﻿{
+  "brand": {
+    "name": "HotMess",
+    "tagline": "Social Events fuer die Balkan Community in DACH und Italien."
+  },
+  "common": {
+    "empty": "Hier gibt es noch keine Eintraege.",
+    "comingSoon": "Dieser Bereich ist strukturell vorbereitet.",
+    "loginRequired": "Bitte melde dich an, um diesen Bereich zu nutzen.",
+    "adminRequired": "Dieser Bereich ist nur fuer Admins sichtbar.",
+    "scannerRequired": "Dieser Bereich ist nur fuer Scanner und Admins sichtbar.",
+    "datingRequired": "Aktiviere Dating in den Einstellungen, um diesen Bereich zu nutzen.",
+    "businessRequired": "Aktiviere Business in den Einstellungen, um diesen Bereich zu nutzen.",
+    "primaryCta": "Weiter",
+    "secondaryCta": "Mehr ansehen"
+  },
+  "nav": {
+    "public": {
+      "landing": "Start",
+      "eventPreview": "Event",
+      "login": "Login",
+      "register": "Registrieren",
+      "impressum": "Impressum",
+      "agb": "AGB",
+      "datenschutz": "Datenschutz",
+      "partner": "Partner"
+    },
+    "app": {
+      "feed": "Feed",
+      "explore": "Entdecken",
+      "events": "Events",
+      "friends": "Freunde",
+      "chat": "Chat",
+      "notifications": "Mitteilungen",
+      "profile": "Profil",
+      "create": "+ Erstellen"
+    },
+    "dating": {
+      "discover": "Entdecken",
+      "likes": "Likes",
+      "matches": "Matches",
+      "profile": "Dating-Profil"
+    },
+    "business": {
+      "network": "Vernetzen",
+      "jobs": "Jobs",
+      "coffee": "Coffee-Chats",
+      "groups": "Gruppen",
+      "profile": "Business-Profil"
+    },
+    "admin": {
+      "dashboard": "Dashboard",
+      "events": "Events",
+      "eventSales": "Live Sales",
+      "eventOperations": "Operations",
+      "eventSettlement": "Abrechnung",
+      "users": "Nutzer",
+      "verifications": "Verifikation",
+      "codes": "Codes",
+      "scanners": "Scanner",
+      "hotel": "Hotel",
+      "finance": "Finanzen",
+      "partners": "Partner",
+      "partnersProgram": "Partnerprogramm",
+      "moderation": "Moderation",
+      "broadcast": "Broadcast",
+      "analytics": "Analytics",
+      "settings": "Einstellungen"
+    }
+  },
+  "pages": {
+    "landing": {
+      "eyebrow": "HotMess",
+      "title": "Balkan Events. Neue Menschen. Ein Abend, der bleibt.",
+      "description": "Die Social-Event-Plattform fuer die Ex-Yugoslavia Community in DACH und Italien.",
+      "primary": "Zur Warteliste",
+      "secondary": "Naechstes Event ansehen"
+    },
+    "eventPreview": {
+      "eyebrow": "Event Vorschau",
+      "title": "Event ansehen. Einloggen zum Buchen.",
+      "description": "Oeffentliche Teaser zeigen Stimmung, Ort und Datum. Buchung ist nur mit Konto moeglich."
+    },
+    "login": {
+      "eyebrow": "Account",
+      "title": "Bei HotMess anmelden",
+      "description": "Melde dich mit E-Mail und Passwort oder ueber Google oder Apple an."
+    },
+    "register": {
+      "eyebrow": "Registrierung",
+      "title": "Werde Teil von HotMess",
+      "description": "Erstelle dein Konto, verifiziere dich und starte dein HotMess Profil."
+    },
+    "checkEmail": {
+      "eyebrow": "E-Mail bestaetigen",
+      "title": "Bitte bestaetige deine E-Mail",
+      "description": "Wir haben dir einen Link gesendet. Danach geht es direkt weiter zum Onboarding."
+    },
+    "resetPassword": {
+      "eyebrow": "Passwort",
+      "title": "Passwort zuruecksetzen",
+      "description": "Gib deine E-Mail-Adresse ein und lege danach ein neues Passwort fest."
+    },
+    "onboarding": {
+      "eyebrow": "Onboarding",
+      "title": "Deine Szene. Deine Leute. Dein Leben.",
+      "description": "Schliesse dein Profil ab, damit HotMess sicher und persoenlich funktioniert."
+    },
+    "verify": {
+      "eyebrow": "Verifikation",
+      "title": "Einmalige Identitaetspruefung",
+      "description": "Dauert etwa zwei Minuten. HotMess speichert keine Ausweisbilder und keine Ausweisnummern."
+    },
+    "impressum": {
+      "eyebrow": "Rechtliches",
+      "title": "Impressum",
+      "description": "Pflichtangaben und Kontaktinformationen fuer HotMess."
+    },
+    "agb": {
+      "eyebrow": "Rechtliches",
+      "title": "AGB",
+      "description": "Nutzungsbedingungen fuer Events, Tickets und Community."
+    },
+    "datenschutz": {
+      "eyebrow": "Rechtliches",
+      "title": "Datenschutz",
+      "description": "Informationen zur Verarbeitung deiner Daten."
+    },
+    "partner": {
+      "eyebrow": "Partner",
+      "title": "Partner werden",
+      "description": "Kontaktformular und Verweis auf die separate Partner-Plattform."
+    },
+    "feed": {
+      "eyebrow": "Feed",
+      "title": "Was in deiner HotMess Welt passiert.",
+      "description": "Posts, Eventkarten, Recaps und Aktivitaeten von Menschen, denen du folgst."
+    },
+    "story": {
+      "eyebrow": "Story",
+      "title": "Story ansehen",
+      "description": "Fullscreen Story mit Reaktion, Antwort und Umfrage."
+    },
+    "create": {
+      "eyebrow": "Erstellen",
+      "title": "Was moechtest du erstellen?",
+      "description": "Post, Story, Event-Recap oder Umfrage."
+    },
+    "explore": {
+      "eyebrow": "Entdecken",
+      "title": "Menschen, Events, Jobs und Hashtags finden.",
+      "description": "Suche und Empfehlungen fuer deine HotMess Umgebung."
+    },
+    "events": {
+      "eyebrow": "Events",
+      "title": "Events entdecken",
+      "description": "Filtere nach Stadt, Kategorie und Datum. Wechsel zwischen Karte und Liste."
+    },
+    "eventDetail": {
+      "eyebrow": "Event",
+      "title": "Event Detail",
+      "description": "Live 50/50 Kapazitaet, Teilnehmer, Hotel-Partner und Checkout."
+    },
+    "checkout": {
+      "eyebrow": "Checkout",
+      "title": "Ticket und Add-ons buchen",
+      "description": "Ticket reservieren, Gruppe waehlen, Add-ons hinzufuegen und bezahlen."
+    },
+    "waitlist": {
+      "eyebrow": "Warteliste",
+      "title": "Dein Platz auf der Warteliste",
+      "description": "Geschlechtergetrennte Warteliste mit sichtbarer Position."
+    },
+    "tickets": {
+      "eyebrow": "Tickets",
+      "title": "Meine Tickets",
+      "description": "QR-Code, Hotel-Code, Add-ons und vergangene Events."
+    },
+    "friends": {
+      "eyebrow": "Freunde",
+      "title": "Was ist los?",
+      "description": "Aktivitaeten deiner Freunde und der Ich-auch-Flow."
+    },
+    "friendRequests": {
+      "eyebrow": "Anfragen",
+      "title": "Freundschaftsanfragen",
+      "description": "Annehmen oder ablehnen."
+    },
+    "chat": {
+      "eyebrow": "Chat",
+      "title": "Unterhaltungen",
+      "description": "1:1, Gruppen, Event-Chats und Anfragen."
+    },
+    "chatThread": {
+      "eyebrow": "Chat",
+      "title": "Unterhaltung",
+      "description": "Realtime Thread mit Text, Bild, Voice, Eventkarte, Antwort und Reaktionen."
+    },
+    "notifications": {
+      "eyebrow": "Mitteilungen",
+      "title": "Alle Mitteilungen",
+      "description": "Tabs fuer Alle, Follows, Anfragen, Likes, Kommentare und Erwaehnungen."
+    },
+    "userProfile": {
+      "eyebrow": "Profil",
+      "title": "Profil ansehen",
+      "description": "Cover, Avatar, Musik, Badges, Meilensteine und Besucher der letzten 24 Stunden."
+    },
+    "profile": {
+      "eyebrow": "Mein Profil",
+      "title": "Dein HotMess Profil",
+      "description": "Beitraege, Events und Badges."
+    },
+    "profileEdit": {
+      "eyebrow": "Profil bearbeiten",
+      "title": "Bio, Bilder, Musik und Privatsphaere",
+      "description": "Steuere jedes Profil-Element einzeln."
+    },
+    "settings": {
+      "eyebrow": "Einstellungen",
+      "title": "Account und Modi",
+      "description": "Verifikation, Mitteilungen, Sprache, Dating und Business aktivieren."
+    },
+    "dating": {
+      "eyebrow": "Dating",
+      "title": "Dating entdecken",
+      "description": "Swipe Stack mit Like, Nope, Superlike, Rewind und Event-Filter."
+    },
+    "datingLikes": {
+      "eyebrow": "Dating",
+      "title": "Wer dich mag",
+      "description": "Premium Gold und Platinum Bereich."
+    },
+    "datingMatches": {
+      "eyebrow": "Dating",
+      "title": "Matches",
+      "description": "Matches oeffnen den normalen HotMess Chat."
+    },
+    "datingProfile": {
+      "eyebrow": "Dating",
+      "title": "Dating-Profil",
+      "description": "Separates Dating-Profil mit Fotos, Bio, Ziel, Interessen und Sprachen."
+    },
+    "datingFilters": {
+      "eyebrow": "Dating",
+      "title": "Filter",
+      "description": "Geschlecht, Alter, Entfernung, Event-Teilnehmer und Verifikation."
+    },
+    "datingPremium": {
+      "eyebrow": "Dating",
+      "title": "Dating Premium",
+      "description": "Plus, Gold, Platinum, Boosts, SuperLikes und anonymes Browsing."
+    },
+    "business": {
+      "eyebrow": "Business",
+      "title": "Vernetzen",
+      "description": "Taegliche Vorschlaege mit Interesse, Skip, Priority Connect und Event-Filter."
+    },
+    "businessMatches": {
+      "eyebrow": "Business",
+      "title": "Business Matches",
+      "description": "Gegenseitiges Interesse oeffnet den HotMess Chat."
+    },
+    "businessCoffee": {
+      "eyebrow": "Business",
+      "title": "Coffee-Chats",
+      "description": "Vorschlaege, Kalender mit Plus und Feedback danach."
+    },
+    "businessJobs": {
+      "eyebrow": "Business",
+      "title": "Jobs",
+      "description": "Jobboard fuer Vollzeit, Teilzeit, Freelance, Praktikum und Gig."
+    },
+    "businessJobDetail": {
+      "eyebrow": "Business",
+      "title": "Job Detail",
+      "description": "Jetzt bewerben oeffnet den Chat mit Profil und optionalem CV."
+    },
+    "businessJobsManage": {
+      "eyebrow": "Business Plus",
+      "title": "Jobs verwalten",
+      "description": "Listings und Bewerbungen fuer Business Plus."
+    },
+    "businessProfile": {
+      "eyebrow": "Business",
+      "title": "Business-Profil",
+      "description": "Unternehmen, Rolle, Branche, Angebot, Suche und Karrierestatus."
+    },
+    "businessGroups": {
+      "eyebrow": "Business",
+      "title": "Gruppen",
+      "description": "Branchen- und Stadtgruppen. Erstellen mit Business Plus."
+    },
+    "businessPremium": {
+      "eyebrow": "Business",
+      "title": "Business Plus",
+      "description": "Unlimitierte Vorschlaege, Profilbesucher, Jobs, Gruppen und Analytics."
+    },
+    "scanner": {
+      "eyebrow": "Scanner",
+      "title": "QR Einlass",
+      "description": "Event waehlen, QR scannen, Foto und Status pruefen, einlassen."
+    },
+    "admin": {
+      "eyebrow": "Admin",
+      "title": "KPI Dashboard",
+      "description": "Sales heute und Woche, Umsatz und Live-Kapazitaet."
+    },
+    "adminEvents": {
+      "eyebrow": "Admin",
+      "title": "Events verwalten",
+      "description": "CRUD, Gender-Konfiguration, Tickettypen, Tische und Getraenkepakete."
+    },
+    "adminEventSales": {
+      "eyebrow": "Admin",
+      "title": "Realtime Sales",
+      "description": "Verkaeufe in Echtzeit und CSV-Gaesteliste."
+    },
+    "adminEventOperations": {
+      "eyebrow": "Admin",
+      "title": "Event-Tag Cockpit",
+      "description": "Check-in, Bottle-Service, Geburtstage, Tische und HotMess Time."
+    },
+    "adminEventSettlement": {
+      "eyebrow": "Admin",
+      "title": "Event-Abrechnung",
+      "description": "Einnahmen, Kosten, Nettogewinn und Marge pro Event."
+    },
+    "adminUsers": {
+      "eyebrow": "Admin",
+      "title": "Nutzer verwalten",
+      "description": "Verifikation pruefen, sperren, Rolle aendern und Badges vergeben."
+    },
+    "adminUserVerifications": {
+      "eyebrow": "Admin",
+      "title": "Verifikations-Warteschlange",
+      "description": "Stripe-Identity-Sonderfaelle pruefen, ohne Ausweisdaten zu sehen."
+    },
+    "adminCodes": {
+      "eyebrow": "Admin",
+      "title": "Discount Codes",
+      "description": "Codes erstellen, bearbeiten und deaktivieren."
+    },
+    "adminScanners": {
+      "eyebrow": "Admin",
+      "title": "Scanner Zugriff",
+      "description": "Scanner pro Event freischalten."
+    },
+    "adminHotel": {
+      "eyebrow": "Admin",
+      "title": "Hotel Partner",
+      "description": "Partner und Kommissionsabgleich pro Event."
+    },
+    "adminFinance": {
+      "eyebrow": "Admin",
+      "title": "Finanzen",
+      "description": "Gesamtumsatz, Kosten, Nettogewinn, Partner-Abrechnung und Export."
+    },
+    "adminPartners": {
+      "eyebrow": "Admin",
+      "title": "Partner verwalten",
+      "description": "Hotels, Clubs und Sponsoren mit Provisions- und Vertragsgrundlagen."
+    },
+    "adminPartnersProgram": {
+      "eyebrow": "Admin",
+      "title": "Vertriebspartner-Programm",
+      "description": "Partner, Provisionen, Auszahlungen, Materialien und Karrierestufen freigeben."
+    },
+    "adminModeration": {
+      "eyebrow": "Admin",
+      "title": "Moderation",
+      "description": "Gemeldete Inhalte pruefen."
+    },
+    "adminBroadcast": {
+      "eyebrow": "Admin",
+      "title": "Broadcast",
+      "description": "Push und E-Mail an Segmente senden."
+    },
+    "adminAnalytics": {
+      "eyebrow": "Admin",
+      "title": "Analytics",
+      "description": "Nutzer, Events, Engagement, Dating, Business und Finanzkennzahlen."
+    },
+    "adminSettings": {
+      "eyebrow": "Admin",
+      "title": "Plattform-Einstellungen",
+      "description": "Feature-Flags, Inhalte, Standardwerte und Admin-Team steuern."
+    }
+  },
+  "emptyStates": {
+    "feed": "Noch keine Beitraege. Folge Menschen oder besuche Events, um deinen Feed zu fuellen.",
+    "events": "Keine Events fuer diese Filter gefunden.",
+    "chat": "Noch keine Unterhaltung. Starte einen Chat mit einem HotMess Mitglied.",
+    "notifications": "Keine Mitteilungen vorhanden.",
+    "admin": "Keine Daten fuer diese Ansicht vorhanden."
+  },
+  "auth": {
+    "email": "E-Mail",
+    "password": "Passwort",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "dateOfBirth": "Geburtsdatum",
+    "gender": "Geschlecht",
+    "female": "Weiblich",
+    "male": "Maennlich",
+    "diverse": "Divers",
+    "google": "Mit Google anmelden",
+    "apple": "Mit Apple anmelden",
+    "submitLogin": "Anmelden",
+    "submitRegister": "Konto erstellen",
+    "forgotPassword": "Passwort vergessen?",
+    "checkEmailHint": "Oeffne den Link in deiner E-Mail, um fortzufahren.",
+    "verifyStart": "Jetzt verifizieren"
+  },
+  "onboarding": {
+    "language": "Sprache waehlen",
+    "identity": "Wer bist du?",
+    "username": "Benutzername",
+    "photo": "Profilbild hochladen",
+    "interests": "Interessen waehlen",
+    "notifications": "Benachrichtigungen",
+    "friends": "Freunde finden",
+    "firstEvent": "Erstes Event",
+    "done": "Willkommen bei HotMess"
+  }
+}
+

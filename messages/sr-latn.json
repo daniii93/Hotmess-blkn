@@ -1,0 +1,60 @@
+{
+  "brand": {
+    "claim": {
+      "notForEveryone": "HotMess nije za svakoga. U tome je poenta."
+    },
+    "positioning": {
+      "luxuryMembersClub": "Ekskluzivni digitalni members club za evente, putovanja i community."
+    },
+    "targetAudience": {
+      "exYugoslavDiaspora": "Verifikovani ljudi ex-YU dijaspore u DACH regiji i Italiji."
+    },
+    "visualDna": {
+      "luxurySocialClubBalkanEliteEuropeanTravel": "Luxury Social Club x Balkan Elite x European Travel Lifestyle"
+    }
+  },
+  "landing": {
+    "hero": {
+      "title": "Not for everyone. That is the point.",
+      "subtitle": "Kuratirani event i social club za ex-YU community u DACH regiji i Italiji.",
+      "primaryCta": "Postani clan",
+      "secondaryCta": "Pogledaj evente"
+    }
+  },
+  "navigation": {
+    "user": {
+      "feed": "Feed",
+      "events": "Events",
+      "tickets": "Tickets",
+      "chat": "Chat",
+      "profile": "Profil"
+    },
+    "admin": {
+      "dashboard": "Admin",
+      "events": "Events",
+      "tickets": "Tickets",
+      "addons": "Add-ons",
+      "users": "Korisnici",
+      "scanner": "Scanner"
+    },
+    "scanner": {
+      "scan": "Scan",
+      "history": "Istorija"
+    }
+  },
+  "addons": {
+    "errors": {
+      "validTicketRequired": "Za ovaj add-on prvo ti treba vazeca karta.",
+      "tableRequired": "Za ovaj add-on prvo ti treba rezervacija stola.",
+      "tableAndDrinkPackageRequired": "Za ovaj add-on ti treba rezervacija stola i odgovarajuci paket pica."
+    }
+  },
+  "checkout": {
+    "notices": {
+      "personalizedNonTransferableTickets": "Karte su personalizovane i nisu prenosive.",
+      "profilePhotoCheckedAtEntry": "Na ulazu se tvoja profilna fotografija uporedjuje sa kartom.",
+      "noRefundAfterPurchase": "Nema povrata nakon uspesne kupovine."
+    }
+  }
+}
+

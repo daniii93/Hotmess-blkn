@@ -47,6 +47,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'packages') {
     redirect('/account/packages#concierge-inquiry');
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'profile') {
+    verify_csrf();
+    hotmess_profile_save($user, $_POST, $_FILES);
+    redirect('/account/profile?saved=1');
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'settings') {
+    verify_csrf();
+    hotmess_settings_save($user, $_POST);
+    redirect('/account/settings?saved=1');
+}
+
 function render_account_nav(string $active): void
 {
     ?>
@@ -154,16 +166,22 @@ render_header('Account ' . $title[0]);
     </section>
   <?php elseif ($section === 'profile'): ?>
     <section class="account-form-section">
-      <form class="account-lux-form" method="post">
-        <label>Name<input name="name" value="<?= e($profile['name']) ?>" /></label>
-        <label>E-Mail<input type="email" name="email" value="<?= e($profile['email']) ?>" /></label>
-        <label>Stadt<input name="city" value="<?= e($profile['city']) ?>" /></label>
-        <label>Geburtstag<input type="date" name="birthday" value="<?= e($profile['birthday']) ?>" /></label>
-        <label>Interessen<textarea name="interests"><?= e(implode(', ', $profile['interests'])) ?></textarea></label>
-        <label>Bevorzugte Staedte<textarea name="preferredCities"><?= e(implode(', ', $profile['preferredCities'])) ?></textarea></label>
-        <label>Profilbild Platzhalter<input name="avatarUrl" value="<?= e($profile['avatarUrl']) ?>" placeholder="/uploads/profile-photos/..." /></label>
-        <label class="check-row"><input type="checkbox" name="newsletterConsent" value="1" <?= $profile['newsletterConsent'] ? 'checked' : '' ?> /> Newsletter Zustimmung</label>
-        <button class="button primary" type="button">Profile update placeholder</button>
+      <?php if (isset($_GET['saved'])): ?><p class="form-success" style="color:var(--color-success,#2e7d32);margin-bottom:1rem">Profil gespeichert.</p><?php endif; ?>
+      <form class="account-lux-form" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+        <label>Name <input name="name" value="<?= e($profile['name']) ?>" required /></label>
+        <label>E-Mail <input type="email" name="email" value="<?= e($profile['email']) ?>" /></label>
+        <label>Stadt <input name="city" value="<?= e($profile['city']) ?>" /></label>
+        <label>Geburtstag <input type="date" name="birthday" value="<?= e($profile['birthday']) ?>" /></label>
+        <label>Bio <textarea name="bio" placeholder="Kurze Beschreibung über dich..."><?= e($profile['bio'] ?? '') ?></textarea></label>
+        <label>Interessen <small style="font-weight:400;opacity:.7">(kommagetrennt)</small><textarea name="interests"><?= e(implode(', ', $profile['interests'])) ?></textarea></label>
+        <label>Bevorzugte Städte <small style="font-weight:400;opacity:.7">(kommagetrennt)</small><textarea name="preferredCities"><?= e(implode(', ', $profile['preferredCities'])) ?></textarea></label>
+        <?php if ($profile['avatarUrl']): ?>
+          <div style="margin-bottom:.75rem"><img src="<?= e($profile['avatarUrl']) ?>" alt="Profilfoto" style="width:72px;height:72px;border-radius:50%;object-fit:cover;display:block"></div>
+        <?php endif; ?>
+        <label>Profilfoto ändern <input type="file" name="profilePhoto" accept="image/jpeg,image/png,image/webp" /></label>
+        <label class="check-row"><input type="checkbox" name="newsletterConsent" value="1" <?= $profile['newsletterConsent'] ? 'checked' : '' ?> /> Newsletter-Zustimmung</label>
+        <button class="button primary" type="submit">Profil speichern</button>
       </form>
     </section>
   <?php elseif ($section === 'membership'): ?>
@@ -188,7 +206,8 @@ render_header('Account ' . $title[0]);
     <section class="account-card-grid">
       <?php foreach ($account['tickets'] as $ticket): ?>
         <article class="account-ticket-card">
-          <div class="account-qr-placeholder"><?= e($ticket['qrCode']) ?></div>
+          <canvas class="account-ticket-qr" data-qr="<?= e($ticket['qrCode']) ?>" width="180" height="180" style="display:block;margin:0 auto 1rem"></canvas>
+          <p style="font-size:11px;text-align:center;opacity:.5;margin-bottom:.5rem;font-family:var(--font-mono)"><?= e($ticket['ticketNumber'] ?? '') ?></p>
           <span><?= e($ticket['ticketType']) ?></span>
           <h2><?= e($ticket['eventName']) ?></h2>
           <p><?= e($ticket['date']) ?></p>
@@ -374,19 +393,41 @@ render_header('Account ' . $title[0]);
     </section>
   <?php elseif ($section === 'settings'): ?>
     <section class="account-form-section">
+      <?php if (isset($_GET['saved'])): ?><p class="form-success" style="color:var(--color-success,#2e7d32);margin-bottom:1rem">Einstellungen gespeichert.</p><?php endif; ?>
       <form class="account-lux-form" method="post">
-        <label>Sprache<input name="language" value="<?= e($account['preferences']['language']) ?>" /></label>
-        <label class="check-row"><input type="checkbox" name="notifications" value="1" <?= $account['preferences']['notifications'] ? 'checked' : '' ?> /> Benachrichtigungen</label>
-        <label class="check-row"><input type="checkbox" name="eventReminders" value="1" <?= $account['preferences']['eventReminders'] ? 'checked' : '' ?> /> Event Reminder</label>
-        <label class="check-row"><input type="checkbox" name="hotelUpdates" value="1" <?= $account['preferences']['hotelUpdates'] ? 'checked' : '' ?> /> Hotel Updates</label>
-        <label class="check-row"><input type="checkbox" name="partnerOffers" value="1" <?= $account['preferences']['partnerOffers'] ? 'checked' : '' ?> /> Partner Offers</label>
-        <label class="check-row"><input type="checkbox" name="newsletter" value="1" <?= $account['preferences']['newsletter'] ? 'checked' : '' ?> /> Newsletter</label>
-        <label>Datenschutz<textarea name="privacyMode"><?= e($account['preferences']['privacyMode']) ?></textarea></label>
-        <label>Account loeschen<textarea name="deleteAccountPlaceholder"><?= e($account['preferences']['deleteAccountPlaceholder']) ?></textarea></label>
-        <button class="button primary" type="button">Settings update placeholder</button>
+        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+        <label class="check-row"><input type="checkbox" name="notifications" value="1" <?= $account['preferences']['notifications'] ? 'checked' : '' ?> /> Benachrichtigungen aktivieren</label>
+        <label class="check-row"><input type="checkbox" name="eventReminders" value="1" <?= $account['preferences']['eventReminders'] ? 'checked' : '' ?> /> Event-Reminder per E-Mail</label>
+        <label class="check-row"><input type="checkbox" name="hotelUpdates" value="1" <?= $account['preferences']['hotelUpdates'] ? 'checked' : '' ?> /> Hotel-Updates erhalten</label>
+        <label class="check-row"><input type="checkbox" name="partnerOffers" value="1" <?= $account['preferences']['partnerOffers'] ? 'checked' : '' ?> /> Partner-Angebote erhalten</label>
+        <label class="check-row"><input type="checkbox" name="newsletter" value="1" <?= $account['preferences']['newsletter'] ? 'checked' : '' ?> /> Newsletter abonnieren</label>
+        <label>Datenschutz / Sichtbarkeit
+          <select name="privacyMode">
+            <option value="members_only" <?= $account['preferences']['privacyMode'] === 'members_only' ? 'selected' : '' ?>>Nur für Mitglieder</option>
+            <option value="public" <?= $account['preferences']['privacyMode'] === 'public' ? 'selected' : '' ?>>Öffentlich</option>
+            <option value="private" <?= $account['preferences']['privacyMode'] === 'private' ? 'selected' : '' ?>>Privat</option>
+          </select>
+        </label>
+        <button class="button primary" type="submit">Einstellungen speichern</button>
       </form>
+      <article class="account-lux-card" style="margin-top:2rem;border-color:rgba(220,38,38,.3)">
+        <span>Account löschen</span>
+        <h2>Konto unwiderruflich entfernen</h2>
+        <p>Um deinen Account zu löschen, schreibe dem HOTMESS Team direkt. Die Löschung ist dauerhaft und kann nicht rückgängig gemacht werden.</p>
+        <a class="button ghost" href="/contact">Team kontaktieren</a>
+      </article>
     </section>
   <?php endif; ?>
 </main>
 
+<?php if ($section === 'tickets'): ?>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script>
+document.querySelectorAll('canvas.account-ticket-qr[data-qr]').forEach(function(canvas) {
+  if (typeof QRCode !== 'undefined') {
+    QRCode.toCanvas(canvas, canvas.dataset.qr, {width: 180, margin: 2, color: {dark: '#000000', light: '#ffffff'}}, function() {});
+  }
+});
+</script>
+<?php endif; ?>
 <?php render_footer(); ?>

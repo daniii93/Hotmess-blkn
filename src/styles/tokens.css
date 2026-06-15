@@ -1,0 +1,23 @@
+:root {
+  --hm-ivory: #FAF7F2;
+  --hm-porcelain: #FFFFFF;
+  --hm-champagne: #EFE7DA;
+  --hm-gold: #C6A35D;
+  --hm-gold-deep: #A8853F;
+  --hm-ink: #1C1915;
+  --hm-ink-soft: #6E675C;
+  --hm-success: #5E7C5A;
+  --hm-error: #9C4A3C;
+
+  --hm-dating: #9C4A3C;
+  --hm-business: #A8853F;
+  --hm-admin: #6E675C;
+  --hm-scanner-bg: #14110D;
+
+  --hm-border: rgba(198, 163, 93, 0.42);
+  --hm-border-soft: rgba(28, 25, 21, 0.1);
+  --hm-shadow-soft: 0 8px 30px rgba(28, 25, 21, 0.08);
+
+  --hm-font-display: "Playfair Display", "Cormorant Garamond", "Libre Baskerville", serif;
+  --hm-font-body: "Inter", Arial, Helvetica, sans-serif;
+}

@@ -15,11 +15,11 @@ HOTMESS nutzt eine zentrale E-Mail-Schicht fuer System-E-Mails, Templates, Trigg
 ## Resend Setup
 
 1. Resend Account erstellen: https://resend.com/signup
-2. Domain `hotmess-blkn.com` hinzufuegen.
+2. Domain `hotmess-blkn.app` hinzufuegen.
 3. DNS Records fuer SPF, DKIM und Domain-Verifizierung bei Hostinger/Cloudflare eintragen.
 4. Absender vorbereiten:
-   - `no-reply@hotmess-blkn.com`
-   - optional `hello@hotmess-blkn.com` als Reply-To.
+   - `no-reply@hotmess-blkn.app`
+   - optional `hello@hotmess-blkn.app` als Reply-To.
 5. API Key erzeugen.
 6. API Key nur lokal oder auf dem Server in `.env` / Hosting-ENV speichern.
 7. Testversand unter `/admin/email` ausfuehren.
@@ -28,10 +28,10 @@ HOTMESS nutzt eine zentrale E-Mail-Schicht fuer System-E-Mails, Templates, Trigg
 
 ```env
 RESEND_API_KEY=
-RESEND_FROM_EMAIL=no-reply@hotmess-blkn.com
-RESEND_REPLY_TO_EMAIL=hello@hotmess-blkn.com
+RESEND_FROM_EMAIL=no-reply@hotmess-blkn.app
+RESEND_REPLY_TO_EMAIL=hello@hotmess-blkn.app
 POSTMARK_SERVER_TOKEN=
-POSTMARK_FROM_EMAIL=no-reply@hotmess-blkn.com
+POSTMARK_FROM_EMAIL=no-reply@hotmess-blkn.app
 ```
 
 Keine Live-Keys in Git eintragen.

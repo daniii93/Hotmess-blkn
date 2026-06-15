@@ -11,6 +11,7 @@ $referrerName = '';
 $codeValid = false;
 
 if ($refCode !== '') {
+    hotmess_track(ANALYTICS_REFERRAL_LANDING, ['ref_code' => $refCode], $user ? (int) $user['id'] : null);
     // Code in Session merken
     hotmess_referral_remember_code($refCode);
 

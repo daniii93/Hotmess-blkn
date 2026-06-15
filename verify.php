@@ -5,93 +5,71 @@ declare(strict_types=1);
 require_once __DIR__ . '/app/bootstrap.php';
 require_once __DIR__ . '/app/layout.php';
 
+hotmess_ensure_auth_schema();
+
 $user = require_login();
 
 if (($user['role'] ?? '') === 'admin') {
-    redirect('dashboard.php');
+    redirect('/admin');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
-    $type = $_POST['type'] === 'phone' ? 'phone' : 'email';
-    $action = $_POST['action'] ?? 'verify';
+    $action = (string) ($_POST['action'] ?? 'verify');
 
     if ($action === 'resend') {
         try {
-            generate_verification_code($user, $type);
-            flash($type === 'phone' ? 'Neuer SMS-Code wurde angefordert.' : 'Neuer E-Mail-Code wurde gesendet.');
+            generate_verification_code($user, 'email');
+            flash('Neuer E-Mail-Code wurde gesendet.');
         } catch (RuntimeException $exception) {
             flash($exception->getMessage());
         }
-        redirect('verify.php');
+        redirect('/verify.php');
     }
 
-    [$ok, $message] = verify_code($user, $type, trim($_POST['code'] ?? ''));
+    [$ok, $message] = verify_code($user, 'email', trim((string) ($_POST['code'] ?? '')));
     flash($message);
 
     if ($ok) {
-        $user = current_user();
-        if (is_verified($user, 'email') && is_verified($user, 'phone')) {
-            redirect('dashboard.php');
+        try {
+            db()->prepare('UPDATE users SET email_verified = 1 WHERE id = ?')->execute([(int) $user['id']]);
+        } catch (Throwable) {
         }
+        redirect('/onboarding');
     }
 
-    redirect('verify.php');
+    redirect('/verify.php');
 }
 
-render_header('Verifizierung');
-$smsNotice = $_SESSION['sms_notice'] ?? null;
-unset($_SESSION['sms_notice']);
+render_header('E-Mail bestaetigen');
 ?>
 
-<main class="auth-page">
-  <section class="auth-panel">
-    <p class="eyebrow">Verification</p>
-    <h1>Code bestätigen</h1>
+<main class="auth-page hotmess-auth-page">
+  <section class="auth-panel hotmess-auth-card">
+    <p class="eyebrow">Hotmess Verifizierung</p>
+    <h1>E-Mail bestaetigen</h1>
+    <p>Wir haben einen 6-stelligen Code an <?= e((string) $user['email']) ?> gesendet.</p>
     <?php render_flash(); ?>
-    <?php if ($smsNotice): ?>
-      <p class="notice"><?= e($smsNotice) ?></p>
-    <?php endif; ?>
 
     <div class="verification-list">
       <article>
-        <h3>E-Mail</h3>
-        <p><?= is_verified($user, 'email') ? 'Bestätigt' : 'Code an ' . e($user['email']) . ' gesendet' ?></p>
+        <h3>E-Mail-Adresse</h3>
+        <p><?= is_verified($user, 'email') ? 'Bestaetigt' : 'Bitte bestaetige deine E-Mail, bevor du dein Profil einrichtest.' ?></p>
         <?php if (!is_verified($user, 'email')): ?>
           <form class="stack-form" method="post">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>" />
-            <input type="hidden" name="type" value="email" />
             <input type="hidden" name="action" value="verify" />
             <label>6-stelliger Code<input type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required /></label>
-            <button class="button primary" type="submit">E-Mail bestätigen</button>
+            <button class="button primary hotmess-gradient-button" type="submit">E-Mail bestaetigen</button>
           </form>
           <form method="post">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>" />
-            <input type="hidden" name="type" value="email" />
             <input type="hidden" name="action" value="resend" />
             <button class="link-button" type="submit">Neuen Code senden</button>
           </form>
-        <?php endif; ?>
-      </article>
-
-      <article>
-        <h3>Telefon</h3>
-        <p><?= is_verified($user, 'phone') ? 'Bestätigt' : 'SMS-Code an ' . e($user['phone']) . ' angefordert' ?></p>
-        <?php if (!is_verified($user, 'phone')): ?>
-          <form class="stack-form" method="post">
-            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>" />
-            <input type="hidden" name="type" value="phone" />
-            <input type="hidden" name="action" value="verify" />
-            <label>6-stelliger SMS-Code<input type="text" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required /></label>
-            <button class="button primary" type="submit">Telefon bestätigen</button>
-          </form>
-          <form method="post">
-            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>" />
-            <input type="hidden" name="type" value="phone" />
-            <input type="hidden" name="action" value="resend" />
-            <button class="link-button" type="submit">Neuen SMS-Code senden</button>
-          </form>
+        <?php else: ?>
+          <a class="button primary" href="/onboarding">Weiter zum Onboarding</a>
         <?php endif; ?>
       </article>
     </div>

@@ -1,0 +1,24 @@
+{
+  "name": "hotmess-partner-platform",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0 --port 3001",
+    "typecheck": "tsc --noEmit",
+    "build": "next build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "latest",
+    "next": "15.5.19",
+    "qrcode": "latest",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "5.9.3"
+  }
+}

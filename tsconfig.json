@@ -6,8 +6,54 @@
     "strict": true,
     "noImplicitAny": true,
     "noEmit": true,
+    "jsx": "preserve",
+    "resolveJsonModule": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["types/**/*.ts", "lib/**/*.ts"]
+  "include": [
+    "src/app/**/*.ts",
+    "src/app/**/*.tsx",
+    "src/components/auth/**/*.tsx",
+    "src/components/business/**/*.tsx",
+    "src/components/dating/**/*.tsx",
+    "src/components/layout/app-sidebar.tsx",
+    "src/components/layout/mode-subnav.tsx",
+    "src/components/profile/**/*.tsx",
+    "src/components/settings/**/*.tsx",
+    "src/components/shell/**/*.tsx",
+    "src/components/social/**/*.tsx",
+    "src/config/env.ts",
+    "src/config/navigation.ts",
+    "src/config/routes.ts",
+    "src/i18n/**/*.ts",
+    "src/lib/supabase/middleware.ts",
+    "src/lib/utils/**/*.ts",
+    "src/middleware.ts",
+    "src/pages/**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

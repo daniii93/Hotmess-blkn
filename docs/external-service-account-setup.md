@@ -4,9 +4,9 @@ Diese Checkliste bereitet externe Standarddienste fuer HOTMESS vor. Es werden ke
 
 ## Grundregeln
 
-- Primaere technische Account-E-Mail: `tech@hotmess-blkn.com`
-- Falls `tech@hotmess-blkn.com` noch nicht existiert: zuerst diese technische E-Mail-Adresse anlegen.
-- Alternative: `admin@hotmess-blkn.com` oder eine bestehende Geschaeftsadresse.
+- Primaere technische Account-E-Mail: `tech@hotmess-blkn.app`
+- Falls `tech@hotmess-blkn.app` noch nicht existiert: zuerst diese technische E-Mail-Adresse anlegen.
+- Alternative: `admin@hotmess-blkn.app` oder eine bestehende Geschaeftsadresse.
 - Keine privaten Entwicklerkonten als Hauptkonto verwenden, wenn moeglich.
 - API Keys niemals in Git committen.
 - `.env` muss in `.gitignore` bleiben.
@@ -32,7 +32,7 @@ Zweck fuer HOTMESS:
 
 Empfohlene Account-E-Mail:
 
-- `tech@hotmess-blkn.com`
+- `tech@hotmess-blkn.app`
 
 Registrierungsdaten:
 
@@ -97,7 +97,7 @@ Zweck fuer HOTMESS:
 
 Empfohlene Account-E-Mail:
 
-- `tech@hotmess-blkn.com`
+- `tech@hotmess-blkn.app`
 
 Registrierungsdaten:
 
@@ -117,10 +117,10 @@ Zahlungsdaten:
 Setup-Schritte:
 
 1. Resend Account erstellen.
-2. Domain `hotmess-blkn.com` hinzufuegen.
+2. Domain `hotmess-blkn.app` hinzufuegen.
 3. DNS Records notieren.
 4. Domain-Verifizierung vorbereiten.
-5. Absender festlegen: `no-reply@hotmess-blkn.com` oder `hello@hotmess-blkn.com`.
+5. Absender festlegen: `no-reply@hotmess-blkn.app` oder `hello@hotmess-blkn.app`.
 6. API Key erstellen und sicher speichern.
 7. API Key spaeter lokal in `.env` eintragen.
 
@@ -134,8 +134,8 @@ Eintrag in `.env`:
 
 ```env
 RESEND_API_KEY=
-RESEND_FROM_EMAIL=no-reply@hotmess-blkn.com
-RESEND_REPLY_TO_EMAIL=hello@hotmess-blkn.com
+RESEND_FROM_EMAIL=no-reply@hotmess-blkn.app
+RESEND_REPLY_TO_EMAIL=hello@hotmess-blkn.app
 ```
 
 Nicht ausfuehren:
@@ -157,7 +157,7 @@ Zweck fuer HOTMESS:
 
 Empfohlene Account-E-Mail:
 
-- `tech@hotmess-blkn.com`
+- `tech@hotmess-blkn.app`
 
 Registrierungsdaten:
 
@@ -190,7 +190,7 @@ Eintrag in `.env`:
 
 ```env
 POSTMARK_SERVER_TOKEN=
-POSTMARK_FROM_EMAIL=no-reply@hotmess-blkn.com
+POSTMARK_FROM_EMAIL=no-reply@hotmess-blkn.app
 ```
 
 Nicht ausfuehren:
@@ -214,7 +214,7 @@ Zweck fuer HOTMESS:
 
 Empfohlene Account-E-Mail:
 
-- `tech@hotmess-blkn.com`
+- `tech@hotmess-blkn.app`
 
 Registrierungsdaten:
 
@@ -280,7 +280,7 @@ Zweck fuer HOTMESS:
 
 Empfohlene Account-E-Mail:
 
-- `tech@hotmess-blkn.com`
+- `tech@hotmess-blkn.app`
 
 Registrierungsdaten:
 
@@ -383,7 +383,7 @@ Zweck fuer HOTMESS:
 
 Empfohlene Account-E-Mail:
 
-- `tech@hotmess-blkn.com`
+- `tech@hotmess-blkn.app`
 
 Registrierungsdaten:
 
@@ -403,7 +403,7 @@ Zahlungsdaten:
 Setup-Schritte:
 
 1. Cloudflare Account erstellen.
-2. Domain `hotmess-blkn.com` optional hinzufuegen.
+2. Domain `hotmess-blkn.app` optional hinzufuegen.
 3. R2 Bereich oeffnen.
 4. Bucket vorbereiten: `hotmess-media`.
 5. Keine unnoetigen kostenpflichtigen Add-ons aktivieren.
@@ -436,7 +436,7 @@ Nicht ausfuehren:
 
 ## Admin Checkliste
 
-- [ ] Technische E-Mail `tech@hotmess-blkn.com` angelegt
+- [ ] Technische E-Mail `tech@hotmess-blkn.app` angelegt
 - [ ] Firebase Account erstellt
 - [ ] Firebase Projekt erstellt
 - [ ] Firebase Cloud Messaging vorbereitet

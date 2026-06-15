@@ -1,0 +1,60 @@
+{
+  "brand": {
+    "claim": {
+      "notForEveryone": "HotMess non e per tutti. Questo e il punto."
+    },
+    "positioning": {
+      "luxuryMembersClub": "Un members club digitale esclusivo per eventi, viaggi e community."
+    },
+    "targetAudience": {
+      "exYugoslavDiaspora": "Persone verificate della diaspora ex-jugoslava in DACH e Italia."
+    },
+    "visualDna": {
+      "luxurySocialClubBalkanEliteEuropeanTravel": "Luxury Social Club x Balkan Elite x European Travel Lifestyle"
+    }
+  },
+  "landing": {
+    "hero": {
+      "title": "Not for everyone. That is the point.",
+      "subtitle": "Un event e social club curato per la community ex-jugoslava in DACH e Italia.",
+      "primaryCta": "Diventa membro",
+      "secondaryCta": "Scopri gli eventi"
+    }
+  },
+  "navigation": {
+    "user": {
+      "feed": "Feed",
+      "events": "Eventi",
+      "tickets": "Ticket",
+      "chat": "Chat",
+      "profile": "Profilo"
+    },
+    "admin": {
+      "dashboard": "Admin",
+      "events": "Eventi",
+      "tickets": "Ticket",
+      "addons": "Add-on",
+      "users": "Utenti",
+      "scanner": "Scanner"
+    },
+    "scanner": {
+      "scan": "Scan",
+      "history": "Storico"
+    }
+  },
+  "addons": {
+    "errors": {
+      "validTicketRequired": "Per questo add-on hai prima bisogno di un ticket valido.",
+      "tableRequired": "Per questo add-on hai prima bisogno di una prenotazione tavolo.",
+      "tableAndDrinkPackageRequired": "Per questo add-on hai bisogno di una prenotazione tavolo e di un pacchetto drink adatto."
+    }
+  },
+  "checkout": {
+    "notices": {
+      "personalizedNonTransferableTickets": "I ticket sono personalizzati e non trasferibili.",
+      "profilePhotoCheckedAtEntry": "All'ingresso la tua foto profilo verra confrontata con il ticket.",
+      "noRefundAfterPurchase": "Nessun rimborso dopo l'acquisto completato."
+    }
+  }
+}
+

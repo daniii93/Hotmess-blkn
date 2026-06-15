@@ -1,0 +1,54 @@
+@import "./tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  background: var(--hm-ivory);
+  color: var(--hm-ink);
+  font-family: var(--hm-font-body);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(198, 163, 93, 0.12), transparent 28%),
+    linear-gradient(180deg, var(--hm-ivory), #f4eee4);
+  color: var(--hm-ink);
+}
+
+::selection {
+  color: var(--hm-porcelain);
+  background: var(--hm-gold-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--hm-gold);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.hm-display {
+  font-family: var(--hm-font-display);
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.hm-label {
+  color: var(--hm-gold-deep);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
