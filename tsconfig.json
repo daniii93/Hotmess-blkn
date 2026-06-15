@@ -50,8 +50,7 @@
     "src/lib/supabase/middleware.ts",
     "src/lib/utils/**/*.ts",
     "src/middleware.ts",
-    "src/pages/**/*.tsx",
-    ".next/types/**/*.ts"
+    "src/pages/**/*.tsx"
   ],
   "exclude": [
     "node_modules"

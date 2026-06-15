@@ -2,8 +2,16 @@ import { PageShell } from "@/components/shell/page-shell";
 import { AuthForm } from "@/components/auth/auth-form";
 import { getTranslations } from "next-intl/server";
 
-export default async function LoginPage() {
+type LoginPageProps = {
+  searchParams?: Promise<{
+    returnTo?: string;
+  }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const t = await getTranslations("auth");
+  const params = await searchParams;
+  const returnTo = params?.returnTo?.startsWith("/") ? params.returnTo : "/feed";
 
   return (
     <>
@@ -11,6 +19,7 @@ export default async function LoginPage() {
       <div className="mx-auto -mt-10 max-w-2xl px-4 pb-12">
         <AuthForm
           mode="login"
+          returnTo={returnTo}
           labels={{
             email: t("email"),
             password: t("password"),

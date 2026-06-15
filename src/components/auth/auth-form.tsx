@@ -1,8 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -18,6 +21,7 @@ const registerSchema = loginSchema.extend({
 
 type AuthFormProps = {
   mode: "login" | "register";
+  returnTo?: string;
   labels: {
     email: string;
     password: string;
@@ -37,8 +41,12 @@ type AuthFormProps = {
 type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
 
-export function AuthForm({ mode, labels }: AuthFormProps) {
+export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
   const isRegister = mode === "register";
+  const router = useRouter();
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState<string | null>(null);
   const form = useForm<LoginValues | RegisterValues>({
     resolver: zodResolver(isRegister ? registerSchema : loginSchema),
     defaultValues: isRegister
@@ -46,10 +54,95 @@ export function AuthForm({ mode, labels }: AuthFormProps) {
       : { email: "", password: "" },
   });
 
+  const handlePasswordAuth = async (values: LoginValues | RegisterValues) => {
+    setStatus("loading");
+    setMessage(null);
+
+    if (isRegister) {
+      const registerValues = values as RegisterValues;
+      const usernameBase = `${registerValues.firstName}.${registerValues.lastName}`
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9._]/g, ".")
+        .replace(/\.+/g, ".")
+        .replace(/^\.|\.$/g, "")
+        .slice(0, 20);
+      const username = `${usernameBase || "user"}.${Math.random().toString(36).slice(2, 7)}`.slice(0, 30);
+
+      const { data, error } = await supabase.auth.signUp({
+        email: registerValues.email,
+        password: registerValues.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+          data: {
+            first_name: registerValues.firstName,
+            last_name: registerValues.lastName,
+            date_of_birth: registerValues.dateOfBirth,
+            gender: registerValues.gender,
+            username,
+            onboarding_completed: false,
+            role: "user",
+          },
+        },
+      });
+
+      if (error) {
+        setStatus("error");
+        setMessage(error.message);
+        return;
+      }
+
+      setStatus("success");
+
+      if (data.session) {
+        router.replace("/onboarding");
+        router.refresh();
+        return;
+      }
+
+      router.replace("/register/check-email");
+      return;
+    }
+
+    const loginValues = values as LoginValues;
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginValues.email,
+      password: loginValues.password,
+    });
+
+    if (error) {
+      setStatus("error");
+      setMessage(error.message);
+      return;
+    }
+
+    setStatus("success");
+    router.replace(returnTo);
+    router.refresh();
+  };
+
+  const handleOAuth = async (provider: "google" | "apple") => {
+    setStatus("loading");
+    setMessage(null);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`,
+      },
+    });
+
+    if (error) {
+      setStatus("error");
+      setMessage(error.message);
+    }
+  };
+
   return (
     <form
       className="mt-8 grid gap-4 rounded-card border border-hm-border bg-hm-porcelain p-5 shadow-soft"
-      onSubmit={form.handleSubmit(() => undefined)}
+      onSubmit={form.handleSubmit(handlePasswordAuth)}
     >
       {isRegister ? (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -83,14 +176,33 @@ export function AuthForm({ mode, labels }: AuthFormProps) {
         {labels.password}
         <input type="password" className="rounded-pill border border-hm-border bg-hm-ivory px-4 py-3" {...form.register("password")} />
       </label>
-      <button className="rounded-pill bg-hm-ink px-5 py-3 text-sm font-semibold text-hm-porcelain transition hover:bg-hm-gold" type="submit">
-        {labels.submit}
+      {message ? (
+        <p className={`rounded-card px-4 py-3 text-sm ${status === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"}`}>
+          {message}
+        </p>
+      ) : null}
+      <button
+        className="rounded-pill bg-hm-ink px-5 py-3 text-sm font-semibold text-hm-porcelain transition hover:bg-hm-gold disabled:cursor-not-allowed disabled:opacity-60"
+        type="submit"
+        disabled={status === "loading"}
+      >
+        {status === "loading" ? "Bitte warten..." : labels.submit}
       </button>
       <div className="grid gap-2 sm:grid-cols-2">
-        <button className="rounded-pill border border-hm-border px-4 py-3 text-sm font-semibold text-hm-ink" type="button">
+        <button
+          className="rounded-pill border border-hm-border px-4 py-3 text-sm font-semibold text-hm-ink disabled:cursor-not-allowed disabled:opacity-60"
+          type="button"
+          disabled={status === "loading"}
+          onClick={() => handleOAuth("google")}
+        >
           {labels.google}
         </button>
-        <button className="rounded-pill border border-hm-border px-4 py-3 text-sm font-semibold text-hm-ink" type="button">
+        <button
+          className="rounded-pill border border-hm-border px-4 py-3 text-sm font-semibold text-hm-ink disabled:cursor-not-allowed disabled:opacity-60"
+          type="button"
+          disabled={status === "loading"}
+          onClick={() => handleOAuth("apple")}
+        >
           {labels.apple}
         </button>
       </div>
