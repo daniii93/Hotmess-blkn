@@ -91,6 +91,11 @@ export async function POST(request: Request, { params }: CheckoutParams) {
   if (ticketError) return NextResponse.json({ error: ticketError.message }, { status: 400 });
 
   await supabase
+    .from("ticket_types")
+    .update({ quantity_sold: ticketType.quantitySold + 1 })
+    .eq("id", ticketType.id);
+
+  await supabase
     .from("orders")
     .update({ status: "paid", paid_at: new Date().toISOString(), payment_method: "stripe", payment_id: `test_${order.id}` })
     .eq("id", order.id);

@@ -90,6 +90,11 @@ type EventRow = {
   }>;
 };
 
+const firstRelation = <T>(value: T | T[] | null | undefined): T | null => {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
+};
+
 const eventSelect = `
   id, slug, title, subtitle, description, city, category, status,
   date_start, starts_at, date_end, ends_at, doors_open,
@@ -99,54 +104,59 @@ const eventSelect = `
   ticket_types(id,name,description,price_cents,currency,quantity_total,quantity_sold,is_active,active)
 `;
 
-const mapEvent = (row: EventRow): LiveEvent => ({
-  id: row.id,
-  slug: row.slug,
-  title: row.title,
-  subtitle: row.subtitle,
-  description: row.description,
-  city: row.city,
-  category: row.category,
-  status: row.status,
-  dateStart: row.date_start ?? row.starts_at,
-  dateEnd: row.date_end ?? row.ends_at,
-  doorsOpen: row.doors_open,
-  coverImageUrl: row.cover_image_url ?? row.hero_image_url,
-  capacityTotal: row.capacity_total,
-  venue: row.venue
-    ? {
-        name: row.venue.name,
-        address: row.venue.address,
-        city: row.venue.city,
-        country: row.venue.country,
-        mapsUrl: row.venue.maps_url,
-      }
-    : null,
-  genderConfig: row.event_gender_config
-    ? {
-        capacityFemale: row.event_gender_config.capacity_female,
-        capacityMale: row.event_gender_config.capacity_male,
-        capacityDiverse: row.event_gender_config.capacity_diverse,
-        soldFemale: row.event_gender_config.sold_female,
-        soldMale: row.event_gender_config.sold_male,
-        soldDiverse: row.event_gender_config.sold_diverse,
-        tolerance: row.event_gender_config.tolerance,
-      }
-    : null,
-  ticketTypes: (row.ticket_types ?? [])
-    .filter((ticketType) => ticketType.is_active ?? ticketType.active)
-    .sort((a, b) => a.price_cents - b.price_cents)
-    .map((ticketType) => ({
-      id: ticketType.id,
-      name: ticketType.name,
-      description: ticketType.description,
-      priceCents: ticketType.price_cents,
-      currency: ticketType.currency,
-      quantityTotal: ticketType.quantity_total,
-      quantitySold: ticketType.quantity_sold,
-      isActive: ticketType.is_active ?? ticketType.active,
-    })),
-});
+const mapEvent = (row: EventRow): LiveEvent => {
+  const venue = firstRelation(row.venue);
+  const genderConfig = firstRelation(row.event_gender_config);
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    subtitle: row.subtitle,
+    description: row.description,
+    city: row.city,
+    category: row.category,
+    status: row.status,
+    dateStart: row.date_start ?? row.starts_at,
+    dateEnd: row.date_end ?? row.ends_at,
+    doorsOpen: row.doors_open,
+    coverImageUrl: row.cover_image_url ?? row.hero_image_url,
+    capacityTotal: row.capacity_total,
+    venue: venue
+      ? {
+          name: venue.name,
+          address: venue.address,
+          city: venue.city,
+          country: venue.country,
+          mapsUrl: venue.maps_url,
+        }
+      : null,
+    genderConfig: genderConfig
+      ? {
+          capacityFemale: genderConfig.capacity_female,
+          capacityMale: genderConfig.capacity_male,
+          capacityDiverse: genderConfig.capacity_diverse,
+          soldFemale: genderConfig.sold_female,
+          soldMale: genderConfig.sold_male,
+          soldDiverse: genderConfig.sold_diverse,
+          tolerance: genderConfig.tolerance,
+        }
+      : null,
+    ticketTypes: (row.ticket_types ?? [])
+      .filter((ticketType) => ticketType.is_active ?? ticketType.active)
+      .sort((a, b) => a.price_cents - b.price_cents)
+      .map((ticketType) => ({
+        id: ticketType.id,
+        name: ticketType.name,
+        description: ticketType.description,
+        priceCents: ticketType.price_cents,
+        currency: ticketType.currency,
+        quantityTotal: ticketType.quantity_total,
+        quantitySold: ticketType.quantity_sold,
+        isActive: ticketType.is_active ?? ticketType.active,
+      })),
+  };
+};
 
 export const getPublishedEvents = async (): Promise<LiveEvent[]> => {
   const supabase = createSupabaseAdminClient();
@@ -271,7 +281,7 @@ export const getCurrentUserTickets = async (): Promise<UserTicket[]> => {
           title: ticket.events.title,
           slug: ticket.events.slug,
           dateStart: ticket.events.date_start ?? ticket.events.starts_at,
-          venueName: ticket.events.venues?.name ?? null,
+          venueName: firstRelation(ticket.events.venues)?.name ?? null,
         }
       : null,
     ticketType: ticket.ticket_types
