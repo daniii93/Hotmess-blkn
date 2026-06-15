@@ -41,6 +41,28 @@ type AuthFormProps = {
 type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
 
+const authErrorMessage = (errorMessage: string, mode: "login" | "register") => {
+  const normalized = errorMessage.toLowerCase();
+
+  if (normalized.includes("email rate limit")) {
+    return "Zu viele Bestaetigungs-E-Mails in kurzer Zeit. Bitte warte ein paar Minuten und versuche es erneut. Falls du schon ein Konto erstellt hast, pruefe deine E-Mails oder melde dich direkt an.";
+  }
+
+  if (normalized.includes("invalid login credentials")) {
+    return "E-Mail oder Passwort ist nicht korrekt.";
+  }
+
+  if (normalized.includes("email address") && normalized.includes("invalid")) {
+    return "Diese E-Mail-Adresse wird vom Auth-System nicht akzeptiert. Bitte verwende eine echte erreichbare E-Mail-Adresse.";
+  }
+
+  if (mode === "register" && normalized.includes("already registered")) {
+    return "Diese E-Mail ist bereits registriert. Bitte melde dich direkt an.";
+  }
+
+  return errorMessage || "Das hat gerade nicht funktioniert. Bitte versuche es erneut.";
+};
+
 export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
   const isRegister = mode === "register";
   const router = useRouter();
@@ -89,7 +111,7 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
 
       if (error) {
         setStatus("error");
-        setMessage(error.message);
+        setMessage(authErrorMessage(error.message, mode));
         return;
       }
 
@@ -113,7 +135,7 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
 
     if (error) {
       setStatus("error");
-      setMessage(error.message);
+      setMessage(authErrorMessage(error.message, mode));
       return;
     }
 
@@ -135,7 +157,7 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
 
     if (error) {
       setStatus("error");
-      setMessage(error.message);
+      setMessage(authErrorMessage(error.message, mode));
     }
   };
 

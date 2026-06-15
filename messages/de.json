@@ -410,6 +410,10 @@
     "submitRegister": "Konto erstellen",
     "forgotPassword": "Passwort vergessen?",
     "checkEmailHint": "Oeffne den Link in deiner E-Mail, um fortzufahren.",
+    "emailRateLimit": "Zu viele Bestaetigungs-E-Mails in kurzer Zeit. Bitte warte ein paar Minuten und versuche es erneut. Falls du schon ein Konto erstellt hast, pruefe deine E-Mails oder melde dich direkt an.",
+    "invalidCredentials": "E-Mail oder Passwort ist nicht korrekt.",
+    "invalidEmail": "Diese E-Mail-Adresse wird vom Auth-System nicht akzeptiert. Bitte verwende eine echte erreichbare E-Mail-Adresse.",
+    "genericError": "Das hat gerade nicht funktioniert. Bitte versuche es erneut.",
     "verifyStart": "Jetzt verifizieren"
   },
   "onboarding": {
