@@ -38,3 +38,9 @@ Diese Punkte sind bewusst nicht im Code automatisiert, weil sie externe Provider
 - Supabase Migration `supabase/migrations/005_business_jobs_part5.sql` im Supabase SQL Editor ausfuehren, falls noch nicht passiert.
 - Danach die neue Business-Runtime-Migration aus diesem Arbeitsblock ebenfalls im Supabase SQL Editor ausfuehren.
 - Business-Profil, Verbindung und Job-Bewerbung mit zwei echten Testnutzern pruefen.
+
+## Teil 6 - Admin-Dashboard
+
+- Supabase Migration `supabase/migrations/006_admin_dashboard_part6.sql` im Supabase SQL Editor ausfuehren, falls noch nicht passiert.
+- Admin-Account in Supabase erstellen und `profiles.role='admin'` setzen.
+- Danach `/admin`, `/admin/users`, `/admin/moderation`, `/admin/finance` und `/admin/analytics` mit echtem Admin-Login pruefen.

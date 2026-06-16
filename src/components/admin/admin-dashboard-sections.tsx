@@ -8,6 +8,7 @@ import {
   DEMO_PARTNERS,
   DEMO_USERS,
 } from "@/lib/demo-data";
+import type { AdminActivityItem, AdminAnalyticsItem, AdminFinanceEvent, AdminKpiItem, AdminModerationItem, AdminUserRowLive, AdminLiveSnapshot } from "@/features/admin/live-service";
 
 const card = "rounded-card border border-hm-border bg-hm-porcelain p-5 shadow-luxury";
 const soft = "rounded-card border border-hm-borderSoft bg-hm-ivory p-4";
@@ -62,8 +63,8 @@ export function AdminDemoIndex() {
   );
 }
 
-export function KpiGrid() {
-  const items = [
+export function KpiGrid({ items: liveItems }: { items?: AdminKpiItem[] }) {
+  const items: AdminKpiItem[] = liveItems ?? [
     ["Mitglieder", String(DEMO_KPI.members.toLocaleString("de")), DEMO_KPI.membersGrowth],
     ["Verkäufe heute", String(DEMO_KPI.salesToday) + " Tickets", DEMO_KPI.salesLabel],
     ["Umsatz Monat", DEMO_KPI.revenueMonth, DEMO_KPI.revenueGrowth],
@@ -72,11 +73,11 @@ export function KpiGrid() {
     ["Offene Mods", String(DEMO_KPI.modOpen) + " Meldungen", DEMO_KPI.modLabel],
     ["Nächstes Event", DEMO_KPI.nextEvent, DEMO_KPI.nextEventDays],
     ["Wartelisten", DEMO_KPI.waitlist, DEMO_KPI.waitlistLabel],
-  ];
+  ].map(([label, value, hint]) => ({ label, value, hint }));
 
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {items.map(([label, value, hint]) => (
+      {items.map(({ label, value, hint }) => (
         <div className={card} key={label}>
           <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">{label}</p>
           <p className="mt-3 text-2xl font-semibold text-hm-ink">{value}</p>
@@ -87,8 +88,8 @@ export function KpiGrid() {
   );
 }
 
-export function RevenueChart() {
-  const bars = [36, 52, 44, 68, 61, 84, 78, 96, 72, 88, 91, 74];
+export function RevenueChart({ bars: liveBars }: { bars?: number[] }) {
+  const bars = liveBars?.length ? liveBars : [36, 52, 44, 68, 61, 84, 78, 96, 72, 88, 91, 74];
   const months = ["Mai", "Mai", "Mai", "Jun", "Jun", "Jun", "Jun", "Jul", "Jul", "Jul", "Aug", "Aug"];
   return (
     <section className={card}>
@@ -116,8 +117,8 @@ export function RevenueChart() {
   );
 }
 
-export function SalesFunnel() {
-  const steps = [
+export function SalesFunnel({ steps: liveSteps }: { steps?: Array<{ label: string; pct: number; count: string }> }) {
+  const steps = liveSteps ?? [
     { label: "Besucher", pct: 100, count: "8.420" },
     { label: "Registriert", pct: 34, count: "2.847" },
     { label: "Verifiziert", pct: 24, count: "2.014" },
@@ -143,8 +144,31 @@ export function SalesFunnel() {
   );
 }
 
-export function NextEventCard() {
-  const ev = DEMO_EVENTS[0];
+export function NextEventCard({ event }: { event?: AdminLiveSnapshot["nextEvent"] }) {
+  const ev = event ?? {
+    title: DEMO_EVENTS[0].title,
+    slug: DEMO_EVENTS[0].slug,
+    venue: DEMO_EVENTS[0].venue,
+    date: DEMO_EVENTS[0].date,
+    doors: DEMO_EVENTS[0].doors,
+    soldF: DEMO_EVENTS[0].soldF,
+    capacityF: DEMO_EVENTS[0].capacityF,
+    soldM: DEMO_EVENTS[0].soldM,
+    capacityM: DEMO_EVENTS[0].capacityM,
+    revenue: DEMO_EVENTS[0].revenue,
+    waitlist: DEMO_EVENTS[0].waitlist,
+  };
+  if (!ev) {
+    return (
+      <section className={card}>
+        <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">Naechstes Event</p>
+        <h2 className="hm-display mt-3 text-3xl text-hm-ink">Noch kein Event</h2>
+        <Link className="mt-4 inline-flex rounded-pill border border-hm-admin/40 px-4 py-2 text-sm font-semibold text-hm-ink" href="/admin/events">
+          Event erstellen
+        </Link>
+      </section>
+    );
+  }
   return (
     <section className={card}>
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">Nächstes Event</p>
@@ -171,7 +195,7 @@ export function NextEventCard() {
   );
 }
 
-export function ActivityFeed() {
+export function ActivityFeed({ items }: { items?: AdminActivityItem[] }) {
   const typeColor: Record<string, string> = {
     ticket: "text-hm-goldDeep",
     verify: "text-green-600",
@@ -185,7 +209,7 @@ export function ActivityFeed() {
     <section className={card}>
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">Letzte Aktivität</p>
       <div className="mt-5 space-y-2">
-        {DEMO_ACTIVITY.map((item) => (
+        {(items?.length ? items : DEMO_ACTIVITY).map((item) => (
           <div className={`${soft} flex items-start justify-between gap-4`} key={item.text}>
             <p className="text-sm text-hm-ink">{item.text}</p>
             <span className={`shrink-0 text-xs font-medium ${typeColor[item.type] ?? "text-hm-inkSoft"}`}>{item.time}</span>
@@ -221,7 +245,8 @@ export function QuickActions() {
   );
 }
 
-export function UserTable() {
+export function UserTable({ users }: { users?: AdminUserRowLive[] }) {
+  const rows = users?.length ? users : DEMO_USERS;
   const statusColor: Record<string, string> = {
     aktiv: "text-green-700 bg-green-50 border-green-200",
     inaktiv: "text-hm-inkSoft bg-hm-champagne border-hm-border",
@@ -231,7 +256,7 @@ export function UserTable() {
     <section className={card}>
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">Nutzer</p>
-        <span className="text-sm text-hm-inkSoft">{DEMO_USERS.length} von {DEMO_KPI.members.toLocaleString("de")}</span>
+        <span className="text-sm text-hm-inkSoft">{rows.length} sichtbar</span>
       </div>
       <div className="mt-5 overflow-x-auto">
         <table className="w-full min-w-[760px] text-left text-sm">
@@ -247,7 +272,7 @@ export function UserTable() {
             </tr>
           </thead>
           <tbody className="text-hm-ink">
-            {DEMO_USERS.map((u) => (
+            {rows.map((u) => (
               <tr className="border-t border-hm-borderSoft" key={u.id}>
                 <td className="py-3 pr-4">
                   <div>
@@ -278,8 +303,8 @@ export function UserTable() {
   );
 }
 
-export function UserDetail() {
-  const u = DEMO_USERS[0];
+export function UserDetail({ user }: { user?: AdminUserRowLive }) {
+  const u = user ?? DEMO_USERS[0];
   return (
     <section className={card}>
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">Nutzer-Detail</p>
@@ -302,11 +327,12 @@ export function UserDetail() {
   );
 }
 
-export function SanctionPanel() {
+export function SanctionPanel({ user }: { user?: AdminUserRowLive }) {
+  const selected = user ?? DEMO_USERS[0];
   return (
     <section className={card}>
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">Sanktionen</p>
-      <p className="mt-2 text-sm text-hm-inkSoft">Für: {DEMO_USERS[0].name}</p>
+      <p className="mt-2 text-sm text-hm-inkSoft">Fuer: {selected.name}</p>
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         {[
           { label: "Warnung senden", color: "border-yellow-400 text-yellow-700" },
@@ -323,8 +349,8 @@ export function SanctionPanel() {
   );
 }
 
-export function VerificationQueue() {
-  const pending = DEMO_USERS.filter((u) => !u.verified);
+export function VerificationQueue({ users }: { users?: AdminUserRowLive[] }) {
+  const pending = (users?.length ? users : DEMO_USERS).filter((u) => !u.verified);
   return (
     <section className={card}>
       <div className="flex items-center justify-between">
@@ -347,8 +373,8 @@ export function VerificationQueue() {
   );
 }
 
-export function ModerationQueue() {
-  const cases = [
+export function ModerationQueue({ items }: { items?: AdminModerationItem[] }) {
+  const cases = items?.length ? items : [
     { content: "Post · Spam · 4 Meldungen", user: "@nexo", priority: "hoch" },
     { content: "Dating-Profil · Fake · 2 Meldungen", user: "@unknown_user", priority: "mittel" },
     { content: "Job-Listing · unangemessen · 1 Meldung", user: "@biz_demo", priority: "niedrig" },
@@ -466,9 +492,10 @@ export function BroadcastStats() {
   );
 }
 
-export function FinanceOverview() {
-  const total = DEMO_FINANCE.reduce((sum, e) => sum + e.tickets + e.addons + e.hotel + e.other, 0);
-  const net = DEMO_FINANCE.reduce((sum, e) => sum + e.net, 0);
+export function FinanceOverview({ finance }: { finance?: AdminFinanceEvent[] }) {
+  const rows = finance?.length ? finance : DEMO_FINANCE;
+  const total = rows.reduce((sum, e) => sum + e.tickets + e.addons + e.hotel + e.other, 0);
+  const net = rows.reduce((sum, e) => sum + e.net, 0);
   return (
     <section className={card}>
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">Finanzen</p>
@@ -491,7 +518,8 @@ export function FinanceOverview() {
   );
 }
 
-export function PerEventPnL() {
+export function PerEventPnL({ finance }: { finance?: AdminFinanceEvent[] }) {
+  const rows = finance?.length ? finance : DEMO_FINANCE;
   return (
     <section className={card}>
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">Pro-Event-Bilanz</p>
@@ -506,7 +534,7 @@ export function PerEventPnL() {
             </tr>
           </thead>
           <tbody>
-            {DEMO_FINANCE.map((row) => {
+            {rows.map((row) => {
               const gross = row.tickets + row.addons + row.hotel + row.other;
               return (
                 <tr className="border-t border-hm-borderSoft" key={row.event}>
@@ -601,8 +629,8 @@ export function SponsorManager() {
   );
 }
 
-export function AnalyticsDashboards() {
-  const areas = [
+export function AnalyticsDashboards({ items }: { items?: AdminAnalyticsItem[] }) {
+  const areas = items ?? [
     { label: "Nutzer", value: "2.847 gesamt · +124 Woche" },
     { label: "Events", value: "2 aktiv · 921 Tickets" },
     { label: "Engagement", value: "DAU 1.203 · Posts 347" },
