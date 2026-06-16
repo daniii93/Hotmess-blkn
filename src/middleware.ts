@@ -112,10 +112,6 @@ export async function middleware(request: NextRequest) {
     return redirectWithSession(request, response, "/");
   }
 
-  if (hasPrefix(pathname, datingPrefixes) && !datingEnabled) {
-    return redirectWithSession(request, response, "/settings");
-  }
-
   if (hasPrefix(pathname, businessPrefixes) && !businessEnabled) {
     return redirectWithSession(request, response, "/settings");
   }

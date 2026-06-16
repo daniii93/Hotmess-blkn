@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { House, Search, Send, SquarePlay } from "lucide-react";
+import { Heart, House, Search, Send } from "lucide-react";
 import type { MouseEvent } from "react";
 import { cn } from "@/lib/utils/cn";
 import type { NavItem } from "./navItems";
@@ -63,8 +63,7 @@ function Icon({ item, active, avatarUrl, initials }: { item: NavItem; active: bo
   }
 
   if (item.icon === "home") return <House className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
-  if (item.icon === "play") return <SquarePlay className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
+  if (item.icon === "heart") return <Heart className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
   if (item.icon === "send") return <Send className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
   return <Search className={iconClass} strokeWidth={strokeWidth} aria-hidden="true" />;
 }
-

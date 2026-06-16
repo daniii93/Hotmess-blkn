@@ -4,13 +4,13 @@ export type NavItem = {
   key: NavItemKey;
   href: string;
   label: string;
-  icon: "home" | "play" | "send" | "search" | "avatar";
+  icon: "home" | "heart" | "send" | "search" | "avatar";
   badge: null | "new" | "count" | "dot";
 };
 
 export const navItems = [
   { key: "home", href: "/feed", label: "Start", icon: "home", badge: null },
-  { key: "watch", href: "/watch", label: "Watch", icon: "play", badge: "new" },
+  { key: "watch", href: "/dating", label: "Dating", icon: "heart", badge: null },
   { key: "inbox", href: "/chat", label: "Nachrichten", icon: "send", badge: "count" },
   { key: "explore", href: "/explore", label: "Entdecken", icon: "search", badge: null },
   { key: "profile", href: "/profile", label: "Profil", icon: "avatar", badge: "dot" },
@@ -22,4 +22,3 @@ export const getNavItemForPath = (pathname: string): NavItem | undefined => {
     .sort((a, b) => b.href.length - a.href.length)
     .find((item) => normalized === item.href || normalized.startsWith(`${item.href}/`));
 };
-
