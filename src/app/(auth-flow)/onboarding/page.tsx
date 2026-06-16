@@ -1,4 +1,5 @@
 import { OnboardingWizard } from "@/components/auth/onboarding-wizard";
+import { OnboardingCompleteButton } from "@/components/auth/onboarding-complete-button";
 import { getTranslations } from "next-intl/server";
 
 const steps = [
@@ -26,6 +27,7 @@ export default async function OnboardingPage() {
             </div>
           ))}
         </div>
+        <OnboardingCompleteButton />
       </OnboardingWizard>
     </main>
   );
