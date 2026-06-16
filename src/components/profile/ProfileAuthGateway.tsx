@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { BadgeCheck, BriefcaseBusiness, Heart, KeyRound, Lock, Shield, UserPlus, Users } from "lucide-react";
+import { BadgeCheck, BriefcaseBusiness, ChevronRight, Heart, KeyRound, Lock, Shield, UserPlus, Users } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type BrowserProfile = {
@@ -195,12 +195,12 @@ function LoggedInProfileGateway({ profile }: { profile: BrowserProfile }) {
         </div>
 
         <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6">
-          <StatusCard icon={BadgeCheck} title="Verifizierung" value={verified ? "Verifiziert" : "Nicht verifiziert"} detail={verified ? "Gold-Badge aktiv" : "Stripe Identity noch offen"} />
-          <StatusCard icon={Lock} title="Privatsphaere" value={privacy} detail={`${profile.show_followers ? "Follower sichtbar" : "Follower versteckt"} · ${profile.show_following ? "Gefolgt sichtbar" : "Gefolgt versteckt"}`} />
-          <StatusCard icon={Shield} title="Rolle" value={role} detail={profile.role === "admin" ? "Admin-Dashboard freigeschaltet" : profile.role === "scanner" ? "Scanner-Zugang moeglich" : "Standard Kundenkonto"} />
-          <StatusCard icon={Users} title="Profil" value={profile.city ? `${profile.city}${profile.country ? `, ${profile.country}` : ""}` : "Stadt offen"} detail={profile.bio || "Bio noch nicht ausgefuellt"} />
-          <StatusCard icon={Heart} title="Dating" value={profile.dating_enabled ? "Aktiv" : "Aus"} detail="Getrennter optionaler Modus" />
-          <StatusCard icon={BriefcaseBusiness} title="Business" value={profile.business_enabled ? "Aktiv" : "Aus"} detail="Business & Jobs optional" />
+          <StatusCard href="/verify" icon={BadgeCheck} title="Verifizierung" value={verified ? "Verifiziert" : "Nicht verifiziert"} detail={verified ? "Gold-Badge aktiv" : "Stripe Identity noch offen"} action={verified ? "Status ansehen" : "Jetzt starten"} />
+          <StatusCard href="/profile/edit" icon={Lock} title="Privatsphaere" value={privacy} detail={`${profile.show_followers ? "Follower sichtbar" : "Follower versteckt"} · ${profile.show_following ? "Gefolgt sichtbar" : "Gefolgt versteckt"}`} action="Bearbeiten" />
+          <StatusCard href={profile.role === "admin" ? "/admin" : profile.role === "scanner" ? "/scanner" : "/settings"} icon={Shield} title="Rolle" value={role} detail={profile.role === "admin" ? "Admin-Dashboard freigeschaltet" : profile.role === "scanner" ? "Scanner-Zugang moeglich" : "Standard Kundenkonto"} action={profile.role === "admin" ? "Admin öffnen" : profile.role === "scanner" ? "Scanner öffnen" : "Details"} />
+          <StatusCard href="/profile/edit" icon={Users} title="Profil" value={profile.city ? `${profile.city}${profile.country ? `, ${profile.country}` : ""}` : "Stadt offen"} detail={profile.bio || "Bio noch nicht ausgefuellt"} action="Profil ausfüllen" />
+          <StatusCard href="/dating/profile" icon={Heart} title="Dating" value={profile.dating_enabled ? "Aktiv" : "Aus"} detail="Getrennter optionaler Modus" action={profile.dating_enabled ? "Verwalten" : "Aktivieren"} />
+          <StatusCard href="/business/profile" icon={BriefcaseBusiness} title="Business" value={profile.business_enabled ? "Aktiv" : "Aus"} detail="Business & Jobs optional" action={profile.business_enabled ? "Verwalten" : "Aktivieren"} />
         </div>
       </section>
     </main>
@@ -222,9 +222,9 @@ function Avatar({ profile, name }: { profile: BrowserProfile; name: string }) {
   );
 }
 
-function StatusCard({ icon: Icon, title, value, detail }: { icon: any; title: string; value: string; detail: string }) {
+function StatusCard({ href, icon: Icon, title, value, detail, action }: { href: string; icon: any; title: string; value: string; detail: string; action: string }) {
   return (
-    <article className="rounded-2xl border border-hm-border bg-hm-ivory/70 p-4">
+    <Link className="group rounded-2xl border border-hm-border bg-hm-ivory/70 p-4 transition hover:-translate-y-0.5 hover:border-hm-gold/45 hover:bg-hm-champagne/30 hover:shadow-soft" href={href}>
       <div className="flex gap-3">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-hm-champagne text-hm-ink">
           <Icon className="h-5 w-5" />
@@ -233,8 +233,12 @@ function StatusCard({ icon: Icon, title, value, detail }: { icon: any; title: st
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-hm-inkSoft">{title}</p>
           <h2 className="mt-1 truncate text-sm font-bold text-hm-ink">{value}</h2>
           <p className="mt-1 text-xs leading-5 text-hm-inkSoft">{detail}</p>
+          <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-hm-goldDeep">
+            {action}
+            <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+          </span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
