@@ -206,6 +206,8 @@ export const getChatMessages = async (conversationId: string): Promise<ChatMessa
   if (!profile) return [];
 
   const supabase = createSupabaseAdminClient();
+  await supabase.rpc("mark_conversation_read", { p_conversation_id: conversationId, p_user_id: profile.id });
+
   const { data, error } = await supabase
     .from("messages")
     .select(`id,sender_id,type,content,body,created_at,profiles!messages_sender_id_fkey(${authorSelect})`)

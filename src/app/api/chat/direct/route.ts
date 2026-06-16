@@ -17,6 +17,12 @@ export async function POST(request: Request) {
   if (parsed.data.userId === profile.id) return NextResponse.json({ error: "Du kannst dich nicht selbst anschreiben." }, { status: 400 });
 
   const supabase = createSupabaseAdminClient();
+  const [{ data: followsTarget }, { data: targetFollows }] = await Promise.all([
+    supabase.from("follows").select("follower_id").eq("follower_id", profile.id).eq("following_id", parsed.data.userId).maybeSingle(),
+    supabase.from("follows").select("follower_id").eq("follower_id", parsed.data.userId).eq("following_id", profile.id).maybeSingle(),
+  ]);
+  const isFriend = Boolean(followsTarget && targetFollows);
+
   const { data: conversationId, error } = await supabase.rpc("create_direct_conversation", {
     p_user_a: profile.id,
     p_user_b: parsed.data.userId,
@@ -36,13 +42,43 @@ export async function POST(request: Request) {
     await supabase.from("notifications").insert({
       user_id: parsed.data.userId,
       actor_id: profile.id,
-      type: "chat_message",
+      type: isFriend ? "chat_message" : "chat_request",
       category: "chat",
-      title: "Neue Nachricht",
+      title: isFriend ? "Neue Nachricht" : "Neue Chat-Anfrage",
       body: parsed.data.message.trim(),
       reference_id: conversationId,
       reference_type: "conversation",
     });
+  }
+
+  if (!isFriend) {
+    const { data: existingRequest } = await supabase
+      .from("message_requests")
+      .select("id")
+      .eq("from_user_id", profile.id)
+      .eq("to_user_id", parsed.data.userId)
+      .maybeSingle();
+
+    if (existingRequest) {
+      await supabase
+        .from("message_requests")
+        .update({
+          conversation_id: conversationId,
+          first_message: parsed.data.message?.trim() || "Neue Chat-Anfrage",
+          status: "pending",
+        })
+        .eq("id", existingRequest.id);
+    } else {
+      await supabase.from("message_requests").insert({
+        conversation_id: conversationId,
+        requester_id: profile.id,
+        target_id: parsed.data.userId,
+        from_user_id: profile.id,
+        to_user_id: parsed.data.userId,
+        first_message: parsed.data.message?.trim() || "Neue Chat-Anfrage",
+        status: "pending",
+      });
+    }
   }
 
   return NextResponse.json({ ok: true, conversationId });
