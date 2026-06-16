@@ -26,6 +26,8 @@ const profileUpdateSchema = z.object({
   showProfileVisits: z.boolean().optional(),
   datingEnabled: z.boolean().optional(),
   businessEnabled: z.boolean().optional(),
+  whoCanMessage: z.enum(["everyone", "followers", "off"]).optional(),
+  whoCanAddToGroups: z.enum(["everyone", "followers"]).optional(),
   aiCreatorLabel: z.boolean().optional(),
   links: z.array(z.object({
     label: z.string().min(1).max(40),
@@ -189,6 +191,8 @@ export async function PATCH(request: Request) {
   if (input.showProfileVisits !== undefined) update.show_profile_visits = input.showProfileVisits;
   if (input.datingEnabled !== undefined) update.dating_enabled = input.datingEnabled;
   if (input.businessEnabled !== undefined) update.business_enabled = input.businessEnabled;
+  if (input.whoCanMessage !== undefined) update.who_can_message = input.whoCanMessage;
+  if (input.whoCanAddToGroups !== undefined) update.who_can_add_to_groups = input.whoCanAddToGroups;
   if (input.aiCreatorLabel !== undefined) update.ai_creator_label = input.aiCreatorLabel;
   if (nameChanged) update.name_changed_at = new Date().toISOString();
   if (usernameChanged) update.username_changed_at = new Date().toISOString();

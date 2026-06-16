@@ -5,7 +5,12 @@ import { getRequestUserProfile } from "@/features/events/live-service";
 
 const messageSchema = z.object({
   content: z.string().min(1).max(4000),
-  type: z.enum(["text", "event_card", "system"]).default("text"),
+  type: z.enum(["text", "image", "video", "voice", "gif", "event_card", "poll", "location", "system"]).default("text"),
+  mediaUrl: z.string().url().optional(),
+  eventId: z.string().uuid().optional(),
+  replyToId: z.string().uuid().optional(),
+  mode: z.enum(["standard", "vanish", "snap"]).default("standard"),
+  transcript: z.string().max(4000).optional(),
 });
 
 type MessageParams = {
@@ -31,6 +36,21 @@ export async function POST(request: Request, { params }: MessageParams) {
 
   if (!member && profile.role !== "admin") return NextResponse.json({ error: "Kein Zugriff auf diesen Chat." }, { status: 403 });
 
+  const { data: pendingRequest } = await supabase
+    .from("message_requests")
+    .select("id,status")
+    .eq("conversation_id", id)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (pendingRequest && parsed.data.type !== "text") {
+    return NextResponse.json({ error: "Chat-Anfragen sind bis zur Annahme text-only." }, { status: 403 });
+  }
+
+  if (pendingRequest && parsed.data.mode !== "standard") {
+    return NextResponse.json({ error: "Selbstloeschende Nachrichten sind erst nach Annahme der Anfrage moeglich." }, { status: 403 });
+  }
+
   const { data: message, error } = await supabase
     .from("messages")
     .insert({
@@ -39,6 +59,12 @@ export async function POST(request: Request, { params }: MessageParams) {
       type: parsed.data.type,
       content: parsed.data.content,
       body: parsed.data.content,
+      media_url: parsed.data.mediaUrl,
+      event_id: parsed.data.eventId,
+      reply_to_id: parsed.data.replyToId,
+      mode: parsed.data.mode,
+      transcript: parsed.data.transcript,
+      expires_at: parsed.data.mode === "vanish" ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null,
     })
     .select("id")
     .single();

@@ -17,10 +17,23 @@ export async function POST(request: Request) {
   if (parsed.data.userId === profile.id) return NextResponse.json({ error: "Du kannst dich nicht selbst anschreiben." }, { status: 400 });
 
   const supabase = createSupabaseAdminClient();
-  const [{ data: followsTarget }, { data: targetFollows }] = await Promise.all([
+  const [{ data: followsTarget }, { data: targetFollows }, { data: block }, { data: targetSettings }] = await Promise.all([
     supabase.from("follows").select("follower_id").eq("follower_id", profile.id).eq("following_id", parsed.data.userId).maybeSingle(),
     supabase.from("follows").select("follower_id").eq("follower_id", parsed.data.userId).eq("following_id", profile.id).maybeSingle(),
+    supabase
+      .from("blocks")
+      .select("blocker_id")
+      .or(`and(blocker_id.eq.${profile.id},blocked_id.eq.${parsed.data.userId}),and(blocker_id.eq.${parsed.data.userId},blocked_id.eq.${profile.id})`)
+      .maybeSingle(),
+    supabase.from("profiles").select("who_can_message").eq("id", parsed.data.userId).maybeSingle(),
   ]);
+
+  if (block) return NextResponse.json({ error: "Dieser Chat ist wegen einer Blockierung nicht moeglich." }, { status: 403 });
+  if (targetSettings?.who_can_message === "off") return NextResponse.json({ error: "Diese Person nimmt aktuell keine neuen Nachrichtenanfragen an." }, { status: 403 });
+  if (targetSettings?.who_can_message === "followers" && !targetFollows) {
+    return NextResponse.json({ error: "Diese Person erlaubt Nachrichten nur von Personen, denen sie folgt." }, { status: 403 });
+  }
+
   const isFriend = Boolean(followsTarget && targetFollows);
 
   const { data: conversationId, error } = await supabase.rpc("create_direct_conversation", {

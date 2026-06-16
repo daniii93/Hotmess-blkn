@@ -8,7 +8,7 @@ import type {
   SocialPost,
   SocialStory,
 } from "@/features/social/live-service";
-import { CreatePostForm, LikeButton, MessageComposer } from "@/components/social/social-actions";
+import { ChatMessageActions, CreatePostForm, LikeButton, MessageComposer } from "@/components/social/social-actions";
 
 const card = "rounded-card border border-hm-border bg-hm-porcelain shadow-luxury";
 const soft = "rounded-card border border-hm-borderSoft bg-hm-ivory";
@@ -219,9 +219,34 @@ export function RequestsFolder() {
 }
 
 export function MessageBubble({ message }: { message: ChatMessage }) {
+  const reactionSummary = message.reactions.map((reaction) => reaction.emoji).join(" ");
+
   return (
-    <div className={`max-w-[78%] rounded-3xl px-4 py-3 text-sm ${message.mine ? "ml-auto bg-hm-ink text-white" : "bg-hm-champagne text-hm-ink"}`}>
-      {message.content}
+    <div className={`max-w-[86%] rounded-3xl px-4 py-3 text-sm ${message.mine ? "ml-auto bg-hm-ink text-white" : "bg-hm-champagne text-hm-ink"}`}>
+      {message.replyToId ? <p className={`mb-2 rounded-2xl px-3 py-2 text-xs ${message.mine ? "bg-white/10 text-white/70" : "bg-white/70 text-hm-inkSoft"}`}>Antwort auf eine Nachricht</p> : null}
+      {message.isPinned ? <p className={`mb-1 text-[11px] font-bold uppercase tracking-[0.16em] ${message.mine ? "text-hm-gold" : "text-hm-goldDeep"}`}>Angepinnt</p> : null}
+      {message.isDeletedForAll ? <em className={message.mine ? "text-white/70" : "text-hm-inkSoft"}>Nachricht wurde zurueckgerufen.</em> : (
+        <>
+          {message.type === "voice" ? (
+            <div>
+              <p className="font-bold">Sprachnachricht</p>
+              <div className={`mt-2 h-8 rounded-full ${message.mine ? "bg-white/15" : "bg-hm-gold/20"}`} />
+              {message.transcript ? <p className={`mt-2 text-xs ${message.mine ? "text-white/75" : "text-hm-inkSoft"}`}>Transkript: {message.transcript}</p> : <p className={`mt-2 text-xs ${message.mine ? "text-white/65" : "text-hm-inkSoft"}`}>Transkript wird vorbereitet.</p>}
+            </div>
+          ) : message.type === "event_card" ? (
+            <div className={`rounded-2xl border p-3 ${message.mine ? "border-white/20 bg-white/10" : "border-hm-gold/25 bg-hm-porcelain"}`}>
+              <p className="font-bold">HotMess Event</p>
+              <p className="mt-1">{message.content}</p>
+              <Link className={`mt-3 inline-flex rounded-pill px-3 py-1 text-xs font-bold ${message.mine ? "bg-white text-hm-ink" : "bg-hm-ink text-white"}`} href="/events">Ticket ansehen</Link>
+            </div>
+          ) : (
+            <p>{message.content}</p>
+          )}
+          {message.edited ? <p className={`mt-1 text-[11px] ${message.mine ? "text-white/65" : "text-hm-inkSoft"}`}>Bearbeitet</p> : null}
+        </>
+      )}
+      {reactionSummary ? <p className={`mt-2 text-sm ${message.mine ? "text-white" : "text-hm-ink"}`}>{reactionSummary}</p> : null}
+      {!message.isDeletedForAll ? <ChatMessageActions messageId={message.id} mine={message.mine} content={message.content} /> : null}
     </div>
   );
 }
@@ -232,7 +257,7 @@ export function ChatThread({ conversationId, messages }: { conversationId: strin
       <section className={`${card} flex min-h-[75vh] flex-col p-4`}>
         <header className="border-b border-hm-border pb-4">
           <p className="font-semibold text-hm-ink">HotMess Chat</p>
-          <p className="text-sm text-hm-inkSoft">Standard/Vanish/Snap vorbereitet</p>
+          <p className="text-sm text-hm-inkSoft">Reagieren, Antworten, Bearbeiten (15 Min.), Zurueckrufen, Pinnen und Melden.</p>
         </header>
         <div className="flex-1 space-y-3 py-5">
           {messages.length === 0 ? <p className="text-sm text-hm-inkSoft">Noch keine Nachrichten.</p> : null}

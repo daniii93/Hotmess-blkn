@@ -56,10 +56,18 @@ export type ConversationSummary = {
 export type ChatMessage = {
   id: string;
   sender: FeedAuthor | null;
+  senderId: string | null;
   type: string;
   content: string | null;
   mine: boolean;
   createdAt: string;
+  replyToId: string | null;
+  edited: boolean;
+  editedAt: string | null;
+  transcript: string | null;
+  isDeletedForAll: boolean;
+  isPinned: boolean;
+  reactions: Array<{ userId: string; emoji: string }>;
 };
 
 export type NotificationItem = {
@@ -210,7 +218,7 @@ export const getChatMessages = async (conversationId: string): Promise<ChatMessa
 
   const { data, error } = await supabase
     .from("messages")
-    .select(`id,sender_id,type,content,body,created_at,profiles!messages_sender_id_fkey(${authorSelect})`)
+    .select(`id,sender_id,type,content,body,created_at,reply_to_id,edited,edited_at,transcript,is_deleted_for_all,is_pinned,profiles!messages_sender_id_fkey(${authorSelect}),message_reactions(user_id,emoji)`)
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true })
     .limit(100);
@@ -219,11 +227,19 @@ export const getChatMessages = async (conversationId: string): Promise<ChatMessa
 
   return (data ?? []).map((message: any) => ({
     id: message.id,
+    senderId: message.sender_id,
     sender: message.profiles ? mapAuthor(Array.isArray(message.profiles) ? message.profiles[0] : message.profiles) : null,
     type: message.type,
-    content: message.content ?? message.body,
+    content: message.is_deleted_for_all ? null : message.content ?? message.body,
     mine: message.sender_id === profile.id,
     createdAt: message.created_at,
+    replyToId: message.reply_to_id,
+    edited: Boolean(message.edited),
+    editedAt: message.edited_at,
+    transcript: message.transcript,
+    isDeletedForAll: Boolean(message.is_deleted_for_all),
+    isPinned: Boolean(message.is_pinned),
+    reactions: (message.message_reactions ?? []).map((reaction: any) => ({ userId: reaction.user_id, emoji: reaction.emoji })),
   }));
 };
 

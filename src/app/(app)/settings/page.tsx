@@ -31,7 +31,7 @@ export default async function SettingsPage() {
       <SettingsGroup title="Privatsphaere">
         <SettingsLink icon={Eye} title="Privates Konto" detail={profile.isPrivate ? "Aktiv" : "Oeffentlich"} href="/profile/edit" />
         <SettingsItem icon={UserCog} title="Follower & Gefolgt" detail="Sichtbarkeit, Follower entfernen, Blockierte Konten" />
-        <SettingsItem icon={Bell} title="Wer kann mich anschreiben" detail="Alle oder nur Freunde" />
+        <SettingsLink icon={Bell} title="Wer kann mich anschreiben" detail="Nachrichten, Anfragen und Gruppen-Einladungen" href="/settings/messages" />
         <SettingsItem icon={Eye} title="Aktivitaetsstatus & Profilbesuche" detail="Online-Status und Besuchsliste steuern" />
       </SettingsGroup>
 

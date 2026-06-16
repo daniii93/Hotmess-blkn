@@ -30,6 +30,26 @@ export function NotesRow({ viewer, notes }: { viewer: InboxAuthor; notes: InboxN
     setSaving(false);
   };
 
+  const likeNote = async (noteUserId: string) => {
+    await fetch("/api/chat/notes", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "like", noteUserId }),
+    });
+  };
+
+  const replyNote = async (noteUserId: string) => {
+    const text = window.prompt("Auf Notiz antworten");
+    if (!text?.trim()) return;
+    const response = await fetch("/api/chat/notes", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "reply", noteUserId, text: text.trim() }),
+    });
+    const payload = await response.json().catch(() => null) as { conversationId?: string } | null;
+    if (payload?.conversationId) window.location.href = `/chat/${payload.conversationId}`;
+  };
+
   return (
     <section className="overflow-x-auto py-2">
       <div className="flex gap-4">
@@ -53,13 +73,16 @@ export function NotesRow({ viewer, notes }: { viewer: InboxAuthor; notes: InboxN
           />
         </div>
         {friendNotes.map((note) => (
-          <a className="relative w-24 shrink-0 text-center" href={`/chat/new?to=${note.user.id}`} key={note.user.id}>
+          <div className="relative w-24 shrink-0 text-center" key={note.user.id}>
             <span className="absolute -top-3 left-1/2 max-w-24 -translate-x-1/2 truncate rounded-full bg-hm-champagne px-3 py-1 text-[11px] font-semibold text-hm-ink shadow-sm">
               {note.text}
             </span>
-            <Avatar user={note.user} />
+            <button type="button" onClick={() => void replyNote(note.user.id)}>
+              <Avatar user={note.user} />
+            </button>
             <span className="mt-2 block truncate text-xs text-hm-inkSoft">{note.user.name.split(" ")[0]}</span>
-          </a>
+            <button className="mt-1 rounded-pill bg-hm-porcelain px-2 py-0.5 text-[10px] font-bold text-hm-goldDeep" type="button" onClick={() => void likeNote(note.user.id)}>Like</button>
+          </div>
         ))}
       </div>
     </section>

@@ -72,7 +72,7 @@ export function CreatePostForm() {
   );
 }
 
-export function MessageComposer({ conversationId }: { conversationId: string }) {
+export function MessageComposer({ conversationId, replyToId }: { conversationId: string; replyToId?: string }) {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -83,7 +83,7 @@ export function MessageComposer({ conversationId }: { conversationId: string }) 
     const response = await fetch(`/api/chat/${conversationId}/messages`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, replyToId }),
     });
     setLoading(false);
     if (!response.ok) return;
@@ -97,6 +97,84 @@ export function MessageComposer({ conversationId }: { conversationId: string }) 
       <button className="rounded-pill bg-hm-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-60" disabled={loading || !content.trim()} onClick={send} type="button">
         Senden
       </button>
+    </div>
+  );
+}
+
+export function ChatMessageActions({ messageId, mine, content }: { messageId: string; mine: boolean; content: string | null }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const run = async (body: Record<string, unknown>, label: string) => {
+    setLoading(label);
+    await fetch(`/api/chat/messages/${messageId}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    }).catch(() => null);
+    setLoading(null);
+    router.refresh();
+  };
+
+  const react = () => {
+    const emoji = window.prompt("Emoji-Reaktion", "❤️");
+    if (emoji) void run({ action: "react", emoji }, "react");
+  };
+
+  const reply = () => {
+    const text = window.prompt("Antwort schreiben");
+    if (text) {
+      const conversationId = window.location.pathname.split("/").pop();
+      if (!conversationId) return;
+      setLoading("reply");
+      fetch(`/api/chat/${conversationId}/messages`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ content: text, replyToId: messageId }),
+      }).finally(() => {
+        setLoading(null);
+        router.refresh();
+      });
+    }
+  };
+
+  const edit = () => {
+    const text = window.prompt("Nachricht bearbeiten", content ?? "");
+    if (text) void run({ action: "edit", content: text }, "edit");
+  };
+
+  const forward = () => {
+    const ids = window.prompt("Bis zu 5 Chat-IDs, mit Komma getrennt");
+    const conversationIds = ids?.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 5) ?? [];
+    if (conversationIds.length) void run({ action: "forward", conversationIds }, "forward");
+  };
+
+  const copy = async () => {
+    if (content) await navigator.clipboard?.writeText(content).catch(() => null);
+  };
+
+  const recall = () => {
+    if (window.confirm("Nachricht fuer alle zurueckrufen? Empfaenger koennen sie bereits gesehen haben.")) {
+      void run({ action: "unsend" }, "unsend");
+    }
+  };
+
+  const report = () => {
+    if (window.confirm("Diese Nachricht an HotMess Moderation melden?")) {
+      void run({ action: "report", reason: "chat_message_report" }, "report");
+    }
+  };
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-1 text-[11px]">
+      <button className="rounded-pill bg-white/70 px-2 py-1 font-bold text-hm-ink" disabled={Boolean(loading)} onClick={react} type="button">Reagieren</button>
+      <button className="rounded-pill bg-white/70 px-2 py-1 font-bold text-hm-ink" disabled={Boolean(loading)} onClick={reply} type="button">Antworten</button>
+      <button className="rounded-pill bg-white/70 px-2 py-1 font-bold text-hm-ink" disabled={Boolean(loading)} onClick={forward} type="button">Weiterleiten</button>
+      {content ? <button className="rounded-pill bg-white/70 px-2 py-1 font-bold text-hm-ink" onClick={() => void copy()} type="button">Kopieren</button> : null}
+      <button className="rounded-pill bg-white/70 px-2 py-1 font-bold text-hm-ink" disabled={Boolean(loading)} onClick={() => void run({ action: "pin" }, "pin")} type="button">Pinnen</button>
+      {mine ? <button className="rounded-pill bg-white/70 px-2 py-1 font-bold text-hm-ink" disabled={Boolean(loading)} onClick={edit} type="button">Bearbeiten</button> : null}
+      {mine ? <button className="rounded-pill bg-red-50 px-2 py-1 font-bold text-[#9C4A3C]" disabled={Boolean(loading)} onClick={recall} type="button">Zurueckrufen</button> : null}
+      <button className="rounded-pill bg-red-50 px-2 py-1 font-bold text-[#9C4A3C]" disabled={Boolean(loading)} onClick={report} type="button">Melden</button>
     </div>
   );
 }
