@@ -1,22 +1,21 @@
-import { FollowButton } from "@/components/profile/follow-button";
-import { ProfileHeader } from "@/components/profile/profile-header";
-import { ProfileTabs } from "@/components/profile/profile-tabs";
-import { PokeButton, ReportDialog } from "@/components/social/social-sections";
+import { notFound, redirect } from "next/navigation";
+import { ProfilePageClient } from "@/components/profile/ProfilePageClient";
+import { getProfileView } from "@/features/profile/live-service";
 
-export default function UserProfilePage() {
-  return (
-    <main className="mx-auto min-h-screen max-w-5xl px-4 py-8">
-      <ProfileHeader name="HotMess Profil" username="mitglied" bio="Profilansicht mit Privacy-Matrix aus Teil 1." />
-      <div className="mt-5">
-        <div className="flex flex-wrap gap-3">
-          <FollowButton state="none" />
-          <PokeButton />
-        </div>
-      </div>
-      <ProfileTabs />
-      <div className="mt-6">
-        <ReportDialog />
-      </div>
-    </main>
-  );
+export const dynamic = "force-dynamic";
+
+type UserProfilePageProps = {
+  params: Promise<{ username: string }>;
+};
+
+export default async function UserProfilePage({ params }: UserProfilePageProps) {
+  const { username } = await params;
+  const model = await getProfileView(username);
+
+  if (!model) {
+    if (!username) redirect("/login");
+    notFound();
+  }
+
+  return <ProfilePageClient model={model} />;
 }

@@ -1,15 +1,13 @@
-import { ProfileHeader } from "@/components/profile/profile-header";
-import { ProfileTabs } from "@/components/profile/profile-tabs";
-import { ProfileVisitsList } from "@/components/profile/profile-visits-list";
+import { redirect } from "next/navigation";
+import { ProfilePageClient } from "@/components/profile/ProfilePageClient";
+import { getProfileView } from "@/features/profile/live-service";
 
-export default function ProfilePage() {
-  return (
-    <main className="mx-auto min-h-screen max-w-5xl px-4 py-8">
-      <ProfileHeader name="HotMess Mitglied" username="hotmess" bio="Dein Profil wird nach dem Onboarding mit Foto, Musik, Badges und Events gefuellt." />
-      <section className="mt-6">
-        <ProfileVisitsList />
-      </section>
-      <ProfileTabs />
-    </main>
-  );
+export const dynamic = "force-dynamic";
+
+export default async function ProfilePage() {
+  const model = await getProfileView();
+
+  if (!model) redirect("/login?returnTo=/profile");
+
+  return <ProfilePageClient model={model} />;
 }
