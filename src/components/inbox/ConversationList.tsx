@@ -2,7 +2,15 @@ import Link from "next/link";
 import type { InboxConversation } from "@/features/inbox/live-service";
 import { ConversationRow } from "./ConversationRow";
 
-export function ConversationList({ conversations, requestCount }: { conversations: InboxConversation[]; requestCount: number }) {
+export function ConversationList({
+  conversations,
+  requestCount,
+  onChanged,
+}: {
+  conversations: InboxConversation[];
+  requestCount: number;
+  onChanged?: () => void;
+}) {
   return (
     <section>
       <div className="mb-2 flex items-center justify-between">
@@ -22,7 +30,7 @@ export function ConversationList({ conversations, requestCount }: { conversation
       ) : (
         <div className="space-y-1">
           {conversations.map((conversation) => (
-            <ConversationRow conversation={conversation} key={conversation.id} />
+            <ConversationRow conversation={conversation} key={conversation.id} onChanged={onChanged} />
           ))}
         </div>
       )}

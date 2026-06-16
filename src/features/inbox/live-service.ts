@@ -23,6 +23,7 @@ export type InboxConversation = {
   lastMessageAt: string;
   unreadCount: number;
   isMuted: boolean;
+  isArchived: boolean;
   isEventChat: boolean;
   seenLabel: string | null;
 };
@@ -108,7 +109,7 @@ export const getInboxData = async (): Promise<InboxData | null> => {
 
   const { data: memberships, error } = await supabase
     .from("conversation_members")
-    .select("conversation_id,unread_count,last_read_at,is_muted,muted,conversations(id,type,name,avatar_url,last_message_preview,last_message_at,event_id)")
+    .select("conversation_id,unread_count,last_read_at,is_muted,muted,is_archived,conversations(id,type,name,avatar_url,last_message_preview,last_message_at,event_id)")
     .eq("user_id", profile.id)
     .is("left_at", null)
     .order("created_at", { ascending: false });
@@ -171,6 +172,7 @@ export const getInboxData = async (): Promise<InboxData | null> => {
   }
 
   const conversations = (memberships ?? [])
+    .filter((membership: any) => !membership.is_archived)
     .map((membership: any) => {
       const conversation = Array.isArray(membership.conversations) ? membership.conversations[0] : membership.conversations;
       const participants = (membersByConversation.get(membership.conversation_id) ?? []).filter((item) => item.id !== profile.id);
@@ -194,6 +196,7 @@ export const getInboxData = async (): Promise<InboxData | null> => {
         lastMessageAt: lastMessage?.created_at ?? conversation?.last_message_at ?? new Date(0).toISOString(),
         unreadCount,
         isMuted: Boolean(membership.is_muted ?? membership.muted),
+        isArchived: Boolean(membership.is_archived),
         isEventChat: conversation?.type === "event",
         seenLabel: mine && unreadCount === 0 ? `Vor ${relativeTime(membership.last_read_at ?? lastMessage?.created_at)} gesehen` : null,
       } satisfies InboxConversation;
