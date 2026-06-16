@@ -22,6 +22,7 @@ const hasPrefix = (pathname: string, prefixes: readonly string[]): boolean =>
 
 const isPublicPath = (pathname: string): boolean => {
   if (pathname === "/") return true;
+  if (pathname === "/profile") return true;
   if (pathname.startsWith("/event/") && pathname.endsWith("/preview")) return true;
   return hasPrefix(pathname, publicPrefixes.filter((prefix) => prefix !== "/" && prefix !== "/event"));
 };
