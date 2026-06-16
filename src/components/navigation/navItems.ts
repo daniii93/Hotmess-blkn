@@ -12,7 +12,7 @@ export const navItems = [
   { key: "home", href: "/feed", label: "Start", icon: "home", badge: null },
   { key: "watch", href: "/dating", label: "Dating", icon: "heart", badge: null },
   { key: "inbox", href: "/chat", label: "Nachrichten", icon: "send", badge: "count" },
-  { key: "explore", href: "/explore", label: "Entdecken", icon: "search", badge: null },
+  { key: "explore", href: "/business", label: "Business", icon: "search", badge: null },
   { key: "profile", href: "/profile", label: "Profil", icon: "avatar", badge: "dot" },
 ] as const satisfies readonly NavItem[];
 

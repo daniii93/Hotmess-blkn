@@ -87,7 +87,6 @@ export async function middleware(request: NextRequest) {
 
   const role = profile?.role ?? fallbackRole;
   const datingEnabled = profile?.dating_enabled ?? Boolean(user?.user_metadata?.dating_enabled);
-  const businessEnabled = profile?.business_enabled ?? Boolean(user?.user_metadata?.business_enabled);
   const onboardingCompleted = profile?.onboarding_completed ?? Boolean(user?.user_metadata?.onboarding_completed);
 
   if (profile?.is_banned) {
@@ -110,10 +109,6 @@ export async function middleware(request: NextRequest) {
 
   if (hasPrefix(pathname, scannerPrefixes) && role !== "scanner" && role !== "admin") {
     return redirectWithSession(request, response, "/");
-  }
-
-  if (hasPrefix(pathname, businessPrefixes) && !businessEnabled) {
-    return redirectWithSession(request, response, "/settings");
   }
 
   return response;
