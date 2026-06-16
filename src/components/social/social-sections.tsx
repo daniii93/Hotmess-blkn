@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type {
   ChatMessage,
+  ChatThreadMeta,
   ConversationSummary,
   FeedAuthor,
   FriendActivityItem,
@@ -9,6 +10,7 @@ import type {
   SocialStory,
 } from "@/features/social/live-service";
 import { ChatMessageActions, CreatePostForm, LikeButton, MessageComposer } from "@/components/social/social-actions";
+import { GroupInfoPanel } from "@/components/inbox/GroupInfoPanel";
 
 const card = "rounded-card border border-hm-border bg-hm-porcelain shadow-luxury";
 const soft = "rounded-card border border-hm-borderSoft bg-hm-ivory";
@@ -221,6 +223,14 @@ export function RequestsFolder() {
 export function MessageBubble({ message }: { message: ChatMessage }) {
   const reactionSummary = message.reactions.map((reaction) => reaction.emoji).join(" ");
 
+  if (message.type === "system") {
+    return (
+      <div className="mx-auto max-w-[88%] rounded-full bg-hm-champagne/70 px-4 py-2 text-center text-xs font-semibold text-hm-inkSoft">
+        {message.content ?? "Systemmeldung"}
+      </div>
+    );
+  }
+
   return (
     <div className={`max-w-[86%] rounded-3xl px-4 py-3 text-sm ${message.mine ? "ml-auto bg-hm-ink text-white" : "bg-hm-champagne text-hm-ink"}`}>
       {message.replyToId ? <p className={`mb-2 rounded-2xl px-3 py-2 text-xs ${message.mine ? "bg-white/10 text-white/70" : "bg-white/70 text-hm-inkSoft"}`}>Antwort auf eine Nachricht</p> : null}
@@ -251,13 +261,23 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   );
 }
 
-export function ChatThread({ conversationId, messages }: { conversationId: string; messages: ChatMessage[] }) {
+export function ChatThread({ conversationId, messages, meta }: { conversationId: string; messages: ChatMessage[]; meta?: ChatThreadMeta | null }) {
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-8">
       <section className={`${card} flex min-h-[75vh] flex-col p-4`}>
         <header className="border-b border-hm-border pb-4">
-          <p className="font-semibold text-hm-ink">HotMess Chat</p>
-          <p className="text-sm text-hm-inkSoft">Reagieren, Antworten, Bearbeiten (15 Min.), Zurueckrufen, Pinnen und Melden.</p>
+          <div className="flex items-center gap-3">
+            <span className="grid size-12 place-items-center overflow-hidden rounded-full border border-hm-gold bg-hm-champagne text-sm font-bold text-hm-ink">
+              {meta?.avatarUrl ? <img alt={meta.name} className="h-full w-full object-cover" src={meta.avatarUrl} /> : initials(meta?.name ?? "H")}
+            </span>
+            <div>
+              <p className="font-semibold text-hm-ink">{meta?.name ?? "HotMess Chat"}</p>
+              <p className="text-sm text-hm-inkSoft">
+                {meta?.isGroupLike ? `${meta.memberCount} Mitglieder · Gruppenchat` : "Reagieren, Antworten, Bearbeiten (15 Min.), Zurueckrufen, Pinnen und Melden."}
+              </p>
+            </div>
+          </div>
+          {meta?.isGroupLike ? <GroupInfoPanel meta={meta} /> : null}
         </header>
         <div className="flex-1 space-y-3 py-5">
           {messages.length === 0 ? <p className="text-sm text-hm-inkSoft">Noch keine Nachrichten.</p> : null}

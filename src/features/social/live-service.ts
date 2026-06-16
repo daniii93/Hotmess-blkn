@@ -70,6 +70,30 @@ export type ChatMessage = {
   reactions: Array<{ userId: string; emoji: string }>;
 };
 
+export type ChatMember = {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl: string | null;
+  role: "member" | "admin";
+  nickname: string | null;
+  joinedAt: string | null;
+  mine: boolean;
+};
+
+export type ChatThreadMeta = {
+  id: string;
+  type: string;
+  name: string;
+  avatarUrl: string | null;
+  memberCount: number;
+  isGroupLike: boolean;
+  currentUserRole: "member" | "admin" | null;
+  callsEnabled: boolean;
+  isMuted: boolean;
+  members: ChatMember[];
+};
+
 export type NotificationItem = {
   id: string;
   type: string;
@@ -241,6 +265,69 @@ export const getChatMessages = async (conversationId: string): Promise<ChatMessa
     isPinned: Boolean(message.is_pinned),
     reactions: (message.message_reactions ?? []).map((reaction: any) => ({ userId: reaction.user_id, emoji: reaction.emoji })),
   }));
+};
+
+export const getChatThreadMeta = async (conversationId: string): Promise<ChatThreadMeta | null> => {
+  const profile = await getCurrentUserProfile();
+  if (!profile) return null;
+
+  const supabase = createSupabaseAdminClient();
+  const [{ data: membership }, conversationResult, { data: memberRows }] = await Promise.all([
+    supabase
+      .from("conversation_members")
+      .select("role,is_muted,muted")
+      .eq("conversation_id", conversationId)
+      .eq("user_id", profile.id)
+      .is("left_at", null)
+      .maybeSingle(),
+    supabase.from("conversations").select("id,type,name,avatar_url,calls_enabled").eq("id", conversationId).maybeSingle(),
+    supabase
+      .from("conversation_members")
+      .select(`user_id,role,nickname,joined_at,profiles(${authorSelect})`)
+      .eq("conversation_id", conversationId)
+      .is("left_at", null)
+      .order("joined_at", { ascending: true })
+      .limit(250),
+  ]);
+
+  let conversation: any = conversationResult.data;
+  if (conversationResult.error && /calls_enabled/i.test(conversationResult.error.message)) {
+    const retry = await supabase.from("conversations").select("id,type,name,avatar_url").eq("id", conversationId).maybeSingle();
+    conversation = retry.data;
+  } else if (conversationResult.error) {
+    throw new Error(conversationResult.error.message);
+  }
+
+  if (!conversation || (!membership && profile.role !== "admin")) return null;
+
+  const members = (memberRows ?? []).map((row: any) => {
+    const memberProfile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    const author = mapAuthor(memberProfile);
+    return {
+      id: row.user_id,
+      name: row.nickname || author.name,
+      username: author.username,
+      avatarUrl: author.avatarUrl,
+      role: row.role === "admin" ? "admin" : "member",
+      nickname: row.nickname,
+      joinedAt: row.joined_at,
+      mine: row.user_id === profile.id,
+    } satisfies ChatMember;
+  });
+
+  const isGroupLike = conversation.type === "group" || conversation.type === "event";
+  return {
+    id: conversation.id,
+    type: conversation.type,
+    name: conversation.name ?? (conversation.type === "event" ? "Event-Chat" : isGroupLike ? "Gruppenchat" : "Direktnachricht"),
+    avatarUrl: conversation.avatar_url ?? null,
+    memberCount: members.length,
+    isGroupLike,
+    currentUserRole: membership?.role === "admin" ? "admin" : membership ? "member" : profile.role === "admin" ? "admin" : null,
+    callsEnabled: Boolean(conversation.calls_enabled),
+    isMuted: Boolean((membership as any)?.is_muted ?? (membership as any)?.muted),
+    members,
+  };
 };
 
 export const getNotifications = async (): Promise<NotificationItem[]> => {

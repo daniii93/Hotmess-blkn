@@ -9,8 +9,10 @@ export function ComposeSheet({ initialTo }: { initialTo?: string }) {
   const [query, setQuery] = useState("");
   const [people, setPeople] = useState<Person[]>([]);
   const [selected, setSelected] = useState<Person[]>([]);
+  const [groupName, setGroupName] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -35,14 +37,16 @@ export function ComposeSheet({ initialTo }: { initialTo?: string }) {
   const send = async () => {
     if (selected.length === 0) return;
     setSending(true);
+    setError(null);
     const response = await fetch("/api/chat/conversation", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ userIds: selected.map((item) => item.id), message }),
+      body: JSON.stringify({ userIds: selected.map((item) => item.id), message, name: selected.length > 1 ? groupName : undefined }),
     });
     const payload = await response.json().catch(() => ({}));
     setSending(false);
     if (response.ok && payload.conversationId) window.location.href = `/chat/${payload.conversationId}`;
+    else setError(payload.error ?? "Chat konnte nicht erstellt werden.");
   };
 
   return (
@@ -86,6 +90,15 @@ export function ComposeSheet({ initialTo }: { initialTo?: string }) {
             </button>
           ))}
         </div>
+        {selected.length > 1 ? (
+          <input
+            className="mt-4 w-full rounded-2xl border border-hm-border bg-hm-ivory p-4 text-sm outline-none focus:border-hm-gold"
+            placeholder="Gruppenname (optional)"
+            value={groupName}
+            onChange={(event) => setGroupName(event.target.value)}
+            maxLength={80}
+          />
+        ) : null}
         <textarea
           className="mt-4 min-h-28 w-full rounded-2xl border border-hm-border bg-hm-ivory p-4 text-sm outline-none focus:border-hm-gold"
           placeholder="Erste Nachricht schreiben ..."
@@ -99,8 +112,9 @@ export function ComposeSheet({ initialTo }: { initialTo?: string }) {
           onClick={() => void send()}
         >
           <Send className="h-4 w-4" />
-          Senden
+          {selected.length > 1 ? "Gruppe erstellen" : "Senden"}
         </button>
+        {error ? <p className="mt-3 rounded-2xl bg-[#9C4A3C]/10 px-4 py-3 text-sm font-semibold text-[#9C4A3C]">{error}</p> : null}
       </section>
     </main>
   );
