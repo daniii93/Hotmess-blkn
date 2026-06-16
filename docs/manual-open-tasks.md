@@ -28,6 +28,14 @@ Diese Punkte sind bewusst nicht im Code automatisiert, weil sie externe Provider
 - Supabase Migration `supabase/migrations/010_social_core_runtime.sql` im Supabase SQL Editor ausfuehren.
 - Danach Feed, Chat, Notifications und Explore mit einem echten eingeloggten Testnutzer pruefen.
 
+## Teil 3b - Hotel-Code & Add-on-Abwicklung
+
+- Supabase Migration `supabase/migrations/013_hotel_addons_runtime_part3b.sql` im Supabase SQL Editor ausfuehren.
+- Partnerhotel-Stammdaten mit echten Links, Provisionen und Ansprechpartnern pflegen.
+- Mindestens ein Event mit `hotel_partner_id`, Tischen, Drink-Paketen und Geburtstagspaket testen.
+- Nach einem Testkauf pruefen: Ticket valid, Hotel-Code erzeugt, Tisch/Getraenk/Geburtstag in Operations sichtbar.
+- Event-Settlement nach einem Testevent pruefen und Kosten manuell eintragen.
+
 ## Teil 4 - Dating
 
 - Supabase Migration `supabase/migrations/004_dating_part4.sql` im Supabase SQL Editor ausfuehren, falls noch nicht passiert.

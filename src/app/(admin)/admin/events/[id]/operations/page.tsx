@@ -1,19 +1,20 @@
-import { BirthdayList, BottleServicePlan, CheckinLive, HotMessTimeTracker, TableAssignment } from "@/components/admin/admin-dashboard-sections";
+import { EventOperationsLive } from "@/components/admin/event-operations-live";
 import { PageShell } from "@/components/shell/page-shell";
+import { getEventOperationsSnapshot } from "@/features/admin/event-operations-service";
 
-export default function AdminEventOperationsPage() {
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminEventOperationsPage({ params }: Props) {
+  const { id } = await params;
+  const snapshot = await getEventOperationsSnapshot(id);
   return (
     <>
       <PageShell pageKey="adminEventOperations" emptyKey="admin" accent="admin" />
-      <section className="mx-auto w-full max-w-6xl space-y-5 px-4 pb-12 sm:px-6 lg:px-10">
-        <CheckinLive />
-        <div className="grid gap-5 lg:grid-cols-2">
-          <BottleServicePlan />
-          <BirthdayList />
-          <TableAssignment />
-          <HotMessTimeTracker />
-        </div>
-      </section>
+      <EventOperationsLive snapshot={snapshot} />
     </>
   );
 }
