@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  content: ["./src/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./*.php", "./app/**/*.php"],
+  content: ["./src/**/*.{ts,tsx,js,jsx}", "./components/**/*.{ts,tsx,js,jsx}", "./*.php", "./app/**/*.php"],
   theme: {
     extend: {
       colors: {
