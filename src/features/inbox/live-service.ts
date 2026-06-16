@@ -127,11 +127,19 @@ const fetchMemberships = async (supabase: ReturnType<typeof createSupabaseAdminC
 
   if (!full.error || !isSchemaError(full.error)) return full;
 
-  return supabase
+  const socialRuntime = await supabase
     .from("conversation_members")
     .select("conversation_id,unread_count,last_read_at,is_muted,muted,conversations(id,type,name,avatar_url,last_message_preview,last_message_at,event_id)")
     .eq("user_id", userId)
     .is("left_at", null)
+    .order("created_at", { ascending: false });
+
+  if (!socialRuntime.error || !isSchemaError(socialRuntime.error)) return socialRuntime;
+
+  return supabase
+    .from("conversation_members")
+    .select("conversation_id,unread_count,muted,conversations(id,type,event_id)")
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 };
 
@@ -183,7 +191,15 @@ export const getInboxData = async (): Promise<InboxData | null> => {
   ]);
 
   const allMembers = membersResult.error && isSchemaError(membersResult.error) ? [] : membersResult.data ?? [];
-  const lastMessages = messagesResult.error && isSchemaError(messagesResult.error) ? [] : messagesResult.data ?? [];
+  let lastMessages = messagesResult.error && isSchemaError(messagesResult.error) ? [] : messagesResult.data ?? [];
+  if (messagesResult.error && isSchemaError(messagesResult.error) && conversationIds.length) {
+    const legacyMessages = await supabase
+      .from("messages")
+      .select("id,conversation_id,sender_id,type,body,created_at")
+      .in("conversation_id", conversationIds)
+      .order("created_at", { ascending: false });
+    lastMessages = legacyMessages.error && isSchemaError(legacyMessages.error) ? [] : legacyMessages.data ?? [];
+  }
   const requestCount = requestsResult.error && isSchemaError(requestsResult.error) ? 0 : requestsResult.count ?? 0;
   const follows = followsResult.error && isSchemaError(followsResult.error) ? [] : followsResult.data ?? [];
   const notes = notesResult.error && isSchemaError(notesResult.error) ? [] : notesResult.data ?? [];

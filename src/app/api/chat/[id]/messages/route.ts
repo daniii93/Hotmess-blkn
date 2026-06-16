@@ -51,7 +51,7 @@ export async function POST(request: Request, { params }: MessageParams) {
     return NextResponse.json({ error: "Selbstloeschende Nachrichten sind erst nach Annahme der Anfrage moeglich." }, { status: 403 });
   }
 
-  const { data: message, error } = await supabase
+  let { data: message, error } = await supabase
     .from("messages")
     .insert({
       conversation_id: id,
@@ -69,7 +69,25 @@ export async function POST(request: Request, { params }: MessageParams) {
     .select("id")
     .single();
 
+  if (error && /does not exist|could not find|schema cache|42703/i.test(error.message)) {
+    const legacy = await supabase
+      .from("messages")
+      .insert({
+        conversation_id: id,
+        sender_id: profile.id,
+        type: parsed.data.type,
+        body: parsed.data.content,
+        media_url: parsed.data.mediaUrl,
+        reply_to_id: parsed.data.replyToId,
+      })
+      .select("id")
+      .single();
+    message = legacy.data;
+    error = legacy.error;
+  }
+
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (!message) return NextResponse.json({ error: "Nachricht konnte nicht gespeichert werden." }, { status: 400 });
 
   const { data: members } = await supabase.from("conversation_members").select("user_id").eq("conversation_id", id).neq("user_id", profile.id);
   for (const memberRow of members ?? []) {

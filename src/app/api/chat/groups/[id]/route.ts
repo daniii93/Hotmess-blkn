@@ -18,27 +18,49 @@ const groupActionSchema = z.discriminatedUnion("action", [
 ]);
 
 const systemMessage = async (supabase: ReturnType<typeof createSupabaseAdminClient>, conversationId: string, userId: string, content: string) => {
-  await supabase.from("messages").insert({
+  const insert = await supabase.from("messages").insert({
     conversation_id: conversationId,
     sender_id: userId,
     type: "system",
     content,
     body: content,
   });
+  if (insert.error) {
+    await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: userId,
+      type: "text",
+      body: content,
+    });
+  }
   await supabase.from("conversations").update({ last_message_preview: content, last_message_at: new Date().toISOString() }).eq("id", conversationId);
 };
 
 const getMembershipContext = async (supabase: ReturnType<typeof createSupabaseAdminClient>, conversationId: string, userId: string) => {
-  const [{ data: conversation }, { data: membership }] = await Promise.all([
-    supabase.from("conversations").select("id,type,name").eq("id", conversationId).maybeSingle(),
-    supabase
+  let conversationResult = await supabase.from("conversations").select("id,type,name").eq("id", conversationId).maybeSingle();
+  if (conversationResult.error && /name|does not exist|schema cache|42703/i.test(conversationResult.error.message)) {
+    conversationResult = await supabase.from("conversations").select("id,type").eq("id", conversationId).maybeSingle();
+  }
+  let membershipResult = await supabase
+    .from("conversation_members")
+    .select("conversation_id,user_id,role,joined_at")
+    .eq("conversation_id", conversationId)
+    .eq("user_id", userId)
+    .is("left_at", null)
+    .maybeSingle();
+  if (membershipResult.error && /role|joined_at|left_at|does not exist|schema cache|42703/i.test(membershipResult.error.message)) {
+    membershipResult = await supabase
       .from("conversation_members")
-      .select("conversation_id,user_id,role,joined_at")
+      .select("conversation_id,user_id,created_at")
       .eq("conversation_id", conversationId)
       .eq("user_id", userId)
-      .is("left_at", null)
-      .maybeSingle(),
-  ]);
+      .maybeSingle();
+  }
+
+  const [{ data: conversation }, { data: membership }] = [
+    conversationResult,
+    membershipResult,
+  ];
 
   return { conversation, membership };
 };
@@ -137,7 +159,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       role: "member",
       left_at: null,
     }));
-    const { error } = await supabase.from("conversation_members").upsert(rows, { onConflict: "conversation_id,user_id" });
+    let { error } = await supabase.from("conversation_members").upsert(rows, { onConflict: "conversation_id,user_id" });
+    if (error && /role|left_at|does not exist|schema cache|42703/i.test(error.message)) {
+      const legacyRows = parsed.data.userIds.map((userId) => ({ conversation_id: conversationId, user_id: userId }));
+      const legacy = await supabase.from("conversation_members").upsert(legacyRows, { onConflict: "conversation_id,user_id" });
+      error = legacy.error;
+    }
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     await systemMessage(supabase, conversationId, profile.id, `${parsed.data.userIds.length} Person(en) hinzugefuegt`);
     return NextResponse.json({ ok: true });
@@ -212,11 +239,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   if (parsed.data.action === "mute") {
-    const { error } = await supabase
+    let { error } = await supabase
       .from("conversation_members")
       .update({ is_muted: parsed.data.muted, muted: parsed.data.muted })
       .eq("conversation_id", conversationId)
       .eq("user_id", profile.id);
+    if (error && /is_muted|does not exist|schema cache|42703/i.test(error.message)) {
+      const legacy = await supabase
+        .from("conversation_members")
+        .update({ muted: parsed.data.muted })
+        .eq("conversation_id", conversationId)
+        .eq("user_id", profile.id);
+      error = legacy.error;
+    }
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ ok: true });
   }

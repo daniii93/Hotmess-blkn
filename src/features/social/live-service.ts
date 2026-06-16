@@ -238,16 +238,31 @@ export const getChatMessages = async (conversationId: string): Promise<ChatMessa
   if (!profile) return [];
 
   const supabase = createSupabaseAdminClient();
-  await supabase.rpc("mark_conversation_read", { p_conversation_id: conversationId, p_user_id: profile.id });
+  try {
+    await supabase.rpc("mark_conversation_read", { p_conversation_id: conversationId, p_user_id: profile.id });
+  } catch {
+    // Older databases may not have the read marker RPC yet. The thread should still render.
+  }
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("messages")
     .select(`id,sender_id,type,content,body,created_at,reply_to_id,edited,edited_at,transcript,is_deleted_for_all,is_pinned,profiles!messages_sender_id_fkey(${authorSelect}),message_reactions(user_id,emoji)`)
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true })
     .limit(100);
 
-  if (error) throw new Error(error.message);
+  if (error && /does not exist|could not find|schema cache|42703/i.test(error.message)) {
+    const legacy = await supabase
+      .from("messages")
+      .select(`id,sender_id,type,body,created_at,reply_to_id,profiles!messages_sender_id_fkey(${authorSelect})`)
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true })
+      .limit(100);
+    data = legacy.data as any;
+    error = legacy.error;
+  }
+
+  if (error) return [];
 
   return (data ?? []).map((message: any) => ({
     id: message.id,
@@ -259,8 +274,8 @@ export const getChatMessages = async (conversationId: string): Promise<ChatMessa
     createdAt: message.created_at,
     replyToId: message.reply_to_id,
     edited: Boolean(message.edited),
-    editedAt: message.edited_at,
-    transcript: message.transcript,
+    editedAt: message.edited_at ?? null,
+    transcript: message.transcript ?? null,
     isDeletedForAll: Boolean(message.is_deleted_for_all),
     isPinned: Boolean(message.is_pinned),
     reactions: (message.message_reactions ?? []).map((reaction: any) => ({ userId: reaction.user_id, emoji: reaction.emoji })),
@@ -272,30 +287,49 @@ export const getChatThreadMeta = async (conversationId: string): Promise<ChatThr
   if (!profile) return null;
 
   const supabase = createSupabaseAdminClient();
-  const [{ data: membership }, conversationResult, { data: memberRows }] = await Promise.all([
-    supabase
+  let membershipResult: any = await supabase
+    .from("conversation_members")
+    .select("role,is_muted,muted")
+    .eq("conversation_id", conversationId)
+    .eq("user_id", profile.id)
+    .is("left_at", null)
+    .maybeSingle();
+  if (membershipResult.error && /does not exist|could not find|schema cache|42703/i.test(membershipResult.error.message)) {
+    membershipResult = await supabase
       .from("conversation_members")
-      .select("role,is_muted,muted")
+      .select("muted")
       .eq("conversation_id", conversationId)
       .eq("user_id", profile.id)
-      .is("left_at", null)
-      .maybeSingle(),
-    supabase.from("conversations").select("id,type,name,avatar_url,calls_enabled").eq("id", conversationId).maybeSingle(),
-    supabase
+      .maybeSingle();
+  }
+
+  const conversationResult = await supabase.from("conversations").select("id,type,name,avatar_url,calls_enabled").eq("id", conversationId).maybeSingle();
+
+  let memberResult: any = await supabase
+    .from("conversation_members")
+    .select(`user_id,role,nickname,joined_at,profiles(${authorSelect})`)
+    .eq("conversation_id", conversationId)
+    .is("left_at", null)
+    .order("joined_at", { ascending: true })
+    .limit(250);
+  if (memberResult.error && /does not exist|could not find|schema cache|42703/i.test(memberResult.error.message)) {
+    memberResult = await supabase
       .from("conversation_members")
-      .select(`user_id,role,nickname,joined_at,profiles(${authorSelect})`)
+      .select(`user_id,profiles(${authorSelect})`)
       .eq("conversation_id", conversationId)
-      .is("left_at", null)
-      .order("joined_at", { ascending: true })
-      .limit(250),
-  ]);
+      .limit(250);
+  }
+
+  const membership = membershipResult.data;
+  const memberRows = memberResult.data;
 
   let conversation: any = conversationResult.data;
   if (conversationResult.error && /calls_enabled/i.test(conversationResult.error.message)) {
     const retry = await supabase.from("conversations").select("id,type,name,avatar_url").eq("id", conversationId).maybeSingle();
     conversation = retry.data;
   } else if (conversationResult.error) {
-    throw new Error(conversationResult.error.message);
+    const retry = await supabase.from("conversations").select("id,type").eq("id", conversationId).maybeSingle();
+    conversation = retry.data;
   }
 
   if (!conversation || (!membership && profile.role !== "admin")) return null;
@@ -309,8 +343,8 @@ export const getChatThreadMeta = async (conversationId: string): Promise<ChatThr
       username: author.username,
       avatarUrl: author.avatarUrl,
       role: row.role === "admin" ? "admin" : "member",
-      nickname: row.nickname,
-      joinedAt: row.joined_at,
+      nickname: row.nickname ?? null,
+      joinedAt: row.joined_at ?? null,
       mine: row.user_id === profile.id,
     } satisfies ChatMember;
   });

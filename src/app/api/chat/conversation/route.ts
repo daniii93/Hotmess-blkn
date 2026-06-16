@@ -10,7 +10,7 @@ const conversationSchema = z.object({
 });
 
 const verifyGroupTargets = async (supabase: ReturnType<typeof createSupabaseAdminClient>, currentUserId: string, userIds: string[]) => {
-  const [{ data: blockedRows }, { data: profiles }, { data: followerRows }] = await Promise.all([
+  const [blockedResult, profilesResult, followerResult] = await Promise.all([
     supabase
       .from("blocks")
       .select("blocker_id,blocked_id")
@@ -22,6 +22,10 @@ const verifyGroupTargets = async (supabase: ReturnType<typeof createSupabaseAdmi
     supabase.from("profiles").select("id,first_name,last_name,username,who_can_add_to_groups,is_banned").in("id", userIds),
     supabase.from("follows").select("follower_id,following_id").in("follower_id", userIds).eq("following_id", currentUserId),
   ]);
+
+  const blockedRows = blockedResult.data;
+  const profiles = profilesResult.error && /who_can_add_to_groups|does not exist|schema cache|42703/i.test(profilesResult.error.message) ? [] : profilesResult.data;
+  const followerRows = followerResult.data;
 
   if ((blockedRows ?? []).length > 0) return { ok: false, error: "Blockierte Konten koennen nicht zur Gruppe hinzugefuegt werden." };
 
@@ -65,13 +69,21 @@ export async function POST(request: Request) {
     if (directError) return NextResponse.json({ error: directError.message }, { status: 400 });
 
     if (parsed.data.message) {
-      await supabase.from("messages").insert({
+      const insertDirect = await supabase.from("messages").insert({
         conversation_id: conversationId,
         sender_id: profile.id,
         type: "text",
         content: parsed.data.message,
         body: parsed.data.message,
       });
+      if (insertDirect.error && /content|does not exist|schema cache|42703/i.test(insertDirect.error.message)) {
+        await supabase.from("messages").insert({
+          conversation_id: conversationId,
+          sender_id: profile.id,
+          type: "text",
+          body: parsed.data.message,
+        });
+      }
     }
 
     if (!isFriend) {
@@ -100,27 +112,48 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  await supabase.from("conversation_members").insert([
+  const { error: memberError } = await supabase.from("conversation_members").insert([
     { conversation_id: conversation.id, user_id: profile.id, role: "admin" },
     ...userIds.map((userId) => ({ conversation_id: conversation.id, user_id: userId, role: "member" })),
   ]);
+  if (memberError && /role|does not exist|schema cache|42703/i.test(memberError.message)) {
+    await supabase.from("conversation_members").insert([profile.id, ...userIds].map((userId) => ({ conversation_id: conversation.id, user_id: userId })));
+  } else if (memberError) {
+    return NextResponse.json({ error: memberError.message }, { status: 400 });
+  }
 
-  await supabase.from("messages").insert({
+  const systemInsert = await supabase.from("messages").insert({
     conversation_id: conversation.id,
     sender_id: profile.id,
     type: "system",
     content: "Gruppe erstellt",
     body: "Gruppe erstellt",
   });
+  if (systemInsert.error) {
+    await supabase.from("messages").insert({
+      conversation_id: conversation.id,
+      sender_id: profile.id,
+      type: "text",
+      body: "Gruppe erstellt",
+    });
+  }
 
   if (parsed.data.message) {
-    await supabase.from("messages").insert({
+    const insertMessage = await supabase.from("messages").insert({
       conversation_id: conversation.id,
       sender_id: profile.id,
       type: "text",
       content: parsed.data.message,
       body: parsed.data.message,
     });
+    if (insertMessage.error && /content|does not exist|schema cache|42703/i.test(insertMessage.error.message)) {
+      await supabase.from("messages").insert({
+        conversation_id: conversation.id,
+        sender_id: profile.id,
+        type: "text",
+        body: parsed.data.message,
+      });
+    }
   }
 
   return NextResponse.json({ ok: true, conversationId: conversation.id });
