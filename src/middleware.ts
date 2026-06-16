@@ -10,8 +10,8 @@ type ProfileAccess = {
   is_banned: boolean | null;
 };
 
-const publicPrefixes = ["/", "/event", "/login", "/register", "/reset-password", "/impressum", "/agb", "/datenschutz", "/partner", "/demo-admin"] as const;
-const appPrefixes = ["/feed", "/watch", "/create", "/explore", "/events", "/checkout", "/tickets", "/friends", "/chat", "/notifications", "/u", "/profile", "/settings", "/onboarding", "/verify"] as const;
+const publicPrefixes = ["/", "/event", "/login", "/register", "/reset-password", "/impressum", "/agb", "/datenschutz", "/partner", "/demo-admin", "/profile"] as const;
+const appPrefixes = ["/feed", "/watch", "/create", "/explore", "/events", "/checkout", "/tickets", "/friends", "/chat", "/notifications", "/u", "/profile/edit", "/settings", "/onboarding", "/verify"] as const;
 const datingPrefixes = ["/dating"] as const;
 const businessPrefixes = ["/business"] as const;
 const scannerPrefixes = ["/scanner"] as const;
@@ -22,9 +22,8 @@ const hasPrefix = (pathname: string, prefixes: readonly string[]): boolean =>
 
 const isPublicPath = (pathname: string): boolean => {
   if (pathname === "/") return true;
-  if (pathname === "/profile") return true;
   if (pathname.startsWith("/event/") && pathname.endsWith("/preview")) return true;
-  return hasPrefix(pathname, publicPrefixes.filter((prefix) => prefix !== "/" && prefix !== "/event"));
+  return hasPrefix(pathname, publicPrefixes.filter((prefix) => prefix !== "/" && prefix !== "/event" && prefix !== "/profile")) || pathname === "/profile";
 };
 
 const withSupabaseCookies = (target: NextResponse, source: NextResponse) => {
