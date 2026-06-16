@@ -207,7 +207,7 @@ function StatusBar() {
   );
 }
 
-function AppHeader({ onHome, onCreate, onShop, cartCount }) {
+function AppHeader({ onHome, onCreate, onActivity, onShop, cartCount }) {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#EDEDED] bg-white px-4">
       <button aria-label="Zurück zur Startseite" className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#FF3040]" type="button" onClick={onHome}>
@@ -217,7 +217,7 @@ function AppHeader({ onHome, onCreate, onShop, cartCount }) {
         <IconButton label="Erstellen" onClick={onCreate}>
           <PlusSquare strokeWidth={2.2} />
         </IconButton>
-        <IconButton label="Aktivität">
+        <IconButton label="Aktivität" onClick={onActivity}>
           <Heart strokeWidth={2.2} />
           <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-[#FF3040] ring-2 ring-white" />
         </IconButton>
@@ -684,6 +684,61 @@ function CheckoutView({ order, goHome, openShop }) {
   );
 }
 
+function ActivityView({ goHome, openShop, goTab }) {
+  const items = [
+    { id: "like", title: "anna gefällt dein Beitrag", text: "Fight Night hat gerade neue Reaktionen.", action: "Feed ansehen", onClick: goHome },
+    { id: "reel", title: "Neue Reels verfügbar", text: "Drei neue Clips aus Training und Aftermovie.", action: "Reels öffnen", onClick: () => goTab("reels") },
+    { id: "ticket", title: "Tickets im Fokus", text: "HotMess Fight Night Vol. 7 ist bereit für den Verkauf.", action: "Tickets ansehen", onClick: openShop },
+  ];
+
+  return (
+    <section className="min-h-full bg-white">
+      <header className="sticky top-0 z-10 flex h-14 items-center justify-center border-b border-[#EDEDED] bg-white px-3">
+        <div className="absolute left-3">
+          <IconButton label="Zurück zur Startseite" onClick={goHome}>
+            <ChevronLeft />
+          </IconButton>
+        </div>
+        <h2 className="text-base font-black">Aktivität</h2>
+        <div className="absolute right-3">
+          <IconButton label="Startseite" onClick={goHome}>
+            <Home />
+          </IconButton>
+        </div>
+      </header>
+      <div className="space-y-4 p-4">
+        <div className="rounded-3xl bg-black p-5 text-white">
+          <div className="flex items-center gap-3">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-[#FF3040]">
+              <Heart className="fill-white text-white" />
+            </span>
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-white/60">HotMess Funktion</p>
+              <h1 className="mt-1 text-2xl font-black">Funktionskreis</h1>
+            </div>
+          </div>
+          <p className="mt-4 text-sm leading-6 text-white/75">
+            Hier liegt die neue Single-File-Demo als Aktivitäts-Funktion: Feed, Reels, Erstellen, Suche, Profil und Ticketverkauf bleiben verbunden.
+          </p>
+        </div>
+        {items.map((item) => (
+          <article className="rounded-3xl border border-[#EDEDED] bg-white p-4 shadow-sm" key={item.id}>
+            <h3 className="text-sm font-black">{item.title}</h3>
+            <p className="mt-1 text-sm text-zinc-500">{item.text}</p>
+            <button
+              className="mt-4 rounded-full bg-black px-4 py-2 text-sm font-black text-white outline-none active:scale-95 focus-visible:ring-2 focus-visible:ring-[#FF3040]"
+              type="button"
+              onClick={item.onClick}
+            >
+              {item.action}
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function BottomNav({ screen, tab, onTab }) {
   const activeTab = screen === "feed" ? tab : "";
   return (
@@ -740,6 +795,10 @@ export default function HotMessInstagramPrototype() {
     setScreen("cart");
   };
 
+  const openActivity = () => {
+    setScreen("activity");
+  };
+
   const addToCart = (eventId) => {
     setCart((current) => ({ ...current, [eventId]: (current[eventId] || 0) + 1 }));
     showNotice("Hinzugefügt");
@@ -772,6 +831,7 @@ export default function HotMessInstagramPrototype() {
     if (screen === "shop") return <TicketShop cart={cart} cartCount={cartCount} onAdd={addToCart} onBack={goHome} onCart={openCart} />;
     if (screen === "cart") return <CartView cart={cart} goHome={goHome} onAdd={(id) => changeQty(id, 1)} onBack={openShop} onCheckout={checkout} onRemove={(id) => changeQty(id, -1)} />;
     if (screen === "checkout") return <CheckoutView goHome={goHome} openShop={openShop} order={order} />;
+    if (screen === "activity") return <ActivityView goHome={goHome} goTab={goTab} openShop={openShop} />;
     if (tab === "home") return <FeedView liked={liked} onToggleLike={toggleLike} />;
     if (tab === "reels") return <ReelsView liked={liked} onToggleLike={toggleLike} />;
     if (tab === "create") return <CreateView goHome={goHome} showNotice={showNotice} />;
@@ -785,7 +845,7 @@ export default function HotMessInstagramPrototype() {
     <PhoneFrame>
       <div className="relative flex h-full flex-col bg-white text-[#0A0A0A]">
         <StatusBar />
-        {showMainHeader ? <AppHeader cartCount={cartCount} onCreate={() => goTab("create")} onHome={goHome} onShop={openShop} /> : null}
+        {showMainHeader ? <AppHeader cartCount={cartCount} onActivity={openActivity} onCreate={() => goTab("create")} onHome={goHome} onShop={openShop} /> : null}
         <main className="relative min-h-0 flex-1 overflow-y-auto">
           {content}
           {notice ? <div className="pointer-events-none absolute bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full bg-black px-4 py-2 text-sm font-black text-white shadow-lg">{notice}</div> : null}
