@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bell, BriefcaseBusiness, CalendarDays, Download, Eye, FileText, Globe2, Heart, HelpCircle, Lock, Shield, Ticket, UserCog } from "lucide-react";
+import { Bell, BriefcaseBusiness, CalendarDays, Download, Eye, FileText, Globe2, Heart, HelpCircle, Lock, QrCode, Search, Shield, Ticket, UserCog, Users } from "lucide-react";
 import { LogoutButton } from "@/components/profile/LogoutButton";
 import { getProfileView } from "@/features/profile/live-service";
 
@@ -24,7 +24,7 @@ export default async function SettingsPage() {
       <SettingsGroup title="Konto">
         <SettingsLink icon={UserCog} title="Persoenliche Daten" detail={`${profile.fullName} · ${profile.email ?? "E-Mail"}`} href="/profile/edit" />
         <SettingsLink icon={Shield} title="Verifizierung" detail={profile.verificationStatus === "verified" ? "Gold-Badge aktiv" : "Stripe Identity starten"} href="/verify" />
-        <SettingsItem icon={Lock} title="Passwort & 2FA" detail="Passwort aendern, Zwei-Faktor, aktive Geraete" />
+        <SettingsLink icon={Lock} title="Passwort & 2FA" detail="Passwort aendern, Backup-Codes, aktive Geraete" href="/settings/security" />
         <SettingsItem icon={Download} title="Meine Daten herunterladen" detail="DSGVO Export vorbereiten" />
       </SettingsGroup>
 
@@ -48,6 +48,9 @@ export default async function SettingsPage() {
       <SettingsGroup title="Inhalt & Anzeige">
         <SettingsItem icon={Globe2} title="Sprache" detail="Deutsch · Srpski-Hrvatski · Italiano" />
         <SettingsLink icon={FileText} title="Gespeicherte Beitraege" detail="Private Sammlung" href="/feed?saved=1" />
+        <SettingsLink icon={Heart} title="Mit Gefaellt mir markiert" detail="Deine gelikten Beitraege" href="/settings/liked-posts" />
+        <SettingsLink icon={Search} title="Suchverlauf" detail="Einzelne Suchen entfernen oder alles loeschen" href="/settings/search-history" />
+        <SettingsLink icon={QrCode} title="QR-Code" detail="Profil teilen, Farbe waehlen, herunterladen" href="/settings/qr" />
         <SettingsItem icon={UserCog} title="Enge Freunde" detail="Story-Sichtbarkeit verwalten" />
         <SettingsItem icon={FileText} title="Archiv" detail="Archivierte Beitraege und Stories" />
       </SettingsGroup>
@@ -58,8 +61,10 @@ export default async function SettingsPage() {
       </SettingsGroup>
 
       <SettingsGroup title="Hilfe & Info">
-        <SettingsItem icon={HelpCircle} title="Hilfe & Support" detail="Kontakt und offene Fragen" />
+        <SettingsLink icon={Users} title="Freunde finden & einladen" detail="Personen entdecken und Netzwerk aufbauen" href="/explore/people" />
+        <SettingsItem icon={HelpCircle} title="Hilfe & Support" detail="Kontakt, Recovery und offene Fragen" />
         <AccountUsernameHelp />
+        <HackedAccountHelp />
         <SettingsLink icon={FileText} title="AGB" detail="Nutzungsbedingungen" href="/agb" />
         <SettingsLink icon={FileText} title="Datenschutz" detail="DSGVO und Privatsphaere" href="/datenschutz" />
         <SettingsLink icon={FileText} title="Impressum" detail="Braun Gruppe GmbH" href="/impressum" />
@@ -68,6 +73,25 @@ export default async function SettingsPage() {
         <LogoutButton />
       </SettingsGroup>
     </main>
+  );
+}
+
+function HackedAccountHelp() {
+  return (
+    <details className="rounded-xl border border-[#9C4A3C]/20 bg-red-50/50 px-3 py-3">
+      <summary className="flex cursor-pointer items-center gap-3 text-sm font-bold text-hm-ink">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#9C4A3C]">
+          <Shield className="h-5 w-5" />
+        </span>
+        Konto gehackt oder verdächtig?
+      </summary>
+      <ul className="mt-4 list-disc space-y-1 pl-16 text-sm leading-6 text-hm-inkSoft">
+        <li>Passwort sofort ändern.</li>
+        <li>Aktive Sitzungen in Passwort & Sicherheit prüfen und alte Geräte entfernen.</li>
+        <li>2FA und Backup-Codes aktivieren.</li>
+        <li>Support kontaktieren. HotMess kann deine Stripe-Identity-Verifizierung zur Wiederherstellung nutzen.</li>
+      </ul>
+    </details>
   );
 }
 

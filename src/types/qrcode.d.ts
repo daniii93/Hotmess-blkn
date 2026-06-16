@@ -1,10 +1,4 @@
 declare module "qrcode" {
-  export function toBuffer(
-    text: string,
-    options?: {
-      width?: number;
-      margin?: number;
-      color?: { dark?: string; light?: string };
-    },
-  ): Promise<Buffer>;
+  export function toDataURL(text: string, options?: Record<string, unknown>): Promise<string>;
+  export function toBuffer(text: string, options?: Record<string, unknown>): Promise<Buffer>;
 }
