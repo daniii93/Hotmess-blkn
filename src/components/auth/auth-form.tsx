@@ -124,7 +124,8 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
       }
 
       setStatus("success");
-      router.replace("/onboarding");
+      await supabase.auth.getSession();
+      window.location.assign("/onboarding");
       router.refresh();
       return;
     }
@@ -142,7 +143,8 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
     }
 
     setStatus("success");
-    router.replace(returnTo);
+    await supabase.auth.getSession();
+    window.location.assign(returnTo);
     router.refresh();
   };
 

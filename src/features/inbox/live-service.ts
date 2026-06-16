@@ -101,37 +101,74 @@ const fetchStoryIds = async (userIds: string[]) => {
   return new Set((data ?? []).map((row) => row.user_id as string));
 };
 
+const emptyResult = <T>(data: T) => ({ data, error: null });
+
+const isSchemaError = (error: { message?: string; code?: string } | null | undefined) => {
+  const message = error?.message?.toLowerCase() ?? "";
+  return (
+    error?.code === "PGRST116" ||
+    error?.code === "PGRST200" ||
+    error?.code === "PGRST202" ||
+    error?.code === "42P01" ||
+    error?.code === "42703" ||
+    message.includes("does not exist") ||
+    message.includes("could not find") ||
+    message.includes("schema cache")
+  );
+};
+
+const fetchMemberships = async (supabase: ReturnType<typeof createSupabaseAdminClient>, userId: string) => {
+  const full = await supabase
+    .from("conversation_members")
+    .select("conversation_id,unread_count,last_read_at,is_muted,muted,is_archived,conversations(id,type,name,avatar_url,last_message_preview,last_message_at,event_id)")
+    .eq("user_id", userId)
+    .is("left_at", null)
+    .order("created_at", { ascending: false });
+
+  if (!full.error || !isSchemaError(full.error)) return full;
+
+  return supabase
+    .from("conversation_members")
+    .select("conversation_id,unread_count,last_read_at,is_muted,muted,conversations(id,type,name,avatar_url,last_message_preview,last_message_at,event_id)")
+    .eq("user_id", userId)
+    .is("left_at", null)
+    .order("created_at", { ascending: false });
+};
+
 export const getInboxData = async (): Promise<InboxData | null> => {
   const profile = await getCurrentUserProfile();
   if (!profile) return null;
 
   const supabase = createSupabaseAdminClient();
 
-  const { data: memberships, error } = await supabase
-    .from("conversation_members")
-    .select("conversation_id,unread_count,last_read_at,is_muted,muted,is_archived,conversations(id,type,name,avatar_url,last_message_preview,last_message_at,event_id)")
-    .eq("user_id", profile.id)
-    .is("left_at", null)
-    .order("created_at", { ascending: false });
+  const { data: memberships, error } = await fetchMemberships(supabase, profile.id);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (!isSchemaError(error)) throw new Error(error.message);
+    return {
+      viewer: mapAuthor(profile),
+      conversations: [],
+      notes: [],
+      requestCount: 0,
+    };
+  }
 
   const conversationIds = (memberships ?? []).map((row) => row.conversation_id);
-  const [{ data: allMembers }, { data: lastMessages }, { count: requestCount }, { data: follows }, { data: notes }] = await Promise.all([
+  const [membersResult, messagesResult, requestsResult, followsResult, notesResult] = await Promise.all([
     conversationIds.length
       ? supabase
           .from("conversation_members")
           .select(`conversation_id,user_id,profiles(${profileSelect})`)
           .in("conversation_id", conversationIds)
           .is("left_at", null)
-      : Promise.resolve({ data: [] as any[] }),
+      : Promise.resolve(emptyResult([] as any[])),
     conversationIds.length
       ? supabase
           .from("messages")
           .select("id,conversation_id,sender_id,type,content,body,created_at")
           .in("conversation_id", conversationIds)
           .order("created_at", { ascending: false })
-      : Promise.resolve({ data: [] as any[] }),
+      : Promise.resolve(emptyResult([] as any[])),
     supabase
       .from("message_requests")
       .select("id", { count: "exact", head: true })
@@ -145,6 +182,12 @@ export const getInboxData = async (): Promise<InboxData | null> => {
       .order("created_at", { ascending: false }),
   ]);
 
+  const allMembers = membersResult.error && isSchemaError(membersResult.error) ? [] : membersResult.data ?? [];
+  const lastMessages = messagesResult.error && isSchemaError(messagesResult.error) ? [] : messagesResult.data ?? [];
+  const requestCount = requestsResult.error && isSchemaError(requestsResult.error) ? 0 : requestsResult.count ?? 0;
+  const follows = followsResult.error && isSchemaError(followsResult.error) ? [] : followsResult.data ?? [];
+  const notes = notesResult.error && isSchemaError(notesResult.error) ? [] : notesResult.data ?? [];
+
   const followingIds = new Set([profile.id, ...((follows ?? []).map((row) => row.following_id) as string[])]);
   const visibleNotes = (notes ?? []).filter((note: any) => followingIds.has(note.user_id));
   const participantProfiles = (allMembers ?? []).map((row: any) => (Array.isArray(row.profiles) ? row.profiles[0] : row.profiles)).filter(Boolean);
@@ -153,7 +196,7 @@ export const getInboxData = async (): Promise<InboxData | null> => {
     profile.id,
     ...participantProfiles.map((item: any) => item.id),
     ...noteProfiles.map((item: any) => item.id),
-  ]);
+  ]).catch(() => new Set<string>());
 
   const membersByConversation = new Map<string, InboxAuthor[]>();
   for (const row of allMembers ?? []) {
@@ -219,7 +262,7 @@ export const getInboxData = async (): Promise<InboxData | null> => {
     viewer,
     conversations,
     notes: noteItems,
-    requestCount: requestCount ?? 0,
+    requestCount,
   };
 };
 
