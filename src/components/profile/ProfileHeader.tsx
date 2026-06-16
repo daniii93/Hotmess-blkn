@@ -77,8 +77,19 @@ export function ProfileHeader({ model, onPostsClick }: ProfileHeaderProps) {
 
       <div className="mt-3">
         <p className="text-sm font-bold text-hm-ink">{profile.fullName}</p>
+        {profile.pronouns.length ? <p className="mt-1 text-xs font-semibold text-hm-goldDeep">{profile.pronouns.join(", ")}</p> : null}
+        {profile.aiCreatorLabel ? <p className="mt-2 inline-flex rounded-pill bg-hm-champagne px-3 py-1 text-xs font-bold text-hm-ink">KI-Creator</p> : null}
         {profile.bio ? <p className="mt-1 whitespace-pre-line text-sm leading-6 text-hm-inkSoft">{profile.bio}</p> : model.isOwnProfile ? <p className="mt-1 text-sm text-hm-inkSoft">Erzaehl deiner Szene, wer du bist.</p> : null}
-        {profile.city ? <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-hm-inkSoft">{profile.city}{profile.country ? ` · ${profile.country}` : ""}</p> : null}
+        {profile.city ? <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-hm-inkSoft">{profile.city}{profile.country ? ` - ${profile.country}` : ""}</p> : null}
+        {model.links.length ? (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {model.links.slice(0, 3).map((link) => (
+              <a key={link.id} className="rounded-pill border border-hm-gold/25 px-3 py-1 text-xs font-bold text-hm-goldDeep" href={link.url} target="_blank" rel="noreferrer">
+                {link.label}
+              </a>
+            ))}
+          </div>
+        ) : null}
         <ProfileMusicChip title={profile.profileMusicTitle} artist={profile.profileMusicArtist} url={profile.profileMusicUrl} />
       </div>
 

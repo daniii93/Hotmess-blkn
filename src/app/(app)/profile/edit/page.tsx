@@ -9,9 +9,5 @@ export default async function ProfileEditPage() {
 
   if (!model) redirect("/login?returnTo=/profile/edit");
 
-  return (
-    <main className="mx-auto min-h-screen max-w-3xl px-4 pb-28 pt-6">
-      <ProfileEditForm model={model} />
-    </main>
-  );
+  return <ProfileEditForm model={model} />;
 }

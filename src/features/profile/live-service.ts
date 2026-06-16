@@ -8,6 +8,7 @@ export type ProfilePost = {
   content: string | null;
   mediaUrl: string | null;
   isPinned: boolean;
+  gridPosition: number | null;
   createdAt: string;
 };
 
@@ -17,6 +18,13 @@ export type ProfilePerson = {
   username: string;
   avatarUrl: string | null;
   verified: boolean;
+};
+
+export type ProfileLink = {
+  id: string;
+  label: string;
+  url: string;
+  sortOrder: number;
 };
 
 export type ProfileViewModel = {
@@ -34,6 +42,7 @@ export type ProfileViewModel = {
     city: string | null;
     country: string | null;
     gender: "female" | "male" | "diverse";
+    pronouns: string[];
     isPrivate: boolean;
     showFollowers: boolean;
     showFollowing: boolean;
@@ -42,6 +51,10 @@ export type ProfileViewModel = {
     profileMusicUrl: string | null;
     profileMusicTitle: string | null;
     profileMusicArtist: string | null;
+    aiCreatorLabel: boolean;
+    nameChangedAt: string | null;
+    usernameChangedAt: string | null;
+    genderChangedAt: string | null;
     datingEnabled: boolean;
     businessEnabled: boolean;
     role: string;
@@ -61,6 +74,7 @@ export type ProfileViewModel = {
   tagged: ProfilePost[];
   followers: ProfilePerson[];
   following: ProfilePerson[];
+  links: ProfileLink[];
 };
 
 type ProfileRow = {
@@ -75,6 +89,7 @@ type ProfileRow = {
   city: string | null;
   country: string | null;
   gender: "female" | "male" | "diverse";
+  pronouns: string[] | null;
   is_private: boolean;
   show_followers: boolean;
   show_following: boolean;
@@ -84,6 +99,10 @@ type ProfileRow = {
   profile_music_url: string | null;
   profile_music_title: string | null;
   profile_music_artist: string | null;
+  ai_creator_label: boolean | null;
+  name_changed_at: string | null;
+  username_changed_at: string | null;
+  gender_changed_at: string | null;
   dating_enabled: boolean;
   business_enabled: boolean;
   role: string;
@@ -101,6 +120,7 @@ const profileSelect = [
   "city",
   "country",
   "gender",
+  "pronouns",
   "is_private",
   "show_followers",
   "show_following",
@@ -110,6 +130,10 @@ const profileSelect = [
   "profile_music_url",
   "profile_music_title",
   "profile_music_artist",
+  "ai_creator_label",
+  "name_changed_at",
+  "username_changed_at",
+  "gender_changed_at",
   "dating_enabled",
   "business_enabled",
   "role",
@@ -129,6 +153,7 @@ const mapPost = (row: any): ProfilePost => ({
   content: row.content ?? row.body ?? null,
   mediaUrl: row.media_urls?.[0] ?? row.image_url ?? null,
   isPinned: Boolean(row.is_pinned),
+  gridPosition: row.grid_position ?? null,
   createdAt: row.created_at,
 });
 
@@ -194,9 +219,10 @@ export async function getProfileView(username?: string): Promise<ProfileViewMode
     canViewContent
       ? supabase
           .from("posts")
-          .select("id,type,content,body,media_urls,image_url,is_pinned,created_at,mentions")
+          .select("id,type,content,body,media_urls,image_url,is_pinned,grid_position,created_at,mentions")
           .eq("user_id", target.id)
           .eq("is_archived", false)
+          .order("grid_position", { ascending: true, nullsFirst: false })
           .order("is_pinned", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(60)
@@ -208,6 +234,13 @@ export async function getProfileView(username?: string): Promise<ProfileViewMode
       ? supabase.from("follows").select("profiles!follows_following_id_fkey(id,first_name,last_name,username,avatar_url,verification_status)").eq("follower_id", target.id).limit(50)
       : Promise.resolve({ data: [] }),
   ]);
+
+  const { data: links } = await supabase
+    .from("profile_links")
+    .select("id,label,url,sort_order")
+    .eq("user_id", target.id)
+    .order("sort_order", { ascending: true })
+    .limit(5);
 
   const allPosts = ((posts ?? []) as any[]).map(mapPost);
   const videoPosts = allPosts.filter((post) => post.type === "video");
@@ -228,6 +261,7 @@ export async function getProfileView(username?: string): Promise<ProfileViewMode
       city: target.city,
       country: target.country,
       gender: target.gender,
+      pronouns: target.pronouns ?? [],
       isPrivate: target.is_private,
       showFollowers: target.show_followers,
       showFollowing: target.show_following,
@@ -236,6 +270,10 @@ export async function getProfileView(username?: string): Promise<ProfileViewMode
       profileMusicUrl: target.profile_music_url,
       profileMusicTitle: target.profile_music_title,
       profileMusicArtist: target.profile_music_artist,
+      aiCreatorLabel: Boolean(target.ai_creator_label),
+      nameChangedAt: target.name_changed_at,
+      usernameChangedAt: target.username_changed_at,
+      genderChangedAt: target.gender_changed_at,
       datingEnabled: target.dating_enabled,
       businessEnabled: target.business_enabled,
       role: target.role,
@@ -255,5 +293,11 @@ export async function getProfileView(username?: string): Promise<ProfileViewMode
     tagged: taggedPosts,
     followers: ((followers ?? []) as any[]).map((row) => mapPerson(Array.isArray(row.profiles) ? row.profiles[0] : row.profiles)).filter(Boolean),
     following: ((following ?? []) as any[]).map((row) => mapPerson(Array.isArray(row.profiles) ? row.profiles[0] : row.profiles)).filter(Boolean),
+    links: ((links ?? []) as any[]).map((link) => ({
+      id: link.id,
+      label: link.label,
+      url: link.url,
+      sortOrder: link.sort_order,
+    })),
   };
 }
