@@ -136,6 +136,11 @@
       "title": "Was in deiner HotMess Welt passiert.",
       "description": "Posts, Eventkarten, Recaps und Aktivitaeten von Menschen, denen du folgst."
     },
+    "watch": {
+      "eyebrow": "Watch",
+      "title": "Video-Feed fuer HotMess Momente.",
+      "description": "Reels und Event-Clips sind als eigener Hauptbereich vorbereitet."
+    },
     "story": {
       "eyebrow": "Story",
       "title": "Story ansehen",

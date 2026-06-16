@@ -11,7 +11,7 @@ type ProfileAccess = {
 };
 
 const publicPrefixes = ["/", "/event", "/login", "/register", "/reset-password", "/impressum", "/agb", "/datenschutz", "/partner", "/demo-admin"] as const;
-const appPrefixes = ["/feed", "/create", "/explore", "/events", "/checkout", "/tickets", "/friends", "/chat", "/notifications", "/u", "/profile", "/settings", "/onboarding", "/verify"] as const;
+const appPrefixes = ["/feed", "/watch", "/create", "/explore", "/events", "/checkout", "/tickets", "/friends", "/chat", "/notifications", "/u", "/profile", "/settings", "/onboarding", "/verify"] as const;
 const datingPrefixes = ["/dating"] as const;
 const businessPrefixes = ["/business"] as const;
 const scannerPrefixes = ["/scanner"] as const;

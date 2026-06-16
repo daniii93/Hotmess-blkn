@@ -1,0 +1,25 @@
+export type NavItemKey = "home" | "watch" | "inbox" | "explore" | "profile";
+
+export type NavItem = {
+  key: NavItemKey;
+  href: string;
+  label: string;
+  icon: "home" | "play" | "send" | "search" | "avatar";
+  badge: null | "new" | "count" | "dot";
+};
+
+export const navItems = [
+  { key: "home", href: "/feed", label: "Start", icon: "home", badge: null },
+  { key: "watch", href: "/watch", label: "Watch", icon: "play", badge: "new" },
+  { key: "inbox", href: "/chat", label: "Nachrichten", icon: "send", badge: "count" },
+  { key: "explore", href: "/explore", label: "Entdecken", icon: "search", badge: null },
+  { key: "profile", href: "/profile", label: "Profil", icon: "avatar", badge: "dot" },
+] as const satisfies readonly NavItem[];
+
+export const getNavItemForPath = (pathname: string): NavItem | undefined => {
+  const normalized = pathname === "/" ? "/feed" : pathname;
+  return [...navItems]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((item) => normalized === item.href || normalized.startsWith(`${item.href}/`));
+};
+

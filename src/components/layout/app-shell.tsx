@@ -24,7 +24,7 @@ export function AppShell({ children, role, currentPath, variant = "member", clas
       )}
     >
       <main className={cx("pb-24", variant === "scanner" ? "px-3 py-4" : "px-4 py-6 md:px-8")}>{children}</main>
-      {variant === "member" ? <BottomNav role={role} currentPath={currentPath} /> : null}
+      {variant === "member" ? <BottomNav /> : null}
     </div>
   );
 }
