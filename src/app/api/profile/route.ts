@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { buildUsernameCandidates, normalizeUsername, USERNAME_REGEX, usernameRuleText } from "@/lib/username";
 
 const profileUpdateSchema = z.object({
   firstName: z.string().min(2).max(40).optional(),
@@ -43,6 +45,19 @@ const isBlockedUntil = (lastChangedAt: string | null | undefined, days: number) 
   return nextAllowed > new Date() ? nextAllowed : null;
 };
 
+async function getFreeUsernameSuggestions(username: string, currentUserId?: string) {
+  const admin = createSupabaseAdminClient();
+  const candidates = buildUsernameCandidates(username);
+  if (!candidates.length) return [];
+  const [{ data: profileRows }, { data: cooldownRows }] = await Promise.all([
+    admin.from("profiles").select("id,username").in("username", candidates),
+    admin.from("released_usernames").select("username,cooldown_until").in("username", candidates),
+  ]);
+  const taken = new Set((profileRows ?? []).filter((row) => row.id !== currentUserId).map((row) => row.username));
+  const cooled = new Set((cooldownRows ?? []).filter((row) => row.cooldown_until && new Date(row.cooldown_until) > new Date()).map((row) => row.username));
+  return candidates.filter((candidate) => !taken.has(candidate) && !cooled.has(candidate)).slice(0, 6);
+}
+
 export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
   const {
@@ -52,14 +67,29 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.json({ error: "Bitte zuerst einloggen." }, { status: 401 });
 
   const url = new URL(request.url);
-  const username = url.searchParams.get("username")?.toLowerCase().trim();
+  const username = normalizeUsername(url.searchParams.get("username") ?? "");
 
-  if (!username || !/^[a-z0-9._]{3,30}$/.test(username)) {
-    return NextResponse.json({ available: false, reason: "ungueltig" });
+  if (!username || !USERNAME_REGEX.test(username)) {
+    return NextResponse.json({
+      available: false,
+      reason: "ungueltig",
+      message: usernameRuleText,
+      suggestions: await getFreeUsernameSuggestions(username || "hotmess", user.id),
+    });
   }
 
-  const { data } = await supabase.from("profiles").select("id").eq("username", username).maybeSingle();
-  return NextResponse.json({ available: !data || data.id === user.id });
+  const [{ data }, { data: released }] = await Promise.all([
+    supabase.from("profiles").select("id").eq("username", username).maybeSingle(),
+    supabase.from("released_usernames").select("cooldown_until").eq("username", username).maybeSingle(),
+  ]);
+  const inCooldown = Boolean(released?.cooldown_until && new Date(released.cooldown_until) > new Date());
+  const available = (!data || data.id === user.id) && !inCooldown;
+  return NextResponse.json({
+    available,
+    reason: available ? null : inCooldown ? "cooldown" : "vergeben",
+    message: available ? "Benutzername ist verfuegbar." : inCooldown ? "Dieser Benutzername ist vor kurzem freigegeben worden und noch kurz geschuetzt." : "Benutzername ist vergeben.",
+    suggestions: available ? [] : await getFreeUsernameSuggestions(username, user.id),
+  });
 }
 
 export async function PATCH(request: Request) {
@@ -78,7 +108,7 @@ export async function PATCH(request: Request) {
 
   const { data: current, error: currentError } = await supabase
     .from("profiles")
-    .select("first_name,last_name,username,gender,name_changed_at,username_changed_at,gender_changed_at")
+    .select("first_name,last_name,username,gender,name_changed_at,username_changed_at,gender_changed_at,is_official_partner")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -96,6 +126,41 @@ export async function PATCH(request: Request) {
   const usernameBlockedUntil = usernameChanged ? isBlockedUntil(current.username_changed_at, 30) : null;
   if (usernameBlockedUntil) {
     return NextResponse.json({ error: `Du kannst deinen Benutzernamen wieder ab ${usernameBlockedUntil.toLocaleDateString("de-DE")} aendern.` }, { status: 429 });
+  }
+
+  if (usernameChanged && input.username) {
+    const normalizedUsername = normalizeUsername(input.username);
+    if (!USERNAME_REGEX.test(normalizedUsername)) {
+      return NextResponse.json({ error: usernameRuleText }, { status: 400 });
+    }
+
+    const [{ data: taken }, { data: released }] = await Promise.all([
+      supabase.from("profiles").select("id").eq("username", normalizedUsername).neq("id", user.id).maybeSingle(),
+      supabase.from("released_usernames").select("cooldown_until").eq("username", normalizedUsername).maybeSingle(),
+    ]);
+    const inCooldown = Boolean(released?.cooldown_until && new Date(released.cooldown_until) > new Date());
+    if (taken || inCooldown) {
+      return NextResponse.json({ error: inCooldown ? "Dieser Benutzername ist vor kurzem freigegeben worden und noch kurz geschuetzt." : "Dieser Benutzername ist bereits vergeben.", suggestions: await getFreeUsernameSuggestions(normalizedUsername, user.id) }, { status: 409 });
+    }
+
+    const { count: followerCount } = await supabase
+      .from("follows")
+      .select("follower_id", { count: "exact", head: true })
+      .eq("following_id", user.id);
+
+    if ((followerCount ?? 0) > 10000 || current.is_official_partner) {
+      const admin = createSupabaseAdminClient();
+      const { error: requestError } = await admin.from("username_change_requests").insert({
+        user_id: user.id,
+        old_username: current.username,
+        new_username: normalizedUsername,
+        status: "pending",
+      });
+      if (requestError) return NextResponse.json({ error: requestError.message }, { status: 400 });
+      return NextResponse.json({ ok: true, review: true, message: "Deine Benutzername-Aenderung wurde zur Admin-Pruefung eingereicht." });
+    }
+
+    input.username = normalizedUsername;
   }
 
   const genderBlockedUntil = genderChanged ? isBlockedUntil(current.gender_changed_at, 90) : null;
@@ -131,6 +196,21 @@ export async function PATCH(request: Request) {
 
   const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  if (usernameChanged) {
+    const admin = createSupabaseAdminClient();
+    await admin.from("released_usernames").upsert({
+      username: current.username,
+      released_at: new Date().toISOString(),
+      cooldown_until: addDays(new Date(), 14).toISOString(),
+    });
+    await admin.from("username_change_requests").insert({
+      user_id: user.id,
+      old_username: current.username,
+      new_username: input.username,
+      status: "auto",
+    });
+  }
 
   if (input.links !== undefined) {
     const { error: deleteError } = await supabase.from("profile_links").delete().eq("user_id", user.id);

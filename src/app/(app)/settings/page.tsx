@@ -59,6 +59,7 @@ export default async function SettingsPage() {
 
       <SettingsGroup title="Hilfe & Info">
         <SettingsItem icon={HelpCircle} title="Hilfe & Support" detail="Kontakt und offene Fragen" />
+        <AccountUsernameHelp />
         <SettingsLink icon={FileText} title="AGB" detail="Nutzungsbedingungen" href="/agb" />
         <SettingsLink icon={FileText} title="Datenschutz" detail="DSGVO und Privatsphaere" href="/datenschutz" />
         <SettingsLink icon={FileText} title="Impressum" detail="Braun Gruppe GmbH" href="/impressum" />
@@ -67,6 +68,66 @@ export default async function SettingsPage() {
         <LogoutButton />
       </SettingsGroup>
     </main>
+  );
+}
+
+function AccountUsernameHelp() {
+  const sections = [
+    {
+      title: "Konto erstellen",
+      items: [
+        "Mindestalter: 18 Jahre.",
+        "Registrierung per E-Mail mit Bestaetigung; Telefon/SMS ist als naechster Provider-Schritt vorbereitet.",
+        "Danach legst du Passwort, Geburtsdatum, Name und Benutzername fest.",
+        "Pro verifizierter Person ist ein Konto vorgesehen.",
+      ],
+    },
+    {
+      title: "Benutzername",
+      items: [
+        "Vergabe nach Verfuegbarkeit: wer zuerst kommt.",
+        "Keine Reservierung fuer Marken oder Unternehmen.",
+        "Ist ein Name vergeben, schlagen wir Varianten mit Punkt, Zahl, Unterstrich oder Abkuerzung vor.",
+        "Aenderbar ueber Profil bearbeiten, maximal alle 30 Tage.",
+      ],
+    },
+    {
+      title: "Marken & inaktive Konten",
+      items: [
+        "Ein Markenname allein begruendet keinen Anspruch auf einen Benutzernamen.",
+        "Bei Markenrechtsverletzung oder Identitaetstaeuschung kann der Benutzername gemeldet werden.",
+        "Fuer Namen auf scheinbar inaktiven Konten gibt es keine automatische Freigabe.",
+      ],
+    },
+    {
+      title: "Privatsphaere & Sicherheit",
+      items: [
+        "Alle Konten sind standardmaessig privat.",
+        "Im Business-Modus ist nur dein Business-Profil fuer andere Business-Mitglieder sichtbar.",
+        "Aktiviere Zwei-Faktor-Authentifizierung, sobald sie in deinem Konto angeboten wird.",
+      ],
+    },
+  ];
+
+  return (
+    <details className="rounded-xl border border-hm-gold/20 bg-hm-ivory px-3 py-3">
+      <summary className="flex cursor-pointer items-center gap-3 text-sm font-bold text-hm-ink">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-hm-champagne text-hm-ink">
+          <HelpCircle className="h-5 w-5" />
+        </span>
+        Konto & Benutzername
+      </summary>
+      <div className="mt-4 grid gap-4 pl-1 text-sm text-hm-inkSoft">
+        {sections.map((section) => (
+          <div key={section.title}>
+            <h3 className="font-bold text-hm-ink">{section.title}</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {section.items.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </details>
   );
 }
 

@@ -29,6 +29,8 @@ export function ProfileEditForm({ model }: { model: ProfileViewModel }) {
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
+  const [usernameMessage, setUsernameMessage] = useState("3-30 Zeichen: a-z, 0-9, Punkt oder Unterstrich.");
   const [uploading, setUploading] = useState(false);
   const [gridPosts, setGridPosts] = useState<ProfilePost[]>(model.posts);
   const [form, setForm] = useState({
@@ -54,13 +56,17 @@ export function ProfileEditForm({ model }: { model: ProfileViewModel }) {
   useEffect(() => {
     if (!form.username || form.username === profile.username || !/^[a-z0-9._]{3,30}$/.test(form.username)) {
       setUsernameAvailable(null);
+      setUsernameSuggestions([]);
+      setUsernameMessage("3-30 Zeichen: a-z, 0-9, Punkt oder Unterstrich.");
       return;
     }
 
     const timeout = window.setTimeout(async () => {
       const response = await fetch(`/api/profile?username=${encodeURIComponent(form.username)}`);
-      const payload = (await response.json().catch(() => null)) as { available?: boolean } | null;
+      const payload = (await response.json().catch(() => null)) as { available?: boolean; message?: string; suggestions?: string[] } | null;
       setUsernameAvailable(Boolean(payload?.available));
+      setUsernameMessage(payload?.message ?? "Benutzername konnte nicht geprueft werden.");
+      setUsernameSuggestions(payload?.suggestions ?? []);
     }, 350);
 
     return () => window.clearTimeout(timeout);
@@ -79,9 +85,9 @@ export function ProfileEditForm({ model }: { model: ProfileViewModel }) {
     });
 
     if (!response.ok) {
-      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      const body = (await response.json().catch(() => null)) as { error?: string; suggestions?: string[] } | null;
       setStatus("error");
-      setMessage(body?.error ?? "Aenderung konnte nicht gespeichert werden.");
+      setMessage(body?.suggestions?.length ? `${body.error} Vorschlaege: ${body.suggestions.join(", ")}` : body?.error ?? "Aenderung konnte nicht gespeichert werden.");
       return false;
     }
 
@@ -253,8 +259,22 @@ export function ProfileEditForm({ model }: { model: ProfileViewModel }) {
                 {usernameBlockedUntil ? <Hint text={`Du kannst deinen Benutzernamen alle 30 Tage aendern. Naechste Aenderung ab ${usernameBlockedUntil}.`} /> : null}
                 <Field label="Benutzername" value={form.username} onChange={(value) => update("username", value.toLowerCase().replace(/[^a-z0-9._]/g, ""))} />
                 <p className={`text-sm ${usernameAvailable === false ? "text-red-700" : "text-hm-inkSoft"}`}>
-                  {usernameAvailable === null ? "3-30 Zeichen: a-z, 0-9, Punkt oder Unterstrich." : usernameAvailable ? "Benutzername ist verfuegbar." : "Benutzername ist vergeben."}
+                  {usernameAvailable === null ? usernameMessage : usernameAvailable ? "Benutzername ist verfuegbar." : usernameMessage}
                 </p>
+                {usernameSuggestions.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {usernameSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        className="rounded-pill border border-hm-gold/30 bg-hm-champagne px-3 py-1 text-xs font-bold text-hm-ink"
+                        type="button"
+                        onClick={() => update("username", suggestion)}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 <SaveButton disabled={Boolean(usernameBlockedUntil) || usernameAvailable === false} status={status} onClick={() => saveProfile({ username: form.username })} />
               </div>
             ) : null}

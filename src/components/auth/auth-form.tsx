@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { normalizeUsername, usernameRuleText } from "@/lib/username";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -15,6 +16,7 @@ const loginSchema = z.object({
 const registerSchema = loginSchema.extend({
   firstName: z.string().min(2).max(40),
   lastName: z.string().min(2).max(40),
+  username: z.string().min(3).max(30).regex(/^[a-z0-9._]+$/),
   dateOfBirth: z.string().min(1),
   gender: z.enum(["female", "male", "diverse"]),
 });
@@ -86,12 +88,37 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [usernameState, setUsernameState] = useState<{
+    value: string;
+    available: boolean | null;
+    message: string;
+    suggestions: string[];
+  }>({ value: "", available: null, message: usernameRuleText, suggestions: [] });
   const form = useForm<LoginValues | RegisterValues>({
     resolver: zodResolver(isRegister ? registerSchema : loginSchema),
     defaultValues: isRegister
-      ? { email: "", password: "", firstName: "", lastName: "", dateOfBirth: "", gender: "diverse" }
+      ? { email: "", password: "", firstName: "", lastName: "", username: "", dateOfBirth: "", gender: "diverse" }
       : { email: "", password: "" },
   });
+
+  const checkUsername = async (value: string) => {
+    const normalized = normalizeUsername(value);
+    form.setValue("username" as keyof RegisterValues, normalized as any, { shouldValidate: true });
+
+    if (!normalized || normalized.length < 3) {
+      setUsernameState({ value: normalized, available: null, message: usernameRuleText, suggestions: [] });
+      return;
+    }
+
+    const response = await fetch(`/api/auth/check-username?username=${encodeURIComponent(normalized)}`).catch(() => null);
+    const payload = response ? await response.json().catch(() => null) as { available?: boolean; message?: string; suggestions?: string[] } | null : null;
+    setUsernameState({
+      value: normalized,
+      available: payload?.available ?? false,
+      message: payload?.message ?? "Benutzername konnte nicht geprueft werden.",
+      suggestions: payload?.suggestions ?? [],
+    });
+  };
 
   const handlePasswordAuth = async (values: LoginValues | RegisterValues) => {
     setStatus("loading");
@@ -99,14 +126,11 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
 
     if (isRegister) {
       const registerValues = values as RegisterValues;
-      const usernameBase = `${registerValues.firstName}.${registerValues.lastName}`
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9._]/g, ".")
-        .replace(/\.+/g, ".")
-        .replace(/^\.|\.$/g, "")
-        .slice(0, 20);
+      if (usernameState.available === false) {
+        setStatus("error");
+        setMessage("Bitte waehle einen freien Benutzernamen.");
+        return;
+      }
 
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -118,14 +142,14 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
           lastName: registerValues.lastName,
           dateOfBirth: registerValues.dateOfBirth,
           gender: registerValues.gender,
-          username: usernameBase || "user",
+          username: registerValues.username,
         }),
       });
 
       if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        const payload = (await response.json().catch(() => null)) as { error?: string; suggestions?: string[] } | null;
         setStatus("error");
-        setMessage(payload?.error ?? "Konto konnte nicht erstellt werden.");
+        setMessage(payload?.suggestions?.length ? `${payload.error} Vorschlaege: ${payload.suggestions.join(", ")}` : payload?.error ?? "Konto konnte nicht erstellt werden.");
         return;
       }
 
@@ -196,6 +220,32 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
           <label className="grid gap-2 text-sm font-medium text-hm-ink">
             {labels.lastName}
             <input className="rounded-pill border border-hm-border bg-hm-ivory px-4 py-3" {...form.register("lastName" as keyof RegisterValues)} />
+          </label>
+          <label className="grid gap-2 text-sm font-medium text-hm-ink sm:col-span-2">
+            Benutzername
+            <input
+              className="rounded-pill border border-hm-border bg-hm-ivory px-4 py-3"
+              placeholder="daniel.braun"
+              {...form.register("username" as keyof RegisterValues)}
+              onChange={(event) => void checkUsername(event.target.value)}
+            />
+            <span className={`text-xs ${usernameState.available ? "text-emerald-700" : usernameState.available === false ? "text-red-700" : "text-hm-inkSoft"}`}>
+              {usernameState.message}
+            </span>
+            {usernameState.suggestions.length ? (
+              <span className="flex flex-wrap gap-2">
+                {usernameState.suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    className="rounded-pill border border-hm-gold/30 bg-hm-champagne px-3 py-1 text-xs font-bold text-hm-ink"
+                    type="button"
+                    onClick={() => void checkUsername(suggestion)}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </span>
+            ) : null}
           </label>
           <label className="grid gap-2 text-sm font-medium text-hm-ink">
             {labels.dateOfBirth}
