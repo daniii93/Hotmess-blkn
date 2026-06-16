@@ -32,3 +32,9 @@ Diese Punkte sind bewusst nicht im Code automatisiert, weil sie externe Provider
 
 - Supabase Migration `supabase/migrations/004_dating_part4.sql` im Supabase SQL Editor ausfuehren, falls noch nicht passiert.
 - Danach die neue Dating-Runtime-Migration aus diesem Arbeitsblock ebenfalls im Supabase SQL Editor ausfuehren.
+
+## Teil 5 - Business & Jobs
+
+- Supabase Migration `supabase/migrations/005_business_jobs_part5.sql` im Supabase SQL Editor ausfuehren, falls noch nicht passiert.
+- Danach die neue Business-Runtime-Migration aus diesem Arbeitsblock ebenfalls im Supabase SQL Editor ausfuehren.
+- Business-Profil, Verbindung und Job-Bewerbung mit zwei echten Testnutzern pruefen.

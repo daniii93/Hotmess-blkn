@@ -26,7 +26,12 @@ export default async function SettingsPage() {
               {profile?.dating_enabled ? "Bearbeiten" : "Aktivieren"}
             </Link>
           </div>
-          <PrivacyToggle label="Business aktivieren" enabled={false} />
+          <div className="flex items-center justify-between gap-4 rounded-card border border-hm-border bg-hm-porcelain p-4 text-sm text-hm-ink">
+            <span>Business {profile?.business_enabled ? "aktiv" : "aktivieren"}</span>
+            <Link className="rounded-pill bg-hm-business px-4 py-2 text-xs font-semibold text-white" href="/business/profile">
+              {profile?.business_enabled ? "Bearbeiten" : "Aktivieren"}
+            </Link>
+          </div>
         </div>
       </section>
       <section className="mt-6">
