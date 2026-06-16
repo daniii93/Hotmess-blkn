@@ -63,6 +63,23 @@ const authErrorMessage = (errorMessage: string, mode: "login" | "register") => {
   return errorMessage || "Das hat gerade nicht funktioniert. Bitte versuche es erneut.";
 };
 
+const syncServerSession = async (supabase: ReturnType<typeof createSupabaseBrowserClient>) => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) return;
+
+  await fetch("/api/auth/sync", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    }),
+  }).catch(() => null);
+};
+
 export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
   const isRegister = mode === "register";
   const router = useRouter();
@@ -124,7 +141,7 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
       }
 
       setStatus("success");
-      await supabase.auth.getSession();
+      await syncServerSession(supabase);
       window.location.assign("/onboarding");
       router.refresh();
       return;
@@ -143,7 +160,7 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
     }
 
     setStatus("success");
-    await supabase.auth.getSession();
+    await syncServerSession(supabase);
     window.location.assign(returnTo);
     router.refresh();
   };
