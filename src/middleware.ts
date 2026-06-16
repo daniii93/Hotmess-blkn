@@ -26,11 +26,20 @@ const isPublicPath = (pathname: string): boolean => {
   return hasPrefix(pathname, publicPrefixes.filter((prefix) => prefix !== "/" && prefix !== "/event"));
 };
 
-const redirectToLogin = (request: NextRequest) => {
+const withSupabaseCookies = (target: NextResponse, source: NextResponse) => {
+  source.cookies.getAll().forEach((cookie) => target.cookies.set(cookie));
+  return target;
+};
+
+const redirectWithSession = (request: NextRequest, response: NextResponse, pathname: string) => {
+  return withSupabaseCookies(NextResponse.redirect(new URL(pathname, request.url)), response);
+};
+
+const redirectToLogin = (request: NextRequest, response: NextResponse) => {
   const url = request.nextUrl.clone();
   url.pathname = "/login";
   url.searchParams.set("returnTo", request.nextUrl.pathname);
-  return NextResponse.redirect(url);
+  return withSupabaseCookies(NextResponse.redirect(url), response);
 };
 
 export async function middleware(request: NextRequest) {
@@ -65,7 +74,7 @@ export async function middleware(request: NextRequest) {
     hasPrefix(pathname, adminPrefixes)
   ) {
     if (!user) {
-      return redirectToLogin(request);
+      return redirectToLogin(request, response);
     }
   }
 
@@ -82,7 +91,7 @@ export async function middleware(request: NextRequest) {
   const onboardingCompleted = profile?.onboarding_completed ?? Boolean(user?.user_metadata?.onboarding_completed);
 
   if (profile?.is_banned) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return redirectWithSession(request, response, "/");
   }
 
   if (
@@ -92,23 +101,23 @@ export async function middleware(request: NextRequest) {
     pathname !== "/settings" &&
     pathname !== "/verify"
   ) {
-    return NextResponse.redirect(new URL("/onboarding", request.url));
+    return redirectWithSession(request, response, "/onboarding");
   }
 
   if (hasPrefix(pathname, adminPrefixes) && role !== "admin") {
-    return NextResponse.redirect(new URL("/", request.url));
+    return redirectWithSession(request, response, "/");
   }
 
   if (hasPrefix(pathname, scannerPrefixes) && role !== "scanner" && role !== "admin") {
-    return NextResponse.redirect(new URL("/", request.url));
+    return redirectWithSession(request, response, "/");
   }
 
   if (hasPrefix(pathname, datingPrefixes) && !datingEnabled) {
-    return NextResponse.redirect(new URL("/settings", request.url));
+    return redirectWithSession(request, response, "/settings");
   }
 
   if (hasPrefix(pathname, businessPrefixes) && !businessEnabled) {
-    return NextResponse.redirect(new URL("/settings", request.url));
+    return redirectWithSession(request, response, "/settings");
   }
 
   return response;
