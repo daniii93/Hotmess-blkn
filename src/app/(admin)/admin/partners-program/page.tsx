@@ -1,19 +1,15 @@
-import { CommissionOverview, MaterialManager, PartnerList, PayoutApprovals, TierConfig } from "@/components/admin/admin-dashboard-sections";
+import { AdminPartnerProgramSections } from "@/components/admin/admin-partner-program-sections";
 import { PageShell } from "@/components/shell/page-shell";
+import { getAdminPartnerProgramSnapshot } from "@/features/admin/partner-program-service";
 
-export default function AdminPartnersProgramPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminPartnersProgramPage() {
+  const snapshot = await getAdminPartnerProgramSnapshot();
   return (
     <>
       <PageShell pageKey="adminPartnersProgram" emptyKey="admin" accent="admin" />
-      <section className="mx-auto w-full max-w-6xl space-y-5 px-4 pb-12 sm:px-6 lg:px-10">
-        <PartnerList />
-        <div className="grid gap-5 lg:grid-cols-2">
-          <PayoutApprovals />
-          <CommissionOverview />
-          <MaterialManager />
-          <TierConfig />
-        </div>
-      </section>
+      <AdminPartnerProgramSections snapshot={snapshot} />
     </>
   );
 }

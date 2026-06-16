@@ -44,3 +44,12 @@ Diese Punkte sind bewusst nicht im Code automatisiert, weil sie externe Provider
 - Supabase Migration `supabase/migrations/006_admin_dashboard_part6.sql` im Supabase SQL Editor ausfuehren, falls noch nicht passiert.
 - Admin-Account in Supabase erstellen und `profiles.role='admin'` setzen.
 - Danach `/admin`, `/admin/users`, `/admin/moderation`, `/admin/finance` und `/admin/analytics` mit echtem Admin-Login pruefen.
+
+## Teil 7 - Vertriebspartner-Plattform
+
+- Supabase Migration `supabase/migrations/007_partner_platform_part7.sql` im Supabase SQL Editor ausfuehren, falls noch nicht passiert.
+- Vercel-Projekt fuer `partner.hotmess-blkn.app` separat aus `partner-platform` deployen.
+- Environment Variables im Partner-Projekt setzen: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, optional `NEXT_PUBLIC_APP_URL=https://partner.hotmess-blkn.app`.
+- Domain/Subdomain `partner.hotmess-blkn.app` in Vercel verbinden.
+- Vor Launch: Anwaltspruefung Vertriebsrecht AT/DE und Steuerberater-Freigabe dokumentieren.
+- Tracking live testen: `/r/[code]` -> Hauptplattform mit `ref`, Ticketkauf -> `attribute-sale`, Event completed -> `confirm-commissions`, Auszahlung -> Admin-Freigabe.

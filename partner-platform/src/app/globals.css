@@ -49,3 +49,42 @@ textarea {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
 }
+
+.eyebrow {
+  color: var(--partner-gold);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.primary {
+  display: inline-flex;
+  justify-content: center;
+  background: var(--partner-ink);
+  color: white;
+  border: 0;
+  padding: 14px 20px;
+  font-weight: 700;
+}
+
+.secondary {
+  display: inline-flex;
+  justify-content: center;
+  border: 1px solid var(--partner-gold);
+  padding: 14px 20px;
+  font-weight: 700;
+}
+
+.muted-card {
+  border: 1px solid var(--partner-line);
+  border-radius: 14px;
+  padding: 14px;
+  color: var(--partner-muted);
+  background: rgba(255, 255, 255, 0.58);
+}
