@@ -1,6 +1,23 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bell, BriefcaseBusiness, CalendarDays, Download, Eye, FileText, Globe2, Heart, HelpCircle, Lock, QrCode, Search, Shield, Ticket, UserCog, Users } from "lucide-react";
+import {
+  Bell,
+  BriefcaseBusiness,
+  CalendarDays,
+  Download,
+  Eye,
+  FileText,
+  Globe2,
+  Heart,
+  HelpCircle,
+  Lock,
+  QrCode,
+  Search,
+  Shield,
+  Ticket,
+  UserCog,
+  Users,
+} from "lucide-react";
 import { LogoutButton } from "@/components/profile/LogoutButton";
 import { getProfileView } from "@/features/profile/live-service";
 
@@ -18,26 +35,28 @@ export default async function SettingsPage() {
       <section className="rounded-card border border-hm-border bg-hm-porcelain p-5 shadow-luxury">
         <p className="hm-label">Einstellungen & Aktivitaet</p>
         <h1 className="hm-display mt-2 text-4xl text-hm-ink">Kontrolle ueber dein HotMess</h1>
-        <p className="mt-3 text-sm text-hm-inkSoft">@{profile.username} · {profile.verificationStatus === "verified" ? "verifiziert" : "nicht verifiziert"}</p>
+        <p className="mt-3 text-sm text-hm-inkSoft">
+          @{profile.username} · {profile.verificationStatus === "verified" ? "verifiziert" : "nicht verifiziert"}
+        </p>
       </section>
 
       <SettingsGroup title="Konto">
         <SettingsLink icon={UserCog} title="Persoenliche Daten" detail={`${profile.fullName} · ${profile.email ?? "E-Mail"}`} href="/profile/edit" />
         <SettingsLink icon={Shield} title="Verifizierung" detail={profile.verificationStatus === "verified" ? "Gold-Badge aktiv" : "Stripe Identity starten"} href="/verify" />
         <SettingsLink icon={Lock} title="Passwort & 2FA" detail="Passwort aendern, Backup-Codes, aktive Geraete" href="/settings/security" />
-        <SettingsItem icon={Download} title="Meine Daten herunterladen" detail="DSGVO Export vorbereiten" />
+        <SettingsLink icon={Download} title="Meine Daten herunterladen" detail="DSGVO Export vorbereiten" href="/settings/privacy" />
       </SettingsGroup>
 
       <SettingsGroup title="Privatsphaere">
-        <SettingsLink icon={Eye} title="Privates Konto" detail={profile.isPrivate ? "Aktiv" : "Oeffentlich"} href="/profile/edit" />
-        <SettingsItem icon={UserCog} title="Follower & Gefolgt" detail="Sichtbarkeit, Follower entfernen, Blockierte Konten" />
+        <SettingsLink icon={Eye} title="Privates Konto" detail={profile.isPrivate ? "Aktiv" : "Oeffentlich"} href="/settings/privacy" />
+        <SettingsLink icon={UserCog} title="Follower & Gefolgt" detail="Sichtbarkeit, Follower entfernen, blockierte Konten" href="/settings/privacy" />
         <SettingsLink icon={Bell} title="Wer kann mich anschreiben" detail="Nachrichten, Anfragen und Gruppen-Einladungen" href="/settings/messages" />
-        <SettingsItem icon={Eye} title="Aktivitaetsstatus & Profilbesuche" detail="Online-Status und Besuchsliste steuern" />
+        <SettingsLink icon={Eye} title="Aktivitaetsstatus & Profilbesuche" detail="Online-Status und Besuchsliste steuern" href="/settings/privacy" />
       </SettingsGroup>
 
       <SettingsGroup title="Benachrichtigungen">
-        <SettingsItem icon={Bell} title="Push & E-Mail" detail="Nachrichten, Likes, Kommentare, Events und Warteliste" />
-        <SettingsItem icon={Bell} title="Nicht-Stoeren" detail="Zeitfenster fuer ruhige Stunden" />
+        <SettingsLink icon={Bell} title="Push & E-Mail" detail="Nachrichten, Likes, Kommentare, Events und Warteliste" href="/settings/notifications" />
+        <SettingsLink icon={Bell} title="Nicht-Stoeren" detail="Zeitfenster fuer ruhige Stunden" href="/settings/notifications" />
       </SettingsGroup>
 
       <SettingsGroup title="Module">
@@ -46,13 +65,13 @@ export default async function SettingsPage() {
       </SettingsGroup>
 
       <SettingsGroup title="Inhalt & Anzeige">
-        <SettingsItem icon={Globe2} title="Sprache" detail="Deutsch · Srpski-Hrvatski · Italiano" />
+        <SettingsLink icon={Globe2} title="Sprache" detail="Deutsch · Srpski-Hrvatski · Italiano" href="/settings/display" />
         <SettingsLink icon={FileText} title="Gespeicherte Beitraege" detail="Private Sammlung" href="/feed?saved=1" />
         <SettingsLink icon={Heart} title="Mit Gefaellt mir markiert" detail="Deine gelikten Beitraege" href="/settings/liked-posts" />
         <SettingsLink icon={Search} title="Suchverlauf" detail="Einzelne Suchen entfernen oder alles loeschen" href="/settings/search-history" />
         <SettingsLink icon={QrCode} title="QR-Code" detail="Profil teilen, Farbe waehlen, herunterladen" href="/settings/qr" />
-        <SettingsItem icon={UserCog} title="Enge Freunde" detail="Story-Sichtbarkeit verwalten" />
-        <SettingsItem icon={FileText} title="Archiv" detail="Archivierte Beitraege und Stories" />
+        <SettingsLink icon={UserCog} title="Enge Freunde" detail="Story-Sichtbarkeit verwalten" href="/settings/display" />
+        <SettingsLink icon={FileText} title="Archiv" detail="Archivierte Beitraege und Stories" href="/settings/display" />
       </SettingsGroup>
 
       <SettingsGroup title="Tickets & Events">
@@ -62,7 +81,7 @@ export default async function SettingsPage() {
 
       <SettingsGroup title="Hilfe & Info">
         <SettingsLink icon={Users} title="Freunde finden & einladen" detail="Personen entdecken und Netzwerk aufbauen" href="/explore/people" />
-        <SettingsItem icon={HelpCircle} title="Hilfe & Support" detail="Kontakt, Recovery und offene Fragen" />
+        <SettingsLink icon={HelpCircle} title="Hilfe & Support" detail="Kontakt, Recovery und offene Fragen" href="/settings/support" />
         <AccountUsernameHelp />
         <HackedAccountHelp />
         <SettingsLink icon={FileText} title="AGB" detail="Nutzungsbedingungen" href="/agb" />
@@ -70,6 +89,9 @@ export default async function SettingsPage() {
         <SettingsLink icon={FileText} title="Impressum" detail="Braun Gruppe GmbH" href="/impressum" />
         {profile.role === "admin" ? <SettingsLink icon={Shield} title="Admin-Dashboard" detail="Zone F" href="/admin" /> : null}
         {profile.role === "scanner" ? <SettingsLink icon={Shield} title="Scanner" detail="Zone E" href="/scanner" /> : null}
+      </SettingsGroup>
+
+      <SettingsGroup title="Sitzung">
         <LogoutButton />
       </SettingsGroup>
     </main>
@@ -83,11 +105,11 @@ function HackedAccountHelp() {
         <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#9C4A3C]">
           <Shield className="h-5 w-5" />
         </span>
-        Konto gehackt oder verdächtig?
+        Konto gehackt oder verdaechtig?
       </summary>
       <ul className="mt-4 list-disc space-y-1 pl-16 text-sm leading-6 text-hm-inkSoft">
-        <li>Passwort sofort ändern.</li>
-        <li>Aktive Sitzungen in Passwort & Sicherheit prüfen und alte Geräte entfernen.</li>
+        <li>Passwort sofort aendern.</li>
+        <li>Aktive Sitzungen in Passwort & Sicherheit pruefen und alte Geraete entfernen.</li>
         <li>2FA und Backup-Codes aktivieren.</li>
         <li>Support kontaktieren. HotMess kann deine Stripe-Identity-Verifizierung zur Wiederherstellung nutzen.</li>
       </ul>
@@ -175,19 +197,5 @@ function SettingsLink({ icon: Icon, title, detail, href, accent }: { icon: any; 
         <span className="block truncate text-xs text-hm-inkSoft">{detail}</span>
       </span>
     </Link>
-  );
-}
-
-function SettingsItem({ icon: Icon, title, detail }: { icon: any; title: string; detail: string }) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl px-3 py-3">
-      <span className="grid h-10 w-10 place-items-center rounded-full bg-hm-champagne text-hm-ink">
-        <Icon className="h-5 w-5" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-bold text-hm-ink">{title}</span>
-        <span className="block truncate text-xs text-hm-inkSoft">{detail}</span>
-      </span>
-    </div>
   );
 }
