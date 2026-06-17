@@ -2,9 +2,8 @@
 
 import { LogOut } from "lucide-react";
 import { useState } from "react";
-import { useFormStatus } from "react-dom";
-import { signOut } from "@/app/actions/auth";
 import { cn } from "@/lib/utils/cn";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type LogoutButtonProps = {
   className?: string;
@@ -13,6 +12,14 @@ type LogoutButtonProps = {
 
 export function LogoutButton({ className, compact = false }: LogoutButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  const runLogout = async () => {
+    setPending(true);
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut().catch(() => null);
+    window.location.href = "/logout";
+  };
 
   return (
     <>
@@ -38,7 +45,7 @@ export function LogoutButton({ className, compact = false }: LogoutButtonProps) 
               Abmelden
             </h2>
             <p className="mt-3 text-sm leading-6 text-hm-champagne">
-              Möchtest du dich wirklich abmelden?
+              Moechtest du dich wirklich abmelden?
             </p>
             <div className="mt-5 grid grid-cols-2 gap-3">
               <button
@@ -48,27 +55,18 @@ export function LogoutButton({ className, compact = false }: LogoutButtonProps) 
               >
                 Abbrechen
               </button>
-              <form action={signOut}>
-                <SubmitButton />
-              </form>
+              <button
+                className="w-full rounded-pill bg-red-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-red-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300 disabled:cursor-wait disabled:opacity-60"
+                disabled={pending}
+                type="button"
+                onClick={runLogout}
+              >
+                {pending ? "Abmeldung laeuft ..." : "Abmelden"}
+              </button>
             </div>
           </div>
         </div>
       ) : null}
     </>
-  );
-}
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <button
-      className="w-full rounded-pill bg-red-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-red-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300 disabled:cursor-wait disabled:opacity-60"
-      disabled={pending}
-      type="submit"
-    >
-      {pending ? "Abmeldung läuft ..." : "Abmelden"}
-    </button>
   );
 }

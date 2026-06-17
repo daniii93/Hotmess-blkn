@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   Bell,
   BriefcaseBusiness,
@@ -19,6 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import { LogoutButton } from "@/components/profile/LogoutButton";
+import { SettingsAuthGateway } from "@/components/settings/SettingsAuthGateway";
 import { getProfileView } from "@/features/profile/live-service";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   const model = await getProfileView();
 
-  if (!model) redirect("/login?returnTo=/settings");
+  if (!model) return <SettingsAuthGateway />;
 
   const { profile } = model;
 
