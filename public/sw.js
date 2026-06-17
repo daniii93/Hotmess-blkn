@@ -1,4 +1,4 @@
-const CACHE_VERSION = "hotmess-pwa-v1";
+const CACHE_VERSION = "hotmess-pwa-v2";
 const STATIC_CACHE = `${CACHE_VERSION}:static`;
 const IMAGE_CACHE = `${CACHE_VERSION}:images`;
 
@@ -20,6 +20,13 @@ const NETWORK_ONLY_PREFIXES = [
   "/admin",
   "/scanner",
   "/api",
+  "/profile",
+  "/settings",
+  "/chat",
+  "/dating",
+  "/business",
+  "/events",
+  "/tickets",
   "/login",
   "/register",
   "/reset-password",
@@ -64,15 +71,6 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.destination === "document") {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(STATIC_CACHE).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match("/"))),
-    );
     return;
   }
 
@@ -96,7 +94,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (["script", "style", "font", "manifest"].includes(request.destination) || url.pathname.startsWith("/_next/static/")) {
+  if (url.pathname.startsWith("/_next/static/")) {
+    event.respondWith(fetch(request).catch(() => caches.match(request)));
+    return;
+  }
+
+  if (["style", "font", "manifest"].includes(request.destination)) {
     event.respondWith(
       caches.match(request).then((cached) => {
         const network = fetch(request)

@@ -11,9 +11,16 @@ export function ServiceWorkerRegister() {
       return;
     }
 
-    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
-      // Registration can fail in private browsing or restricted enterprise browsers.
-    });
+    navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .then((registration) => {
+        registration.update().catch(() => {
+          // Update checks can fail in private browsing or restricted enterprise browsers.
+        });
+      })
+      .catch(() => {
+        // Registration can fail in private browsing or restricted enterprise browsers.
+      });
   }, []);
 
   return null;
