@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { type MouseEvent, type PointerEvent, useRef, useState } from "react";
 import { Archive, Ban, Bell, BellOff, CheckCheck, Flag, MoreHorizontal, Ticket, Trash2 } from "lucide-react";
 import type { InboxConversation } from "@/features/inbox/live-service";
 
@@ -14,6 +14,10 @@ export function ConversationRow({ conversation, onChanged }: { conversation: Inb
   const avatarUrl = conversation.avatarUrl ?? primaryParticipant?.avatarUrl ?? null;
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startXRef = useRef<number | null>(null);
+  const movedRef = useRef(false);
 
   const act = async (action: InboxAction) => {
     const response = await fetch("/api/chat/conversation/actions", {
@@ -28,12 +32,64 @@ export function ConversationRow({ conversation, onChanged }: { conversation: Inb
     onChanged?.();
   };
 
+  const resetSwipe = () => {
+    startXRef.current = null;
+    setIsDragging(false);
+    setDragX(0);
+  };
+
+  const onPointerDown = (event: PointerEvent<HTMLElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    startXRef.current = event.clientX;
+    movedRef.current = false;
+    setIsDragging(true);
+  };
+
+  const onPointerMove = (event: PointerEvent<HTMLElement>) => {
+    if (startXRef.current === null) return;
+    const next = Math.max(-124, Math.min(124, event.clientX - startXRef.current));
+    if (Math.abs(next) > 8) movedRef.current = true;
+    setDragX(next);
+  };
+
+  const onPointerUp = () => {
+    const finalX = dragX;
+    resetSwipe();
+    if (finalX > 92) {
+      void act(conversation.unreadCount > 0 ? "read" : "unread");
+      return;
+    }
+    if (finalX < -92) {
+      void act("archive");
+    }
+  };
+
+  const blockSwipeClick = (event: MouseEvent) => {
+    if (!movedRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    movedRef.current = false;
+  };
+
   if (hidden) return null;
 
   return (
-    <article className="relative rounded-2xl transition hover:bg-hm-champagne/40">
-      <div className="flex items-center gap-2 px-2 py-3">
-        <Link className="flex min-w-0 flex-1 items-center gap-3" href={`/chat/${conversation.id}`}>
+    <article className="relative overflow-hidden rounded-2xl transition hover:bg-hm-champagne/40">
+      <div className="absolute inset-y-0 left-0 flex w-32 items-center bg-hm-goldDeep/15 px-4 text-xs font-bold uppercase tracking-[0.14em] text-hm-goldDeep">
+        {conversation.unreadCount > 0 ? "Gelesen" : "Ungelesen"}
+      </div>
+      <div className="absolute inset-y-0 right-0 flex w-32 items-center justify-end bg-[#9C4A3C]/10 px-4 text-xs font-bold uppercase tracking-[0.14em] text-[#9C4A3C]">
+        Archiv
+      </div>
+      <div
+        className={`relative z-10 flex touch-pan-y items-center gap-2 bg-hm-ivory px-2 py-3 ${isDragging ? "" : "transition-transform duration-200"}`}
+        style={{ transform: `translateX(${dragX}px)` }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerCancel={resetSwipe}
+        onPointerUp={onPointerUp}
+      >
+        <Link className="flex min-w-0 flex-1 items-center gap-3" href={`/chat/${conversation.id}`} onClick={blockSwipeClick}>
           <span
             className={`grid size-14 shrink-0 place-items-center overflow-hidden rounded-full bg-hm-champagne text-base font-bold text-hm-ink ${
               primaryParticipant?.hasStory ? "ring-2 ring-hm-gold ring-offset-2 ring-offset-hm-ivory" : "border border-hm-gold/30"

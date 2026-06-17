@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  createQueuedMessage,
+  enqueueChatMessage,
+  flushQueuedChatMessages,
+  listQueuedChatMessages,
+} from "@/components/social/offline-message-queue";
 
 export function LikeButton({ postId, initialLiked, initialCount }: { postId: string; initialLiked: boolean; initialCount: number }) {
   const [liked, setLiked] = useState(initialLiked);
@@ -72,31 +78,97 @@ export function CreatePostForm() {
   );
 }
 
-export function MessageComposer({ conversationId, replyToId }: { conversationId: string; replyToId?: string }) {
+export function MessageComposer({ conversationId, replyToId, onTyping }: { conversationId: string; replyToId?: string; onTyping?: (typing: boolean) => void }) {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [queuedCount, setQueuedCount] = useState(0);
   const router = useRouter();
 
+  const refreshQueueCount = useCallback(async () => {
+    const queued = await listQueuedChatMessages(conversationId).catch(() => []);
+    setQueuedCount(queued.length);
+  }, [conversationId]);
+
+  const flushQueue = useCallback(async () => {
+    const sent = await flushQueuedChatMessages(conversationId).catch(() => 0);
+    await refreshQueueCount();
+    if (sent > 0) {
+      setNotice(`${sent} Offline-Nachricht${sent === 1 ? "" : "en"} gesendet.`);
+      router.refresh();
+    }
+  }, [conversationId, refreshQueueCount, router]);
+
+  useEffect(() => {
+    void refreshQueueCount();
+    void flushQueue();
+
+    const onOnline = () => void flushQueue();
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [flushQueue, refreshQueueCount]);
+
+  const queueMessage = useCallback(
+    async (text: string) => {
+      await enqueueChatMessage(createQueuedMessage({ conversationId, content: text, replyToId }));
+      await refreshQueueCount();
+      setNotice("Offline gespeichert. Wird gesendet, sobald du wieder online bist.");
+    },
+    [conversationId, refreshQueueCount, replyToId],
+  );
+
   const send = async () => {
-    if (!content.trim()) return;
+    const text = content.trim();
+    if (!text) return;
+    onTyping?.(false);
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      await queueMessage(text);
+      setContent("");
+      return;
+    }
+
     setLoading(true);
     const response = await fetch(`/api/chat/${conversationId}/messages`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ content, replyToId }),
-    });
+      body: JSON.stringify({ content: text, replyToId }),
+    }).catch(() => null);
     setLoading(false);
-    if (!response.ok) return;
+
+    if (!response?.ok) {
+      await queueMessage(text);
+      setContent("");
+      return;
+    }
+
     setContent("");
+    setNotice(null);
     router.refresh();
   };
 
   return (
-    <div className="flex gap-2 rounded-card border border-hm-border bg-hm-porcelain p-3">
-      <input className="min-w-0 flex-1 bg-transparent px-2 outline-none" placeholder="Chat schreiben" value={content} onChange={(event) => setContent(event.target.value)} />
-      <button className="rounded-pill bg-hm-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-60" disabled={loading || !content.trim()} onClick={send} type="button">
-        Senden
-      </button>
+    <div className="space-y-2">
+      <div className="flex gap-2 rounded-card border border-hm-border bg-hm-porcelain p-3">
+        <input
+          className="min-w-0 flex-1 bg-transparent px-2 outline-none"
+          placeholder="Chat schreiben"
+          value={content}
+          onChange={(event) => {
+            setContent(event.target.value);
+            onTyping?.(event.target.value.trim().length > 0);
+          }}
+          onBlur={() => onTyping?.(false)}
+        />
+        <button className="rounded-pill bg-hm-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-60" disabled={loading || !content.trim()} onClick={send} type="button">
+          {loading ? "Sendet..." : "Senden"}
+        </button>
+      </div>
+      {notice || queuedCount > 0 ? (
+        <p className="rounded-2xl bg-hm-champagne px-3 py-2 text-xs font-semibold text-hm-ink" aria-live="polite">
+          {notice ?? `${queuedCount} Nachricht${queuedCount === 1 ? "" : "en"} wartet offline.`}
+        </p>
+      ) : null}
     </div>
   );
 }

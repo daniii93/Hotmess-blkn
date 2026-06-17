@@ -9,7 +9,8 @@ import type {
   SocialPost,
   SocialStory,
 } from "@/features/social/live-service";
-import { ChatMessageActions, CreatePostForm, LikeButton, MessageComposer } from "@/components/social/social-actions";
+import { ChatMessageActions, CreatePostForm, LikeButton } from "@/components/social/social-actions";
+import { TypingAwareComposer } from "@/components/social/TypingAwareComposer";
 import { GroupInfoPanel } from "@/components/inbox/GroupInfoPanel";
 
 const card = "rounded-card border border-hm-border bg-hm-porcelain shadow-luxury";
@@ -283,7 +284,7 @@ export function ChatThread({ conversationId, messages, meta }: { conversationId:
           {messages.length === 0 ? <p className="text-sm text-hm-inkSoft">Noch keine Nachrichten.</p> : null}
           {messages.map((message) => <MessageBubble key={message.id} message={message} />)}
         </div>
-        <MessageComposer conversationId={conversationId} />
+        <TypingAwareComposer conversationId={conversationId} />
       </section>
     </main>
   );
