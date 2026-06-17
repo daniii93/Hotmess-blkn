@@ -7,12 +7,22 @@ export default function AdminSettingsPage() {
     <>
       <PageShell pageKey="adminSettings" emptyKey="admin" accent="admin" />
       <section className="mx-auto w-full max-w-6xl space-y-5 px-4 pb-12 sm:px-6 lg:px-10">
+        <section className="rounded-card border border-red-500/20 bg-hm-porcelain p-5 shadow-soft lg:hidden">
+          <p className="hm-label text-red-500">Admin-Sitzung</p>
+          <h2 className="hm-display mt-2 text-2xl text-hm-ink">Konto wechseln</h2>
+          <p className="mt-2 text-sm text-hm-inkSoft">
+            Vollständig abmelden, um am Handy zwischen Admin und Kundenkonto zu wechseln.
+          </p>
+          <div className="mt-4">
+            <LogoutButton />
+          </div>
+        </section>
         <PlatformToggles />
         <div className="grid gap-5 lg:grid-cols-2">
           <ContentEditor />
           <AdminTeam />
         </div>
-        <section className="rounded-card border border-red-500/20 bg-hm-porcelain p-5 shadow-soft">
+        <section className="hidden rounded-card border border-red-500/20 bg-hm-porcelain p-5 shadow-soft lg:block">
           <p className="hm-label text-red-500">Admin-Sitzung</p>
           <h2 className="hm-display mt-2 text-2xl text-hm-ink">Konto wechseln</h2>
           <p className="mt-2 text-sm text-hm-inkSoft">
