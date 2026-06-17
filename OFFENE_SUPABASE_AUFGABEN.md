@@ -61,6 +61,17 @@ Danach wurde ein vollstaendiger Stripe-Testkauf ohne manuelle DB-Aktivierung gep
 
 Zusaetzlich wurde `supabase/migrations/009_finalize_ticketing_part2.sql` live nachgezogen, weil `orders.provider_order_id` fuer die Zahlungslogik fehlte.
 
+### PayPal Sandbox Checkout
+Am 17.06.2026 wurden die PayPal-Sandbox-Daten in Vercel Production gesetzt und ein Production-Deploy ausgefuehrt:
+
+1. PayPal Sandbox App `Default Application` genutzt.
+2. PayPal Webhook fuer `https://www.hotmess-blkn.app/api/webhooks/paypal` angelegt.
+3. `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` und `PAYPAL_WEBHOOK_ID` in Vercel Production gesetzt.
+4. HotMess Checkout-API erzeugt erfolgreich eine PayPal Sandbox Approval-URL.
+5. PayPal Webhook-Pfad aktiviert Order auf `paid`, Ticket auf `valid`, erzeugt QR und schreibt `event_attendees`.
+6. QR-Endpunkt liefert `image/png`.
+7. Scanner-Endpoint akzeptiert das ueber PayPal aktivierte Ticket.
+
 ## Noch testen
 
 - `/dating`
@@ -73,4 +84,4 @@ Zusaetzlich wurde `supabase/migrations/009_finalize_ticketing_part2.sql` live na
 
 ## Manuell offen
 
-- Optional PayPal-Live/Testdaten setzen: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`.
+- Keine Supabase-/Payment-Pflichtaufgabe offen. Spaeter fuer echten Live-Betrieb Stripe/PayPal von Sandbox auf Live-Keys umstellen.
