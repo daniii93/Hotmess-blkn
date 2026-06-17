@@ -1,0 +1,17 @@
+-- HotMess schema check: tables/columns used by the current app runtime.
+select
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='profiles' and column_name='username_changed_at') as profiles_username_changed_at,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='profiles' and column_name='who_can_message') as profiles_who_can_message,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='profiles' and column_name='who_can_add_to_groups') as profiles_who_can_add_to_groups,
+  exists(select 1 from information_schema.tables where table_schema='public' and table_name='profile_links') as profile_links,
+  exists(select 1 from information_schema.tables where table_schema='public' and table_name='user_sessions') as user_sessions,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='user_sessions' and column_name='is_trusted') as user_sessions_is_trusted,
+  exists(select 1 from information_schema.tables where table_schema='public' and table_name='two_factor_backup_codes') as two_factor_backup_codes,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='messages' and column_name='edited') as messages_edited,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='messages' and column_name='transcript') as messages_transcript,
+  exists(select 1 from information_schema.tables where table_schema='public' and table_name='muted_words') as muted_words,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='conversations' and column_name='calls_enabled') as conversations_calls_enabled,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='conversations' and column_name='needs_member_approval') as conversations_needs_member_approval,
+  exists(select 1 from information_schema.tables where table_schema='public' and table_name='group_join_requests') as group_join_requests,
+  exists(select 1 from information_schema.tables where table_schema='public' and table_name='calls') as calls,
+  exists(select 1 from information_schema.tables where table_schema='public' and table_name='call_participants') as call_participants;

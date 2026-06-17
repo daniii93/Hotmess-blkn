@@ -12,7 +12,9 @@
     "test:load": "k6 run tests/load/ticket-reservation.js",
     "launch:check": "npm run lint && npm run typecheck && npm run test && npm run build",
     "env:validate": "powershell -ExecutionPolicy Bypass -File scripts/validate-env.ps1",
-    "db:validate": "powershell -ExecutionPolicy Bypass -File scripts/validate-supabase-migrations.ps1"
+    "db:validate": "powershell -ExecutionPolicy Bypass -File scripts/validate-supabase-migrations.ps1",
+    "db:apply": "node scripts/supabase-db.mjs apply",
+    "db:check": "node scripts/supabase-db.mjs check"
   },
   "dependencies": {
     "@hookform/resolvers": "latest",
@@ -46,6 +48,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "autoprefixer": "latest",
+    "pg": "^8.21.0",
     "postcss": "latest",
     "tailwindcss": "3.4.17",
     "typescript": "5.9.3"
