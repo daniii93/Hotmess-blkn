@@ -10,7 +10,7 @@ type ProfileAccess = {
   is_banned: boolean | null;
 };
 
-const publicPrefixes = ["/", "/event", "/login", "/register", "/reset-password", "/impressum", "/agb", "/datenschutz", "/partner", "/demo-admin", "/logout", "/profile", "/settings"] as const;
+const publicPrefixes = ["/", "/event", "/login", "/register", "/reset-password", "/impressum", "/agb", "/datenschutz", "/partner", "/demo-admin", "/logout", "/profile", "/profile/edit", "/settings"] as const;
 const appPrefixes = ["/feed", "/watch", "/create", "/explore", "/events", "/checkout", "/tickets", "/friends", "/chat", "/notifications", "/u", "/profile/edit", "/settings", "/onboarding", "/verify"] as const;
 const datingPrefixes = ["/dating"] as const;
 const businessPrefixes = ["/business"] as const;
