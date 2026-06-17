@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getPublicEnv } from "@/config/env";
+import { getPublicEnv, getServerEnv } from "@/config/env";
 import { getEventBySlug, getRequestUserProfile } from "@/features/events/live-service";
 import { createStripeServerClient } from "@/lib/stripe/server";
 import { createPayPalOrder } from "@/lib/paypal/server";
@@ -24,6 +24,8 @@ type CheckoutParams = {
   params: Promise<{ slug: string }>;
 };
 
+type CheckoutSupabase = ReturnType<typeof createSupabaseAdminClient>;
+
 export async function POST(request: Request, { params }: CheckoutParams) {
   const { slug } = await params;
   const profile = await getRequestUserProfile(request);
@@ -36,6 +38,20 @@ export async function POST(request: Request, { params }: CheckoutParams) {
 
   const parsed = checkoutSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Tickettyp fehlt." }, { status: 400 });
+
+  const serverEnv = getServerEnv();
+  if (parsed.data.paymentProvider === "stripe" && !serverEnv.stripeSecretKey.startsWith("sk_")) {
+    return NextResponse.json(
+      { error: "Stripe ist noch nicht korrekt konfiguriert. Bitte STRIPE_SECRET_KEY in Vercel setzen." },
+      { status: 503 },
+    );
+  }
+  if (parsed.data.paymentProvider === "paypal" && (!serverEnv.paypalClientId || !serverEnv.paypalClientSecret)) {
+    return NextResponse.json(
+      { error: "PayPal ist noch nicht korrekt konfiguriert. Bitte PAYPAL_CLIENT_ID und PAYPAL_CLIENT_SECRET in Vercel setzen." },
+      { status: 503 },
+    );
+  }
 
   const event = await getEventBySlug(slug);
   if (!event || event.status !== "published") return NextResponse.json({ error: "Event ist nicht kaufbar." }, { status: 404 });
@@ -144,55 +160,89 @@ export async function POST(request: Request, { params }: CheckoutParams) {
   const cancelUrl = `${appUrl}/events/${event.slug}/checkout?cancelled=1`;
 
   if (parsed.data.paymentProvider === "paypal") {
-    const paypalOrder = await createPayPalOrder({
-      orderId: order.id,
-      totalCents,
-      currency: ticketType.currency,
-      returnUrl: `${appUrl}/api/paypal/capture?order_id=${order.id}`,
-      cancelUrl,
+    try {
+      const paypalOrder = await createPayPalOrder({
+        orderId: order.id,
+        totalCents,
+        currency: ticketType.currency,
+        returnUrl: `${appUrl}/api/paypal/capture?order_id=${order.id}`,
+        cancelUrl,
+      });
+
+      await supabase
+        .from("orders")
+        .update({ provider_session_id: paypalOrder.paypalOrderId, provider_order_id: paypalOrder.paypalOrderId, payment_method: "paypal" })
+        .eq("id", order.id);
+
+      return NextResponse.json({ ok: true, orderId: order.id, ticketId, checkoutUrl: paypalOrder.approveUrl });
+    } catch (error) {
+      await releaseFailedCheckout({ supabase, orderId: order.id, ticketId });
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "PayPal konnte nicht gestartet werden." },
+        { status: 502 },
+      );
+    }
+  }
+
+  try {
+    const stripe = createStripeServerClient();
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      customer_email: profile.email,
+      metadata: { order_id: order.id },
+      payment_intent_data: { metadata: { order_id: order.id } },
+      line_items: items.map((item) => ({
+        quantity: 1,
+        price_data: {
+          currency: ticketType.currency.toLowerCase(),
+          unit_amount: item.price_cents,
+          product_data: {
+            name:
+              item.type === "ticket"
+                ? `${event.title} - ${ticketType.name}`
+                : item.type === "table"
+                  ? `Tisch - ${selectedTable?.name ?? "HotMess"}`
+                  : item.type === "drinks"
+                    ? `Getraenkepaket - ${selectedDrink?.name ?? "HotMess"}`
+                    : item.type === "fastlane"
+                      ? "Fast-Lane"
+                      : `Geburtstag - ${selectedBirthday?.name ?? "HotMess"}`,
+          },
+        },
+      })),
     });
 
     await supabase
       .from("orders")
-      .update({ provider_session_id: paypalOrder.paypalOrderId, provider_order_id: paypalOrder.paypalOrderId, payment_method: "paypal" })
+      .update({ provider_session_id: session.id, payment_method: "stripe" })
       .eq("id", order.id);
 
-    return NextResponse.json({ ok: true, orderId: order.id, ticketId, checkoutUrl: paypalOrder.approveUrl });
+    return NextResponse.json({ ok: true, orderId: order.id, ticketId, checkoutUrl: session.url });
+  } catch (error) {
+    await releaseFailedCheckout({ supabase, orderId: order.id, ticketId });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Stripe Checkout konnte nicht gestartet werden." },
+      { status: 502 },
+    );
   }
-
-  const stripe = createStripeServerClient();
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    customer_email: profile.email,
-    metadata: { order_id: order.id },
-    payment_intent_data: { metadata: { order_id: order.id } },
-    line_items: items.map((item) => ({
-      quantity: 1,
-      price_data: {
-        currency: ticketType.currency.toLowerCase(),
-        unit_amount: item.price_cents,
-        product_data: {
-          name:
-            item.type === "ticket"
-              ? `${event.title} · ${ticketType.name}`
-              : item.type === "table"
-                ? `Tisch · ${selectedTable?.name ?? "HotMess"}`
-                : item.type === "drinks"
-                  ? `Getraenkepaket · ${selectedDrink?.name ?? "HotMess"}`
-                  : item.type === "fastlane"
-                    ? "Fast-Lane"
-                    : `Geburtstag · ${selectedBirthday?.name ?? "HotMess"}`,
-        },
-      },
-    })),
-  });
-
-  await supabase
-    .from("orders")
-    .update({ provider_session_id: session.id, payment_method: "stripe" })
-    .eq("id", order.id);
-
-  return NextResponse.json({ ok: true, orderId: order.id, ticketId, checkoutUrl: session.url });
 }
+
+const releaseFailedCheckout = async ({
+  supabase,
+  orderId,
+  ticketId,
+}: {
+  supabase: CheckoutSupabase;
+  orderId: string;
+  ticketId: string;
+}) => {
+  await supabase.from("orders").update({ status: "failed" }).eq("id", orderId);
+  await supabase
+    .from("tickets")
+    .update({ reserved_until: new Date(Date.now() - 1000).toISOString() })
+    .eq("id", ticketId)
+    .eq("status", "reserved");
+  await supabase.rpc("expire_ticket_reservations");
+};
