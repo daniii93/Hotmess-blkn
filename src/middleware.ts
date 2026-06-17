@@ -49,6 +49,10 @@ export async function middleware(request: NextRequest) {
   const demoModeEnabled = process.env.DEMO_MODE === "1";
   const hasDemoAdmin = (isLocalPreview || demoModeEnabled) && request.cookies.get("hotmess_demo_admin")?.value === "1";
 
+  if (pathname.startsWith("/api/") || pathname.startsWith("/auth/")) {
+    return response;
+  }
+
   if (isPublicPath(pathname)) {
     return response;
   }
