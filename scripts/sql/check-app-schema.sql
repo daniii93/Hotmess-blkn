@@ -4,9 +4,14 @@ select
   exists(select 1 from information_schema.columns where table_schema='public' and table_name='profiles' and column_name='who_can_message') as profiles_who_can_message,
   exists(select 1 from information_schema.columns where table_schema='public' and table_name='profiles' and column_name='who_can_add_to_groups') as profiles_who_can_add_to_groups,
   exists(select 1 from information_schema.tables where table_schema='public' and table_name='profile_links') as profile_links,
+  exists(select 1 from information_schema.tables where table_schema='public' and table_name='user_notes') as user_notes,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='user_notes' and column_name='expires_at') as user_notes_expires_at,
   exists(select 1 from information_schema.tables where table_schema='public' and table_name='user_sessions') as user_sessions,
   exists(select 1 from information_schema.columns where table_schema='public' and table_name='user_sessions' and column_name='is_trusted') as user_sessions_is_trusted,
   exists(select 1 from information_schema.tables where table_schema='public' and table_name='two_factor_backup_codes') as two_factor_backup_codes,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='conversation_members' and column_name='unread_count') as conversation_members_unread_count,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='conversation_members' and column_name='last_read_at') as conversation_members_last_read_at,
+  exists(select 1 from information_schema.columns where table_schema='public' and table_name='conversation_members' and column_name='is_archived') as conversation_members_is_archived,
   exists(select 1 from information_schema.columns where table_schema='public' and table_name='messages' and column_name='edited') as messages_edited,
   exists(select 1 from information_schema.columns where table_schema='public' and table_name='messages' and column_name='transcript') as messages_transcript,
   exists(select 1 from information_schema.tables where table_schema='public' and table_name='muted_words') as muted_words,
@@ -14,4 +19,6 @@ select
   exists(select 1 from information_schema.columns where table_schema='public' and table_name='conversations' and column_name='needs_member_approval') as conversations_needs_member_approval,
   exists(select 1 from information_schema.tables where table_schema='public' and table_name='group_join_requests') as group_join_requests,
   exists(select 1 from information_schema.tables where table_schema='public' and table_name='calls') as calls,
-  exists(select 1 from information_schema.tables where table_schema='public' and table_name='call_participants') as call_participants;
+  exists(select 1 from information_schema.tables where table_schema='public' and table_name='call_participants') as call_participants,
+  exists(select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'mark_conversation_read') as rpc_mark_conversation_read,
+  exists(select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'set_conversation_member_state') as rpc_set_conversation_member_state;

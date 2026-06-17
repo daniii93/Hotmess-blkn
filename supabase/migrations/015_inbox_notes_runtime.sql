@@ -5,8 +5,19 @@ create table if not exists public.user_notes (
   text text not null check (char_length(text) <= 60),
   audience text not null default 'friends' check (audience in ('friends','close_friends')),
   created_at timestamptz not null default now(),
-  expires_at timestamptz generated always as (created_at + interval '24 hours') stored
+  expires_at timestamptz not null default (now() + interval '24 hours')
 );
+
+alter table public.user_notes
+  add column if not exists expires_at timestamptz;
+
+update public.user_notes
+set expires_at = created_at + interval '24 hours'
+where expires_at is null;
+
+alter table public.user_notes
+  alter column expires_at set not null,
+  alter column expires_at set default (now() + interval '24 hours');
 
 alter table public.user_notes enable row level security;
 
