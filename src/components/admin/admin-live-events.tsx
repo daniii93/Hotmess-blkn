@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import type { LiveEvent } from "@/features/events/live-service";
 import { formatEventDate, formatMoney } from "@/features/events/format";
 
@@ -10,6 +10,7 @@ export function AdminLiveEvents({ events }: { events: LiveEvent[] }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
   const createEvent = async (formData: FormData) => {
     setStatus("loading");
@@ -43,6 +44,44 @@ export function AdminLiveEvents({ events }: { events: LiveEvent[] }) {
 
     setStatus("success");
     setMessage("Event wurde publiziert.");
+    router.refresh();
+  };
+
+  const updateEvent = async (event: LiveEvent, formData: FormData) => {
+    setStatus("loading");
+    setMessage(null);
+
+    const response = await fetch(`/api/admin/events/${event.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: formData.get("title"),
+        city: formData.get("city"),
+        category: formData.get("category"),
+        status: formData.get("status"),
+        dateStart: formData.get("dateStart"),
+        doorsOpen: formData.get("doorsOpen"),
+        capacityTotal: formData.get("capacityTotal"),
+        venueName: formData.get("venueName"),
+        address: formData.get("address"),
+        femaleCapacity: formData.get("femaleCapacity"),
+        maleCapacity: formData.get("maleCapacity"),
+        diverseCapacity: formData.get("diverseCapacity"),
+        ticketPriceCents: Number(formData.get("ticketPriceEuros")) * 100,
+        reason: formData.get("reason") || "Event im Admin bearbeitet",
+      }),
+    });
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok || payload?.error) {
+      setStatus("error");
+      setMessage(payload?.error ?? "Event konnte nicht aktualisiert werden.");
+      return;
+    }
+
+    setStatus("success");
+    setMessage("Event wurde aktualisiert.");
+    setEditingEventId(null);
     router.refresh();
   };
 
@@ -96,7 +135,8 @@ export function AdminLiveEvents({ events }: { events: LiveEvent[] }) {
           </thead>
           <tbody className="text-hm-ink">
             {events.map((event) => (
-              <tr className="border-t border-hm-borderSoft" key={event.id}>
+              <Fragment key={event.id}>
+              <tr className="border-t border-hm-borderSoft">
                 <td className="py-3 pr-4">
                   <p className="font-semibold">{event.title}</p>
                   <p className="text-xs text-hm-inkSoft">{event.venue?.name ?? event.city}</p>
@@ -113,6 +153,13 @@ export function AdminLiveEvents({ events }: { events: LiveEvent[] }) {
                 </td>
                 <td>
                   <div className="flex gap-2">
+                    <button
+                      className="rounded-pill border border-hm-admin/40 px-3 py-1 text-xs text-hm-ink"
+                      onClick={() => setEditingEventId(editingEventId === event.id ? null : event.id)}
+                      type="button"
+                    >
+                      Bearbeiten
+                    </button>
                     <Link className="rounded-pill border border-hm-admin/40 px-3 py-1 text-xs text-hm-ink" href={`/events/${event.slug}`}>
                       Ansehen
                     </Link>
@@ -122,6 +169,43 @@ export function AdminLiveEvents({ events }: { events: LiveEvent[] }) {
                   </div>
                 </td>
               </tr>
+              {editingEventId === event.id ? (
+                <tr className="border-t border-hm-borderSoft">
+                  <td className="py-4" colSpan={6}>
+                    <form action={(formData) => updateEvent(event, formData)} className="grid gap-3 rounded-card border border-hm-admin/25 bg-hm-ivory p-4 md:grid-cols-3">
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.title} name="title" required />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.city} name="city" required />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.category} name="category" required />
+                      <select className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.status} name="status">
+                        <option value="draft">Entwurf</option>
+                        <option value="published">Publiziert</option>
+                        <option value="sold_out">Ausverkauft</option>
+                        <option value="completed">Abgeschlossen</option>
+                        <option value="cancelled">Abgesagt</option>
+                      </select>
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.dateStart?.slice(0, 16)} name="dateStart" required type="datetime-local" />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.doorsOpen?.slice(0, 16) ?? event.dateStart?.slice(0, 16)} name="doorsOpen" type="datetime-local" />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.capacityTotal} name="capacityTotal" required type="number" />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.venue?.name ?? ""} name="venueName" placeholder="Venue" required />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.venue?.address ?? ""} name="address" placeholder="Adresse" />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.genderConfig?.capacityFemale ?? 0} name="femaleCapacity" placeholder="Frauen-Kapazitaet" required type="number" />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.genderConfig?.capacityMale ?? 0} name="maleCapacity" placeholder="Maenner-Kapazitaet" required type="number" />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={event.genderConfig?.capacityDiverse ?? 0} name="diverseCapacity" placeholder="Diverse-Kapazitaet" required type="number" />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin" defaultValue={(event.ticketTypes[0]?.priceCents ?? 0) / 100} name="ticketPriceEuros" placeholder="Ticketpreis EUR" required type="number" />
+                      <input className="rounded-pill border border-hm-border bg-hm-porcelain px-4 py-3 text-sm outline-none focus:border-hm-admin md:col-span-2" defaultValue="Event im Admin bearbeitet" name="reason" placeholder="Audit-Grund" required />
+                      <div className="flex gap-2 md:col-span-3">
+                        <button className="rounded-pill bg-hm-ink px-5 py-3 text-sm font-semibold text-white disabled:opacity-60" disabled={status === "loading"} type="submit">
+                          {status === "loading" ? "Speichere..." : "Aenderungen speichern"}
+                        </button>
+                        <button className="rounded-pill border border-hm-admin/40 px-5 py-3 text-sm font-semibold text-hm-ink" onClick={() => setEditingEventId(null)} type="button">
+                          Abbrechen
+                        </button>
+                      </div>
+                    </form>
+                  </td>
+                </tr>
+              ) : null}
+              </Fragment>
             ))}
             {events.length === 0 ? (
               <tr className="border-t border-hm-borderSoft">

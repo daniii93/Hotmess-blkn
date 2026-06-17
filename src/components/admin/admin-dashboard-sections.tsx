@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { AdminModerationActions } from "@/components/admin/admin-moderation-actions";
+import { AdminUserActions } from "@/components/admin/admin-user-actions";
 import {
   DEMO_ACTIVITY,
   DEMO_DISTRIBUTION_PARTNERS,
@@ -268,7 +270,8 @@ export function UserTable({ users }: { users?: AdminUserRowLive[] }) {
               <th className="pb-3 pr-4">Verifiziert</th>
               <th className="pb-3 pr-4">Rolle</th>
               <th className="pb-3 pr-4">Tickets</th>
-              <th className="pb-3">Beitritt</th>
+              <th className="pb-3 pr-4">Beitritt</th>
+              <th className="pb-3">Admin-Aktionen</th>
             </tr>
           </thead>
           <tbody className="text-hm-ink">
@@ -293,7 +296,10 @@ export function UserTable({ users }: { users?: AdminUserRowLive[] }) {
                 </td>
                 <td className="pr-4 capitalize">{u.role}</td>
                 <td className="pr-4">{u.tickets}</td>
-                <td className="text-hm-inkSoft">{u.joined}</td>
+                <td className="pr-4 text-hm-inkSoft">{u.joined}</td>
+                <td>
+                  <AdminUserActions user={u} />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -333,18 +339,7 @@ export function SanctionPanel({ user }: { user?: AdminUserRowLive }) {
     <section className={card}>
       <p className="text-xs font-semibold uppercase tracking-luxury text-hm-admin">Sanktionen</p>
       <p className="mt-2 text-sm text-hm-inkSoft">Fuer: {selected.name}</p>
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        {[
-          { label: "Warnung senden", color: "border-yellow-400 text-yellow-700" },
-          { label: "Temporär sperren", color: "border-orange-400 text-orange-700" },
-          { label: "Feature blockieren", color: "border-hm-admin/40 text-hm-ink" },
-          { label: "Reaktivieren", color: "border-green-400 text-green-700" },
-        ].map((action) => (
-          <button className={`rounded-pill border px-3 py-2 text-sm font-semibold ${action.color}`} key={action.label} type="button">
-            {action.label}
-          </button>
-        ))}
-      </div>
+      <p className="mt-4 text-sm text-hm-ink">Live-Aktionen stehen direkt in der Nutzer-Tabelle: Rolle aendern, warnen, temporaer sperren oder Posting blockieren. Jede Aktion schreibt einen Audit-Eintrag.</p>
     </section>
   );
 }
@@ -396,6 +391,7 @@ export function ModerationQueue({ items }: { items?: AdminModerationItem[] }) {
             <div>
               <p className="font-semibold text-hm-ink">{c.content}</p>
               <p className="text-xs text-hm-inkSoft">{c.user}</p>
+              {"id" in c ? <AdminModerationActions item={c as AdminModerationItem} /> : null}
             </div>
             <span className={`rounded-pill border px-2 py-0.5 text-xs font-medium ${pColor[c.priority] ?? ""}`}>{c.priority}</span>
           </div>
@@ -418,18 +414,7 @@ export function ActionPanel() {
   return (
     <section className={soft}>
       <p className="font-semibold text-hm-ink">Aktionen</p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {[
-          { label: "Entfernen", color: "border-red-300 text-red-700" },
-          { label: "Verwarnen", color: "border-orange-300 text-orange-700" },
-          { label: "Sperren", color: "border-hm-admin/40 text-hm-admin" },
-          { label: "Verwerfen", color: "border-hm-border text-hm-inkSoft" },
-        ].map((action) => (
-          <button className={`rounded-pill border px-3 py-2 text-xs font-semibold ${action.color}`} key={action.label} type="button">
-            {action.label}
-          </button>
-        ))}
-      </div>
+      <p className="mt-2 text-sm text-hm-inkSoft">Live-Aktionen stehen direkt an jedem Fall in der Warteschlange. Jede Entscheidung wird in admin_audit protokolliert.</p>
     </section>
   );
 }
