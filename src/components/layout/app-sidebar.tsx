@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CalendarDays, Compass, MessageCircle, PlusCircle, Search, User, Users, Bell } from "lucide-react";
+import { LogoutButton } from "@/components/LogoutButton";
 import { cn } from "../../lib/utils/cn";
 
 const items = [
@@ -45,6 +46,9 @@ export function AppSidebar() {
           );
         })}
       </nav>
+      <div className="absolute inset-x-5 bottom-6">
+        <LogoutButton compact />
+      </div>
     </aside>
   );
 }
