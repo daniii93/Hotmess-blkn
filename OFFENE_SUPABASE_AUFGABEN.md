@@ -1,13 +1,18 @@
-﻿# Offene Supabase-Aufgaben
+# Supabase-Aufgaben
 
-## Manuell später einspielen
+## Erledigt
 
 ### Dating / Teil 4
-Diese Migrationen in Supabase SQL Editor nacheinander ausführen, sonst funktioniert Dating online noch nicht vollständig:
+Diese Migrationen wurden am 17.06.2026 per `npm run db:apply` erfolgreich in Supabase eingespielt:
 
 1. `supabase/migrations/004_dating_part4.sql`
 2. `supabase/migrations/011_dating_runtime.sql`
 
-Reihenfolge: `004_dating_part4.sql` -> `011_dating_runtime.sql`
+Danach lief `npm run db:check` erfolgreich durch.
 
-Hinweis: Nach dem Einspielen Dating online testen: `/dating`, `/dating/profile`, `/dating/matches`, `/dating/likes`.
+## Noch testen
+
+- `/dating`
+- `/dating/profile`
+- `/dating/matches`
+- `/dating/likes`

@@ -149,6 +149,7 @@ alter table public.dating_reports enable row level security;
 alter table public.dating_room_consents enable row level security;
 
 drop policy if exists "dating opt in own profile" on public.dating_profiles;
+drop policy if exists "read dating profiles" on public.dating_profiles;
 create policy "read dating profiles" on public.dating_profiles
 for select using (
   (select dating_enabled from public.profiles where id = auth.uid()) = true
@@ -160,6 +161,7 @@ for select using (
   )
 );
 
+drop policy if exists "manage own dating profile" on public.dating_profiles;
 create policy "manage own dating profile" on public.dating_profiles
 for all using (user_id = auth.uid() or public.is_admin())
 with check (user_id = auth.uid() or public.is_admin());
@@ -168,6 +170,7 @@ drop policy if exists "own swipes" on public.dating_swipes;
 create policy "own swipes" on public.dating_swipes
 for select using (swiper_id = auth.uid() or public.is_admin());
 
+drop policy if exists "create own swipe" on public.dating_swipes;
 create policy "create own swipe" on public.dating_swipes
 for insert with check (swiper_id = auth.uid());
 
@@ -175,6 +178,7 @@ drop policy if exists "own matches" on public.dating_matches;
 create policy "own matches" on public.dating_matches
 for select using (user_a_id = auth.uid() or user_b_id = auth.uid() or user_a = auth.uid() or user_b = auth.uid() or public.is_admin());
 
+drop policy if exists "read event dating pool" on public.event_dating_pool;
 create policy "read event dating pool" on public.event_dating_pool
 for select using (
   is_visible = true
@@ -185,15 +189,19 @@ for select using (
   )
 );
 
+drop policy if exists "own dating subs" on public.dating_subscriptions;
 create policy "own dating subs" on public.dating_subscriptions
 for select using (user_id = auth.uid() or public.is_admin());
 
+drop policy if exists "own dating purchases" on public.dating_consumable_purchases;
 create policy "own dating purchases" on public.dating_consumable_purchases
 for select using (user_id = auth.uid() or public.is_admin());
 
+drop policy if exists "create own dating report" on public.dating_reports;
 create policy "create own dating report" on public.dating_reports
 for insert with check (reporter_id = auth.uid());
 
+drop policy if exists "own room consents" on public.dating_room_consents;
 create policy "own room consents" on public.dating_room_consents
 for select using (user_a_id = auth.uid() or user_b_id = auth.uid() or public.is_admin());
 
