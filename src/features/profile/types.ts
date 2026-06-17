@@ -24,7 +24,7 @@ export type CommunityProfile = {
   city: string;
   country: string;
   bio?: string;
-  verificationStatus: "unverified" | "pending" | "verified" | "rejected";
+  verificationStatus: "pending" | "verified" | "rejected" | "suspended" | "unverified";
   privacy: ProfilePrivacy;
   showEventAttendance: boolean;
   eventsVisited: number;

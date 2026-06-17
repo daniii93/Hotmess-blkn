@@ -7,6 +7,7 @@ type ProfileAccess = {
   dating_enabled: boolean | null;
   business_enabled: boolean | null;
   onboarding_completed: boolean | null;
+  verification_status: "pending" | "verified" | "rejected" | "suspended" | "unverified" | null;
   is_banned: boolean | null;
 };
 
@@ -16,6 +17,13 @@ const datingPrefixes = ["/dating"] as const;
 const businessPrefixes = ["/business"] as const;
 const scannerPrefixes = ["/scanner"] as const;
 const adminPrefixes = ["/admin"] as const;
+const unverifiedAllowedPrefixes = ["/profile", "/profile/edit", "/settings", "/verify", "/onboarding", "/logout"] as const;
+const authApiPrefixes = ["/api/auth", "/auth"] as const;
+const publicApiPrefixes = ["/api/webhooks", "/api/cron", "/api/paypal/capture"] as const;
+const setupApiPrefixes = ["/api/profile", "/api/settings"] as const;
+const verifiedApiPrefixes = ["/api/chat", "/api/social", "/api/dating", "/api/business", "/api/events", "/api/tickets"] as const;
+const adminApiPrefixes = ["/api/admin"] as const;
+const scannerApiPrefixes = ["/api/scanner"] as const;
 
 const hasPrefix = (pathname: string, prefixes: readonly string[]): boolean =>
   prefixes.some((prefix) => pathname === prefix || (prefix !== "/" && pathname.startsWith(`${prefix}/`)));
@@ -42,6 +50,16 @@ const redirectToLogin = (request: NextRequest, response: NextResponse) => {
   return withSupabaseCookies(NextResponse.redirect(url), response);
 };
 
+const redirectToVerification = (request: NextRequest, response: NextResponse) => {
+  const url = request.nextUrl.clone();
+  url.pathname = "/verify";
+  url.searchParams.set("required", "1");
+  return withSupabaseCookies(NextResponse.redirect(url), response);
+};
+
+const jsonError = (message: string, status: number) =>
+  NextResponse.json({ error: message }, { status });
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const { response, supabase, user } = await refreshSupabaseSession(request);
@@ -49,7 +67,7 @@ export async function middleware(request: NextRequest) {
   const demoModeEnabled = process.env.DEMO_MODE === "1";
   const hasDemoAdmin = (isLocalPreview || demoModeEnabled) && request.cookies.get("hotmess_demo_admin")?.value === "1";
 
-  if (pathname.startsWith("/api/") || pathname.startsWith("/auth/")) {
+  if (hasPrefix(pathname, authApiPrefixes) || hasPrefix(pathname, publicApiPrefixes)) {
     return response;
   }
 
@@ -70,31 +88,43 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  if (
+  const needsAppSession =
     hasPrefix(pathname, appPrefixes) ||
     hasPrefix(pathname, datingPrefixes) ||
     hasPrefix(pathname, businessPrefixes) ||
     hasPrefix(pathname, scannerPrefixes) ||
-    hasPrefix(pathname, adminPrefixes)
-  ) {
+    hasPrefix(pathname, adminPrefixes);
+  const needsApiSession =
+    hasPrefix(pathname, setupApiPrefixes) ||
+    hasPrefix(pathname, verifiedApiPrefixes) ||
+    hasPrefix(pathname, scannerApiPrefixes) ||
+    hasPrefix(pathname, adminApiPrefixes);
+
+  if (needsAppSession || needsApiSession) {
     if (!user) {
-      return redirectToLogin(request, response);
+      return needsApiSession ? jsonError("Bitte zuerst einloggen.", 401) : redirectToLogin(request, response);
     }
+  }
+
+  if (pathname.startsWith("/api/") && !needsApiSession) {
+    return response;
   }
 
   const fallbackRole = String(user?.user_metadata?.role ?? "user") as ProfileAccess["role"];
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, dating_enabled, business_enabled, onboarding_completed, is_banned")
+    .select("role, dating_enabled, business_enabled, onboarding_completed, verification_status, is_banned")
     .eq("id", user?.id ?? "")
     .maybeSingle<ProfileAccess>();
 
   const role = profile?.role ?? fallbackRole;
   const datingEnabled = profile?.dating_enabled ?? Boolean(user?.user_metadata?.dating_enabled);
   const onboardingCompleted = profile?.onboarding_completed ?? Boolean(user?.user_metadata?.onboarding_completed);
+  const verificationStatus = profile?.verification_status ?? String(user?.user_metadata?.verification_status ?? "pending");
+  const verified = verificationStatus === "verified";
 
   if (profile?.is_banned) {
-    return redirectWithSession(request, response, "/");
+    return pathname.startsWith("/api/") ? jsonError("Konto gesperrt.", 403) : redirectWithSession(request, response, "/");
   }
 
   if (
@@ -107,11 +137,26 @@ export async function middleware(request: NextRequest) {
     return redirectWithSession(request, response, "/onboarding");
   }
 
-  if (hasPrefix(pathname, adminPrefixes) && role !== "admin") {
+  if (
+    user &&
+    !verified &&
+    !hasPrefix(pathname, unverifiedAllowedPrefixes) &&
+    !hasPrefix(pathname, setupApiPrefixes) &&
+    !hasPrefix(pathname, authApiPrefixes)
+  ) {
+    if (pathname.startsWith("/api/")) {
+      return jsonError("Verifizierung erforderlich. Bitte bestaetige deine Identitaet, um HotMess nutzen zu koennen.", 403);
+    }
+    return redirectToVerification(request, response);
+  }
+
+  if ((hasPrefix(pathname, adminPrefixes) || hasPrefix(pathname, adminApiPrefixes)) && role !== "admin") {
+    if (pathname.startsWith("/api/")) return jsonError("Admin-Zugriff erforderlich.", 403);
     return redirectWithSession(request, response, "/");
   }
 
-  if (hasPrefix(pathname, scannerPrefixes) && role !== "scanner" && role !== "admin") {
+  if ((hasPrefix(pathname, scannerPrefixes) || hasPrefix(pathname, scannerApiPrefixes)) && role !== "scanner" && role !== "admin") {
+    if (pathname.startsWith("/api/")) return jsonError("Scanner-Zugriff erforderlich.", 403);
     return redirectWithSession(request, response, "/");
   }
 

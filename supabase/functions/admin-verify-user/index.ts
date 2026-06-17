@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 type Body = {
   admin_id: string;
   user_id: string;
-  verification_status: "unverified" | "pending" | "verified" | "rejected";
+  verification_status: "pending" | "verified" | "rejected" | "suspended";
   reason: string;
 };
 

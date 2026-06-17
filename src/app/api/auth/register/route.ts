@@ -110,7 +110,7 @@ export async function POST(request: Request) {
       date_of_birth: input.dateOfBirth,
       gender: input.gender,
       role: "user",
-      verification_status: "unverified",
+      verification_status: "pending",
       onboarding_completed: false,
       is_banned: false,
       is_private: true,

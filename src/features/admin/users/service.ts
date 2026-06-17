@@ -7,7 +7,7 @@ export type AdminUserRow = {
   city?: string;
   country?: string;
   gender: "female" | "male" | "diverse";
-  verificationStatus: "unverified" | "pending" | "verified" | "rejected";
+  verificationStatus: "pending" | "verified" | "rejected" | "suspended" | "unverified";
   role: "user" | "scanner" | "admin";
   active: boolean;
   registeredAt: string;

@@ -6,7 +6,7 @@ import { BadgeCheck, ShieldAlert } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type VerificationProfile = {
-  verification_status: "unverified" | "pending" | "verified" | "rejected";
+  verification_status: "pending" | "verified" | "rejected" | "suspended" | "unverified";
   stripe_identity_session_id: string | null;
 };
 
@@ -79,7 +79,7 @@ export function VerificationPanel() {
     setStarting(false);
   };
 
-  const verificationStatus = profile?.verification_status ?? "unverified";
+  const verificationStatus = profile?.verification_status === "unverified" ? "pending" : (profile?.verification_status ?? "pending");
   const verified = verificationStatus === "verified";
 
   return (
@@ -92,10 +92,18 @@ export function VerificationPanel() {
           <div className="min-w-0 flex-1">
             <p className="hm-label">Supabase Status</p>
             <h2 className="hm-display mt-1 text-3xl text-hm-ink">
-              {status === "loading" ? "Status wird geladen" : verified ? "Du bist verifiziert" : verificationStatus === "pending" ? "Pruefung laeuft" : "Noch nicht verifiziert"}
+              {status === "loading"
+                ? "Status wird geladen"
+                : verified
+                  ? "Du bist verifiziert"
+                  : verificationStatus === "pending"
+                    ? "Verifizierung erforderlich"
+                    : verificationStatus === "suspended"
+                      ? "Verifizierung gesperrt"
+                      : "Verifizierung nicht freigegeben"}
             </h2>
             <p className="mt-3 text-sm leading-7 text-hm-inkSoft">
-              HotMess nutzt Stripe Identity fuer den Trust-Badge. Ausweisdaten werden nicht in HotMess gespeichert.
+              Bitte bestaetige deine Identitaet, um HotMess nutzen zu koennen. Ohne Verifizierung bleiben Feed, Chats, Events, Dating, Business und andere Nutzer gesperrt.
             </p>
           </div>
         </div>

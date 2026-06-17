@@ -49,4 +49,4 @@ export type RoleDefinition = Readonly<{
   permissions: readonly Permission[];
 }>;
 
-export type VerificationStatus = "unverified" | "pending" | "verified" | "rejected";
+export type VerificationStatus = "pending" | "verified" | "rejected" | "suspended" | "unverified";
