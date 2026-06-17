@@ -26,9 +26,6 @@ export default async function SettingsPage() {
         <SettingsLink icon={Shield} title="Verifizierung" detail={profile.verificationStatus === "verified" ? "Gold-Badge aktiv" : "Stripe Identity starten"} href="/verify" />
         <SettingsLink icon={Lock} title="Passwort & 2FA" detail="Passwort aendern, Backup-Codes, aktive Geraete" href="/settings/security" />
         <SettingsItem icon={Download} title="Meine Daten herunterladen" detail="DSGVO Export vorbereiten" />
-        <div className="lg:hidden">
-          <LogoutButton />
-        </div>
       </SettingsGroup>
 
       <SettingsGroup title="Privatsphaere">

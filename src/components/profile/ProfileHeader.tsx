@@ -22,7 +22,12 @@ export function ProfileHeader({ model, onPostsClick }: ProfileHeaderProps) {
   return (
     <section>
       <div className="flex items-center justify-between px-1 py-2">
-        <Link className="grid h-10 w-10 place-items-center rounded-full text-hm-ink" href="/create" aria-label="Erstellen">
+        {model.isOwnProfile ? (
+          <Link className="grid h-10 w-10 place-items-center rounded-full text-hm-ink sm:hidden" href="/settings" aria-label="Einstellungen">
+            <Menu className="h-6 w-6" />
+          </Link>
+        ) : null}
+        <Link className={`${model.isOwnProfile ? "hidden sm:grid" : "grid"} h-10 w-10 place-items-center rounded-full text-hm-ink`} href="/create" aria-label="Erstellen">
           <Plus className="h-6 w-6" />
         </Link>
         <div className="flex items-center gap-1 text-sm font-bold text-hm-ink">
@@ -30,7 +35,12 @@ export function ProfileHeader({ model, onPostsClick }: ProfileHeaderProps) {
           <span>@{profile.username}</span>
           <ChevronDown className="h-4 w-4" />
         </div>
-        <Link className="grid h-10 w-10 place-items-center rounded-full text-hm-ink" href="/settings" aria-label="Einstellungen">
+        {model.isOwnProfile ? (
+          <Link className="grid h-10 w-10 place-items-center rounded-full text-hm-ink sm:hidden" href="/create" aria-label="Erstellen">
+            <Plus className="h-6 w-6" />
+          </Link>
+        ) : null}
+        <Link className={`${model.isOwnProfile ? "hidden sm:grid" : "grid"} h-10 w-10 place-items-center rounded-full text-hm-ink`} href="/settings" aria-label="Einstellungen">
           <Menu className="h-6 w-6" />
         </Link>
       </div>
