@@ -21,6 +21,7 @@ import {
   Users,
 } from "lucide-react";
 import { LogoutButton } from "@/components/profile/LogoutButton";
+import { BusinessModuleLinks, type BusinessModuleState } from "@/components/settings/BusinessModuleLinks";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type BrowserProfile = {
@@ -34,6 +35,11 @@ type BrowserProfile = {
   dating_enabled: boolean;
   business_enabled: boolean;
   role: string;
+};
+
+type BusinessProfileWithModules = {
+  id: string;
+  business_profile_modules?: BusinessModuleState[] | null;
 };
 
 const syncServerSession = async (supabase: ReturnType<typeof createSupabaseBrowserClient>) => {
@@ -57,6 +63,7 @@ export function SettingsAuthGateway() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [status, setStatus] = useState<"checking" | "logged_out" | "loaded" | "error">("checking");
   const [profile, setProfile] = useState<BrowserProfile | null>(null);
+  const [businessModules, setBusinessModules] = useState<BusinessModuleState[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -88,6 +95,18 @@ export function SettingsAuthGateway() {
       }
 
       setProfile(data);
+      if (data.business_enabled) {
+        const { data: businessProfile } = await supabase
+          .from("business_profiles")
+          .select("id,business_profile_modules(module_key,is_active)")
+          .or(`user_id.eq.${user.id},owner_user_id.eq.${user.id}`)
+          .maybeSingle<BusinessProfileWithModules>();
+
+        if (!active) return;
+        setBusinessModules(businessProfile?.business_profile_modules?.filter((module) => module.is_active) ?? []);
+      } else {
+        setBusinessModules([]);
+      }
       setStatus("loaded");
     };
 
@@ -103,7 +122,7 @@ export function SettingsAuthGateway() {
     };
   }, [supabase]);
 
-  if (status === "loaded" && profile) return <SettingsMenu profile={profile} />;
+  if (status === "loaded" && profile) return <SettingsMenu profile={profile} businessModules={businessModules} />;
 
   return (
     <main className="mx-auto min-h-screen max-w-3xl px-4 pb-28 pt-6">
@@ -130,7 +149,7 @@ export function SettingsAuthGateway() {
   );
 }
 
-function SettingsMenu({ profile }: { profile: BrowserProfile }) {
+function SettingsMenu({ profile, businessModules }: { profile: BrowserProfile; businessModules: BusinessModuleState[] }) {
   const fullName = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || profile.username;
 
   return (
@@ -165,6 +184,7 @@ function SettingsMenu({ profile }: { profile: BrowserProfile }) {
       <SettingsGroup title="Module">
         <SettingsLink icon={Heart} title="HotMess Dating" detail={profile.dating_enabled ? "Aktiv" : "Aktivieren nach Verifizierung"} href="/dating/profile" accent="dating" />
         <SettingsLink icon={BriefcaseBusiness} title="HotMess Business" detail={profile.business_enabled ? "Aktiv" : "Business-Profil anlegen"} href="/business/profile" accent="business" />
+        <BusinessModuleLinks modules={businessModules} businessEnabled={profile.business_enabled} />
       </SettingsGroup>
 
       <SettingsGroup title="Inhalt & Anzeige">

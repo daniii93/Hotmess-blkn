@@ -18,8 +18,10 @@ import {
   Users,
 } from "lucide-react";
 import { LogoutButton } from "@/components/profile/LogoutButton";
+import { BusinessModuleLinks, type BusinessModuleState } from "@/components/settings/BusinessModuleLinks";
 import { SettingsAuthGateway } from "@/components/settings/SettingsAuthGateway";
 import { getProfileView } from "@/features/profile/live-service";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +31,7 @@ export default async function SettingsPage() {
   if (!model) return <SettingsAuthGateway />;
 
   const { profile } = model;
+  const businessModules = await getBusinessModules(profile.id, profile.businessEnabled);
 
   return (
     <main className="mx-auto min-h-screen max-w-3xl px-4 pb-28 pt-6">
@@ -62,6 +65,7 @@ export default async function SettingsPage() {
       <SettingsGroup title="Module">
         <SettingsLink icon={Heart} title="HotMess Dating" detail={profile.datingEnabled ? "Aktiv" : "Aktivieren nach Verifizierung"} href="/dating/profile" accent="dating" />
         <SettingsLink icon={BriefcaseBusiness} title="HotMess Business" detail={profile.businessEnabled ? "Aktiv" : "Business-Profil anlegen"} href="/business/profile" accent="business" />
+        <BusinessModuleLinks modules={businessModules} businessEnabled={profile.businessEnabled} />
       </SettingsGroup>
 
       <SettingsGroup title="Inhalt & Anzeige">
@@ -96,6 +100,19 @@ export default async function SettingsPage() {
       </SettingsGroup>
     </main>
   );
+}
+
+async function getBusinessModules(userId: string, businessEnabled: boolean): Promise<BusinessModuleState[]> {
+  if (!businessEnabled) return [];
+
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("business_profiles")
+    .select("id,business_profile_modules(module_key,is_active)")
+    .or(`user_id.eq.${userId},owner_user_id.eq.${userId}`)
+    .maybeSingle<{ id: string; business_profile_modules?: BusinessModuleState[] | null }>();
+
+  return data?.business_profile_modules?.filter((module) => module.is_active) ?? [];
 }
 
 function HackedAccountHelp() {
