@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -88,6 +89,7 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [usernameState, setUsernameState] = useState<{
     value: string;
     available: boolean | null;
@@ -267,7 +269,23 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
       </label>
       <label className="grid gap-2 text-sm font-medium text-hm-ink">
         {labels.password}
-        <input type="password" className="rounded-pill border border-hm-border bg-hm-ivory px-4 py-3" {...form.register("password")} />
+        <span className="relative block">
+          <input
+            type={passwordVisible ? "text" : "password"}
+            className="w-full rounded-pill border border-hm-border bg-hm-ivory px-4 py-3 pr-12 outline-none focus:border-hm-gold"
+            autoComplete={isRegister ? "new-password" : "current-password"}
+            {...form.register("password")}
+          />
+          <button
+            type="button"
+            className="absolute inset-y-0 right-3 grid min-h-11 min-w-11 place-items-center rounded-full text-hm-inkSoft outline-none transition hover:text-hm-ink focus-visible:ring-2 focus-visible:ring-hm-gold"
+            aria-label={passwordVisible ? "Passwort ausblenden" : "Passwort anzeigen"}
+            aria-pressed={passwordVisible}
+            onClick={() => setPasswordVisible((visible) => !visible)}
+          >
+            {passwordVisible ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
+          </button>
+        </span>
       </label>
       {message ? (
         <p className={`rounded-card px-4 py-3 text-sm ${status === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"}`}>

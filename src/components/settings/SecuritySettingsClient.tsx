@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound, Loader2, ShieldCheck, Smartphone, TicketCheck } from "lucide-react";
+import { Eye, EyeOff, KeyRound, Loader2, ShieldCheck, Smartphone, TicketCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type BackupCode = { id: string; used: boolean; used_at: string | null; created_at: string };
@@ -156,10 +156,29 @@ function SettingsPanel({ icon: Icon, title, detail, children }: { icon: any; tit
 }
 
 function PasswordField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  const [visible, setVisible] = useState(false);
+
   return (
     <label className="grid gap-2 text-sm font-semibold text-hm-ink">
       {label}
-      <input className="rounded-xl border border-hm-border bg-hm-ivory px-4 py-3 outline-none focus:border-hm-gold" type="password" value={value} onChange={(event) => onChange(event.target.value)} />
+      <span className="relative block">
+        <input
+          className="w-full rounded-xl border border-hm-border bg-hm-ivory px-4 py-3 pr-12 outline-none focus:border-hm-gold"
+          type={visible ? "text" : "password"}
+          value={value}
+          autoComplete={label.toLowerCase().includes("aktuell") ? "current-password" : "new-password"}
+          onChange={(event) => onChange(event.target.value)}
+        />
+        <button
+          type="button"
+          className="absolute inset-y-0 right-2 grid min-h-11 min-w-11 place-items-center rounded-full text-hm-inkSoft outline-none transition hover:text-hm-ink focus-visible:ring-2 focus-visible:ring-hm-gold"
+          aria-label={visible ? `${label} ausblenden` : `${label} anzeigen`}
+          aria-pressed={visible}
+          onClick={() => setVisible((current) => !current)}
+        >
+          {visible ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
+        </button>
+      </span>
     </label>
   );
 }
