@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUserProfile } from "@/features/events/live-service";
+import { getRequestUserProfile } from "@/features/events/live-service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const schema = z.object({
@@ -23,7 +23,7 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
-  const profile = await getCurrentUserProfile();
+  const profile = await getRequestUserProfile(request);
   if (!profile) return NextResponse.json({ error: "Bitte zuerst einloggen." }, { status: 401 });
   if (profile.is_banned) return NextResponse.json({ error: "Dieses Konto ist gesperrt." }, { status: 403 });
   if (profile.verification_status !== "verified") return NextResponse.json({ error: "Business ist nur fuer verifizierte Nutzer moeglich." }, { status: 403 });
@@ -67,4 +67,3 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
 }
-

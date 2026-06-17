@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUserProfile } from "@/features/events/live-service";
+import { getRequestUserProfile } from "@/features/events/live-service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const swipeSchema = z.object({
@@ -11,7 +11,7 @@ const swipeSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const profile = await getCurrentUserProfile();
+  const profile = await getRequestUserProfile(request);
   if (!profile) return NextResponse.json({ error: "Bitte zuerst einloggen." }, { status: 401 });
   if (!profile.dating_enabled) return NextResponse.json({ error: "Dating ist nicht aktiviert." }, { status: 403 });
   if (profile.verification_status !== "verified") return NextResponse.json({ error: "Bitte verifiziere dich vor Dating." }, { status: 403 });
@@ -121,4 +121,3 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ matched: true, matchId: match.id, conversationId: match.conversation_id });
 }
-
