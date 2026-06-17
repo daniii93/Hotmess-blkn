@@ -48,6 +48,19 @@ Am 17.06.2026 live gegen `https://www.hotmess-blkn.app` mit dem Testkunden `code
 5. Scanner-Endpoint `/api/scanner/scan` erfolgreich geprueft: erster Scan akzeptiert, zweiter Scan korrekt mit `409 Bereits eingelassen` abgelehnt.
 6. Checkout-Route wurde angepasst: fehlende/kaputte Stripe- oder PayPal-Konfiguration liefert jetzt eine klare JSON-Fehlermeldung statt 500 und raeumt fehlgeschlagene Reservierungen wieder auf.
 
+### Stripe Sandbox Checkout
+Am 17.06.2026 wurden die Stripe-Sandbox-Keys in Vercel Production gesetzt und ein Production-Deploy ausgefuehrt.
+
+Danach wurde ein vollstaendiger Stripe-Testkauf ohne manuelle DB-Aktivierung geprueft:
+
+1. HotMess Checkout-API erzeugt Stripe Checkout Session fuer `HotMess Innsbruck Live`.
+2. Stripe Webhook `/api/webhooks/stripe` nimmt signiertes `checkout.session.completed` an.
+3. `activatePaidOrder` setzt Order auf `paid`, Ticket auf `valid`, erzeugt QR und schreibt `event_attendees`.
+4. QR-Endpunkt liefert `image/png`.
+5. Scanner-Endpoint akzeptiert das automatisch aktivierte Ticket.
+
+Zusaetzlich wurde `supabase/migrations/009_finalize_ticketing_part2.sql` live nachgezogen, weil `orders.provider_order_id` fuer die Zahlungslogik fehlte.
+
 ## Noch testen
 
 - `/dating`
@@ -60,5 +73,4 @@ Am 17.06.2026 live gegen `https://www.hotmess-blkn.app` mit dem Testkunden `code
 
 ## Manuell offen
 
-- Echten `STRIPE_SECRET_KEY` und `STRIPE_WEBHOOK_SECRET` in Vercel setzen, danach einen vollstaendigen Stripe-Testkauf ohne manuelle Aktivierung durchspielen.
 - Optional PayPal-Live/Testdaten setzen: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`.
