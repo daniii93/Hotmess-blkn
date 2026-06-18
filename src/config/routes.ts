@@ -31,6 +31,7 @@ export const appRoutes = [
   { href: "/events/[slug]/checkout", pageKey: "checkout", zone: "app", dynamic: true },
   { href: "/events/[slug]/waitlist", pageKey: "waitlist", zone: "app", dynamic: true },
   { href: "/tickets", pageKey: "tickets", zone: "app" },
+  { href: "/connect", pageKey: "connect", zone: "app", navKey: "connect" },
   { href: "/friends", pageKey: "friends", zone: "app", navKey: "friends" },
   { href: "/friends/requests", pageKey: "friendRequests", zone: "app" },
   { href: "/chat", pageKey: "chat", zone: "app", navKey: "chat" },

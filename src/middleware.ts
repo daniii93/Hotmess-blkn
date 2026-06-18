@@ -12,7 +12,7 @@ type ProfileAccess = {
 };
 
 const publicPrefixes = ["/", "/event", "/login", "/register", "/reset-password", "/impressum", "/agb", "/datenschutz", "/partner", "/demo-admin", "/logout", "/profile", "/profile/edit", "/settings"] as const;
-const appPrefixes = ["/discover", "/feed", "/watch", "/create", "/explore", "/events", "/checkout", "/tickets", "/friends", "/chat", "/notifications", "/u", "/profile/edit", "/settings", "/onboarding", "/verify", "/local-services", "/services", "/benefits", "/creator", "/digital-ai"] as const;
+const appPrefixes = ["/discover", "/connect", "/feed", "/watch", "/create", "/explore", "/events", "/checkout", "/tickets", "/friends", "/chat", "/notifications", "/u", "/profile/edit", "/settings", "/onboarding", "/verify", "/local-services", "/services", "/benefits", "/creator", "/digital-ai"] as const;
 const datingPrefixes = ["/dating"] as const;
 const businessPrefixes = ["/business"] as const;
 const scannerPrefixes = ["/scanner"] as const;
