@@ -20,6 +20,11 @@ export default function LandingPage() {
             Die Social-Event-Plattform fuer die Ex-Yugoslavia Community in DACH und Italien:
             Events, Tickets, Freunde, Chat und verifizierte Profile in einer installierbaren Web-App.
           </p>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-hm-inkSoft">
+            HotMess ist kein weiteres Social Network. HotMess ist ein verifiziertes Membership-Oekosystem,
+            das Menschen, Events, Unternehmen, Dienstleistungen und Vorteile miteinander verbindet.
+            Echte Menschen. Echte Events. Echte Geschaefte. Echte Vorteile.
+          </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a
               href="/register"

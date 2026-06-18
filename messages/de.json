@@ -26,14 +26,21 @@
       "partner": "Partner"
     },
     "app": {
+      "discover": "Discover",
       "feed": "Feed",
       "explore": "Entdecken",
       "events": "Events",
+      "connect": "Connect",
       "friends": "Freunde",
       "chat": "Chat",
       "notifications": "Mitteilungen",
       "profile": "Profil",
-      "create": "+ Erstellen"
+      "create": "+ Erstellen",
+      "business": "Business",
+      "services": "Dienstleistungen",
+      "benefits": "Benefits",
+      "creator": "Creator",
+      "digitalAi": "Digital & AI"
     },
     "dating": {
       "discover": "Entdecken",

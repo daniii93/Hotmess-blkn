@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, House, Search, Send } from "lucide-react";
+import { Bot, Briefcase, CalendarDays, Compass, Gift, Send, Sparkles, Wrench } from "lucide-react";
 import type { MouseEvent } from "react";
 import { cn } from "@/lib/utils/cn";
 import type { NavItem } from "./navItems";
@@ -27,7 +27,7 @@ export function NavTab({ item, active, href, avatarUrl, initials, badgeCount, ba
       aria-current={active ? "page" : undefined}
       onClick={onPress}
       className={cn(
-        "relative flex h-12 min-h-11 min-w-11 flex-1 items-center justify-center rounded-full text-hm-inkSoft outline-none transition-transform duration-120 ease-out focus-visible:ring-2 focus-visible:ring-hm-gold focus-visible:ring-offset-2 focus-visible:ring-offset-hm-ivory active:scale-[0.92]",
+        "relative flex h-12 min-h-11 w-[4.4rem] flex-none items-center justify-center rounded-full text-hm-inkSoft outline-none transition-transform duration-120 ease-out focus-visible:ring-2 focus-visible:ring-hm-gold focus-visible:ring-offset-2 focus-visible:ring-offset-hm-ivory active:scale-[0.92] sm:flex-1",
         active && "text-hm-ink",
       )}
     >
@@ -46,24 +46,17 @@ export function NavTab({ item, active, href, avatarUrl, initials, badgeCount, ba
   );
 }
 
-function Icon({ item, active, avatarUrl, initials }: { item: NavItem; active: boolean; avatarUrl: string | null; initials: string }) {
+function Icon({ item, active }: { item: NavItem; active: boolean; avatarUrl: string | null; initials: string }) {
   const iconClass = "h-[23px] w-[23px] transition-all duration-150";
   const strokeWidth = active ? 2.2 : 1.8;
   const fill = active ? "currentColor" : "none";
 
-  if (item.icon === "avatar") {
-    if (avatarUrl) {
-      return <img src={avatarUrl} alt="" className={cn("h-8 w-8 rounded-full object-cover ring-1", active ? "ring-hm-ink" : "ring-hm-gold/30")} />;
-    }
-    return (
-      <span className={cn("flex h-8 w-8 items-center justify-center rounded-full bg-hm-champagne text-[11px] font-semibold", active ? "text-hm-ink ring-1 ring-hm-ink" : "text-hm-inkSoft ring-1 ring-hm-gold/30")}>
-        {initials}
-      </span>
-    );
-  }
-
-  if (item.icon === "home") return <House className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
-  if (item.icon === "heart") return <Heart className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
+  if (item.icon === "compass") return <Compass className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
+  if (item.icon === "calendar") return <CalendarDays className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
   if (item.icon === "send") return <Send className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
-  return <Search className={iconClass} strokeWidth={strokeWidth} aria-hidden="true" />;
+  if (item.icon === "briefcase") return <Briefcase className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
+  if (item.icon === "wrench") return <Wrench className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
+  if (item.icon === "gift") return <Gift className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
+  if (item.icon === "sparkles") return <Sparkles className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
+  return <Bot className={iconClass} strokeWidth={strokeWidth} fill={fill} aria-hidden="true" />;
 }

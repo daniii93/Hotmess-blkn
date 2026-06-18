@@ -34,12 +34,12 @@ export function BottomNav() {
           "fixed inset-x-0 bottom-0 z-50 mx-auto flex w-full justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+14px)]",
         )}
       >
-        <div className="flex w-full max-w-[420px] items-center justify-between rounded-full border border-hm-gold/25 bg-white/85 p-1.5 shadow-[0_8px_30px_rgba(28,25,21,0.10)] backdrop-blur-[20px]">
+        <div className="flex w-full max-w-[760px] items-center justify-start overflow-x-auto rounded-full border border-hm-gold/25 bg-white/85 p-1.5 shadow-[0_8px_30px_rgba(28,25,21,0.10)] backdrop-blur-[20px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:justify-between">
           {navItems.map((item) => {
             const active = activeItem?.key === item.key;
             const target = active ? item.href : getSavedPath(item.key, item.href);
-            const badgeCount = item.key === "inbox" ? badges.unreadMessages : undefined;
-            const badgeDot = item.key === "profile" ? badges.hasUnreadNotifications : item.key === "watch" ? badges.hasNewWatch : false;
+            const badgeCount = item.key === "connect" ? badges.unreadMessages : undefined;
+            const badgeDot = false;
             return (
               <NavTab
                 key={item.key}

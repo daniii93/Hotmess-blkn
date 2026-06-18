@@ -4,19 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CalendarDays, Compass, MessageCircle, PlusCircle, Search, User, Users, Bell } from "lucide-react";
+import { Bot, Briefcase, CalendarDays, Compass, Gift, Send, Sparkles, Wrench } from "lucide-react";
 import { LogoutButton } from "@/components/LogoutButton";
 import { cn } from "../../lib/utils/cn";
 
 const items = [
-  { href: "/feed", labelKey: "feed", icon: Compass },
-  { href: "/explore", labelKey: "explore", icon: Search },
-  { href: "/events", labelKey: "events", icon: CalendarDays },
-  { href: "/friends", labelKey: "friends", icon: Users },
-  { href: "/chat", labelKey: "chat", icon: MessageCircle },
-  { href: "/notifications", labelKey: "notifications", icon: Bell },
-  { href: "/profile", labelKey: "profile", icon: User },
-  { href: "/create", labelKey: "create", icon: PlusCircle },
+  { href: "/feed", labelKey: "discover", icon: Compass, aliases: ["/watch", "/explore", "/explore/people"] },
+  { href: "/events", labelKey: "events", icon: CalendarDays, aliases: [] },
+  { href: "/chat", labelKey: "connect", icon: Send, aliases: ["/friends", "/dating", "/business/coffee", "/business/groups"] },
+  { href: "/business", labelKey: "business", icon: Briefcase, aliases: [] },
+  { href: "/services", labelKey: "services", icon: Wrench, aliases: ["/local-services", "/checkout/local-services"] },
+  { href: "/benefits", labelKey: "benefits", icon: Gift, aliases: [] },
+  { href: "/creator", labelKey: "creator", icon: Sparkles, aliases: [] },
+  { href: "/digital-ai", labelKey: "digitalAi", icon: Bot, aliases: [] },
 ] as const;
 
 export function AppSidebar() {
@@ -29,8 +29,9 @@ export function AppSidebar() {
         <Image src="/hotmess-logo-mark.svg" alt="HotMess" width={44} height={44} priority />
       </Link>
       <nav className="space-y-2" aria-label="App Navigation">
-        {items.map(({ href, labelKey, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(`${href}/`);
+        {items.map(({ href, labelKey, icon: Icon, aliases }) => {
+          const paths = [href, ...(aliases ?? [])];
+          const active = paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
           return (
             <Link
               key={href}
