@@ -10,7 +10,7 @@ export type NavItem = {
 };
 
 export const navItems = [
-  { key: "discover", href: "/feed", label: "Discover", icon: "compass", badge: null, aliases: ["/watch", "/explore", "/explore/people"] },
+  { key: "discover", href: "/discover", label: "Discover", icon: "compass", badge: null, aliases: ["/feed", "/watch", "/explore", "/explore/people"] },
   { key: "events", href: "/events", label: "Events", icon: "calendar", badge: null, aliases: ["/tickets"] },
   { key: "connect", href: "/chat", label: "Connect", icon: "send", badge: "count", aliases: ["/friends", "/dating", "/business/coffee", "/business/groups"] },
   { key: "business", href: "/business", label: "Business", icon: "briefcase", badge: null, aliases: [] },

@@ -9,7 +9,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { cn } from "../../lib/utils/cn";
 
 const items = [
-  { href: "/feed", labelKey: "discover", icon: Compass, aliases: ["/watch", "/explore", "/explore/people"] },
+  { href: "/discover", labelKey: "discover", icon: Compass, aliases: ["/feed", "/watch", "/explore", "/explore/people"] },
   { href: "/events", labelKey: "events", icon: CalendarDays, aliases: [] },
   { href: "/chat", labelKey: "connect", icon: Send, aliases: ["/friends", "/dating", "/business/coffee", "/business/groups"] },
   { href: "/business", labelKey: "business", icon: Briefcase, aliases: [] },
