@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { LocalServiceProviderForm } from "@/components/local-services/LocalServicesForms";
-import { getLocalServiceCategories, getLocalServiceMe } from "@/features/local-services/service";
+import { getAllowedLocalServiceCategories, getLocalServiceCategories, getLocalServiceMe } from "@/features/local-services/service";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +32,7 @@ export default async function LocalServiceCompanyActivatePage() {
           <Link href="/local-services/company/dashboard" className="mt-5 inline-flex rounded-pill bg-hm-ink px-5 py-3 text-sm font-bold text-white">Zum Anbieter-Dashboard</Link>
         </section>
       ) : null}
-      <LocalServiceProviderForm categories={categories} />
+      <LocalServiceProviderForm categories={categories} allowedCategoryIds={getAllowedLocalServiceCategories(categories, me.businessProfile).map((category) => category.id)} />
     </main>
   );
 }

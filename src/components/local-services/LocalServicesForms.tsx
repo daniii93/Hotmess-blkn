@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
-import type { LocalServiceCategory, LocalServiceLead, LocalServiceOffer } from "@/features/local-services/service";
+import type { LocalServiceCategory, LocalServiceLead, LocalServiceMe, LocalServiceOffer } from "@/features/local-services/service";
 
 type ApiState = { status: "idle" | "loading" | "success" | "error"; message?: string };
 
@@ -35,7 +35,7 @@ async function postJson(url: string, body: unknown) {
   return data;
 }
 
-export function LocalServiceProjectWizard({ categories }: { categories: LocalServiceCategory[] }) {
+export function LocalServiceProjectWizard({ categories, me }: { categories: LocalServiceCategory[]; me: LocalServiceMe | null }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [state, setState] = useState<ApiState>({ status: "idle" });
@@ -52,6 +52,9 @@ export function LocalServiceProjectWizard({ categories }: { categories: LocalSer
     country: "AT",
     radiusKm: "10",
     contactPreference: "platform_chat",
+    requestType: me?.businessProfile ? "company" : "private",
+    allowSameCategorySubcontract: false,
+    subcontractScope: "",
   });
 
   const selectedCategory = useMemo(() => categories.find((category) => category.id === form.categoryId), [categories, form.categoryId]);
@@ -81,18 +84,37 @@ export function LocalServiceProjectWizard({ categories }: { categories: LocalSer
       <h1 className="hm-display mt-2 text-4xl text-hm-ink">Auftrag einstellen</h1>
 
       {step === 1 ? (
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              type="button"
-              onClick={() => update("categoryId", category.id)}
-              className={`rounded-xl border px-4 py-4 text-left transition ${form.categoryId === category.id ? "border-hm-gold bg-hm-champagne" : "border-hm-border bg-hm-ivory hover:border-hm-gold/50"}`}
-            >
-              <span className="block text-sm font-bold text-hm-ink">{category.name}</span>
-              <span className="mt-1 block text-xs text-hm-inkSoft">{category.description}</span>
+        <div className="mt-6 grid gap-5">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <button type="button" onClick={() => setForm((current) => ({ ...current, requestType: "private", allowSameCategorySubcontract: false }))} className={`rounded-xl border px-4 py-4 text-left ${form.requestType === "private" ? "border-hm-gold bg-hm-champagne" : "border-hm-border bg-hm-ivory"}`}>
+              <span className="block text-sm font-bold text-hm-ink">Privatkunde</span>
+              <span className="mt-1 block text-xs text-hm-inkSoft">Auftrag fuer dich privat.</span>
             </button>
-          ))}
+            <button type="button" disabled={!me?.businessProfile} onClick={() => setForm((current) => ({ ...current, requestType: "company", allowSameCategorySubcontract: false }))} className={`rounded-xl border px-4 py-4 text-left disabled:opacity-45 ${form.requestType === "company" ? "border-hm-gold bg-hm-champagne" : "border-hm-border bg-hm-ivory"}`}>
+              <span className="block text-sm font-bold text-hm-ink">Firma als Kunde</span>
+              <span className="mt-1 block text-xs text-hm-inkSoft">Dein Unternehmen fragt eine andere Leistung an.</span>
+            </button>
+            <button type="button" disabled={!me?.businessProfile} onClick={() => setForm((current) => ({ ...current, requestType: "subcontract", allowSameCategorySubcontract: true }))} className={`rounded-xl border px-4 py-4 text-left disabled:opacity-45 ${form.requestType === "subcontract" ? "border-hm-gold bg-hm-champagne" : "border-hm-border bg-hm-ivory"}`}>
+              <span className="block text-sm font-bold text-hm-ink">Subunternehmer</span>
+              <span className="mt-1 block text-xs text-hm-inkSoft">Gleiche Branche nur mit sichtbarem Bauvorhaben.</span>
+            </button>
+          </div>
+          {form.requestType === "subcontract" ? (
+            <Textarea label="Bauvorhaben / Subunternehmerleistung" value={form.subcontractScope} onChange={(value) => update("subcontractScope", value)} />
+          ) : null}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => update("categoryId", category.id)}
+                className={`rounded-xl border px-4 py-4 text-left transition ${form.categoryId === category.id ? "border-hm-gold bg-hm-champagne" : "border-hm-border bg-hm-ivory hover:border-hm-gold/50"}`}
+              >
+                <span className="block text-sm font-bold text-hm-ink">{category.name}</span>
+                <span className="mt-1 block text-xs text-hm-inkSoft">{category.description}</span>
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 
@@ -140,6 +162,8 @@ export function LocalServiceProjectWizard({ categories }: { categories: LocalSer
       {step === 6 ? (
         <div className="mt-6 grid gap-3 rounded-xl bg-hm-ivory p-4 text-sm text-hm-inkSoft">
           <Summary label="Kategorie" value={selectedCategory?.name ?? "Keine"} />
+          <Summary label="Auftragstyp" value={form.requestType === "subcontract" ? "Subunternehmerauftrag" : form.requestType === "company" ? "Firma als Kunde" : "Privatkunde"} />
+          {form.requestType === "subcontract" ? <Summary label="Bauvorhaben" value={form.subcontractScope || "Offen"} /> : null}
           <Summary label="Titel" value={form.title || "Offen"} />
           <Summary label="Beschreibung" value={form.description || "Offen"} />
           <Summary label="Zeitraum" value={form.desiredTimeline || "Offen"} />
@@ -170,10 +194,12 @@ export function LocalServiceProjectWizard({ categories }: { categories: LocalSer
   );
 }
 
-export function LocalServiceProviderForm({ categories }: { categories: LocalServiceCategory[] }) {
+export function LocalServiceProviderForm({ categories, allowedCategoryIds = [] }: { categories: LocalServiceCategory[]; allowedCategoryIds?: string[] }) {
   const router = useRouter();
   const [state, setState] = useState<ApiState>({ status: "idle" });
-  const [selected, setSelected] = useState<string[]>(categories.slice(0, 2).map((category) => category.id));
+  const allowedSet = useMemo(() => new Set(allowedCategoryIds), [allowedCategoryIds]);
+  const allowedCategories = categories.filter((category) => allowedSet.has(category.id));
+  const [selected, setSelected] = useState<string[]>(allowedCategories.slice(0, 2).map((category) => category.id));
   const [form, setForm] = useState({
     description: "",
     baseCity: "",
@@ -223,11 +249,12 @@ export function LocalServiceProviderForm({ categories }: { categories: LocalServ
           <p className="text-sm font-bold text-hm-ink">Dienstleistungskategorien</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {categories.map((category) => (
-              <button key={category.id} type="button" onClick={() => toggleCategory(category.id)} className={`rounded-pill border px-3 py-2 text-xs font-bold ${selected.includes(category.id) ? "border-hm-business bg-hm-business/10 text-hm-business" : "border-hm-border text-hm-inkSoft"}`}>
+              <button key={category.id} type="button" disabled={!allowedSet.has(category.id)} onClick={() => toggleCategory(category.id)} className={`rounded-pill border px-3 py-2 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-35 ${selected.includes(category.id) ? "border-hm-business bg-hm-business/10 text-hm-business" : "border-hm-border text-hm-inkSoft"}`}>
                 {category.name}
               </button>
             ))}
           </div>
+          <p className="mt-2 text-xs text-hm-inkSoft">Nicht passende Kategorien sind gesperrt. Grundlage sind Branche, Firmenname, Headline und angebotene Leistungen deines Business-Profils.</p>
         </div>
         <Toggle label="Versicherung vorhanden" checked={form.insuranceAvailable} onChange={(value) => update("insuranceAvailable", value)} />
         <Toggle label="Notdienst moeglich" checked={form.emergencyService} onChange={(value) => update("emergencyService", value)} />

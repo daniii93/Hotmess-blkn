@@ -32,12 +32,19 @@ export default async function LocalServiceLeadPage({ params }: { params: Promise
         <p className="hm-label">Lead</p>
         <h1 className="hm-display mt-2 text-4xl text-hm-ink">{project.title}</h1>
         <p className="mt-4 text-sm leading-6 text-hm-inkSoft">{project.description}</p>
+        {project.requestType === "subcontract" ? (
+          <div className="mt-5 rounded-xl border border-hm-business/25 bg-hm-business/5 p-4">
+            <p className="text-sm font-black text-hm-ink">Subunternehmerauftrag</p>
+            <p className="mt-2 text-sm leading-6 text-hm-inkSoft">{project.subcontractScope}</p>
+          </div>
+        ) : null}
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <Info label="Kategorie" value={project.category?.name ?? "Offen"} />
           <Info label="Budget" value={formatLocalServiceMoney(project.budgetCents)} />
           <Info label="Leadpreis" value={formatLocalServiceMoney(lead.priceCents)} />
           <Info label="Ort" value={purchased ? `${project.address ?? ""} ${project.zip ?? ""} ${project.city ?? ""}` : `${project.city ?? "Ort"}, Umkreis ${project.radiusKm ?? 10} km`} />
           <Info label="Dringlichkeit" value={project.urgency ?? "flexibel"} />
+          <Info label="Typ" value={project.requestType === "subcontract" ? "Subunternehmer" : project.requestType === "company" ? "Firma" : "Privat"} />
           <Info label="Status" value={lead.status} />
         </div>
         {!purchased ? (

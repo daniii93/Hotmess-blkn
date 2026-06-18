@@ -13,6 +13,7 @@ export type LocalServiceCategory = {
   maxLeadPriceCents: number;
   commissionRate: number;
   requiredDocuments: string[];
+  businessKeywords: string[];
 };
 
 export type LocalServiceMe = {
@@ -26,6 +27,10 @@ export type LocalServiceMe = {
     displayName: string;
     verificationStatus: string;
     moduleActive: boolean;
+    industry: string | null;
+    offeringTags: string[];
+    company: string | null;
+    headline: string | null;
   } | null;
   providerProfile: LocalServiceProvider | null;
 };
@@ -64,6 +69,10 @@ export type LocalServiceProject = {
   country: string | null;
   radiusKm: number | null;
   contactPreference: string | null;
+  requestType: string;
+  requesterBusinessProfileId: string | null;
+  allowSameCategorySubcontract: boolean;
+  subcontractScope: string | null;
   status: string;
   createdAt: string;
   category: LocalServiceCategory | null;
@@ -131,6 +140,7 @@ const mapCategory = (row: any): LocalServiceCategory => ({
   maxLeadPriceCents: row.max_lead_price_cents ?? 25000,
   commissionRate: Number(row.commission_rate ?? 8),
   requiredDocuments: row.required_documents ?? [],
+  businessKeywords: row.business_keywords ?? [],
 });
 
 const mapProject = (row: any): LocalServiceProject => ({
@@ -148,6 +158,10 @@ const mapProject = (row: any): LocalServiceProject => ({
   country: row.country ?? null,
   radiusKm: row.radius_km ?? null,
   contactPreference: row.contact_preference ?? null,
+  requestType: row.request_type ?? "private",
+  requesterBusinessProfileId: row.requester_business_profile_id ?? null,
+  allowSameCategorySubcontract: Boolean(row.allow_same_category_subcontract),
+  subcontractScope: row.subcontract_scope ?? null,
   status: row.status,
   createdAt: row.created_at,
   category: row.local_service_categories ? mapCategory(row.local_service_categories) : null,
@@ -233,6 +247,39 @@ export const getLocalServiceCategories = async (): Promise<LocalServiceCategory[
   return (data ?? []).map(mapCategory);
 };
 
+const normalizeTerm = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+const businessTerms = (business: LocalServiceMe["businessProfile"]) => {
+  if (!business) return [];
+  return [
+    business.industry,
+    business.company,
+    business.headline,
+    business.displayName,
+    ...business.offeringTags,
+  ]
+    .filter(Boolean)
+    .flatMap((item) => normalizeTerm(String(item)).split(" "))
+    .filter((term) => term.length >= 3);
+};
+
+export const isCategoryAllowedForBusiness = (category: LocalServiceCategory, business: LocalServiceMe["businessProfile"]) => {
+  const terms = businessTerms(business);
+  if (terms.length === 0) return false;
+  const keywords = category.businessKeywords.map(normalizeTerm).flatMap((keyword) => keyword.split(" ")).filter(Boolean);
+  if (keywords.length === 0) return true;
+  return keywords.some((keyword) => terms.includes(keyword) || terms.some((term) => term.includes(keyword) || keyword.includes(term)));
+};
+
+export const getAllowedLocalServiceCategories = (categories: LocalServiceCategory[], business: LocalServiceMe["businessProfile"]) =>
+  categories.filter((category) => isCategoryAllowedForBusiness(category, business));
+
 export const getLocalServiceMe = async (): Promise<LocalServiceMe | null> => {
   const profile = await getCurrentUserProfile();
   if (!profile) return null;
@@ -240,7 +287,7 @@ export const getLocalServiceMe = async (): Promise<LocalServiceMe | null> => {
   const supabase = createSupabaseAdminClient();
   const { data: business } = await supabase
     .from("business_profiles")
-    .select("id,user_id,owner_user_id,display_name,legal_name,company,headline,verification_status,business_profile_modules(module_key,is_active)")
+    .select("id,user_id,owner_user_id,display_name,legal_name,company,headline,industry,offering_tags,verification_status,business_profile_modules(module_key,is_active)")
     .or(`user_id.eq.${profile.id},owner_user_id.eq.${profile.id}`)
     .maybeSingle();
 
@@ -268,6 +315,10 @@ export const getLocalServiceMe = async (): Promise<LocalServiceMe | null> => {
           displayName: business.display_name ?? business.legal_name ?? business.company ?? business.headline ?? "Unternehmen",
           verificationStatus: business.verification_status ?? "pending",
           moduleActive,
+          industry: business.industry ?? null,
+          offeringTags: business.offering_tags ?? [],
+          company: business.company ?? null,
+          headline: business.headline ?? null,
         }
       : null,
     providerProfile: provider,
@@ -301,6 +352,16 @@ export const submitLocalServiceProvider = async (input: {
   if (me.businessProfile.verificationStatus !== "verified") throw new Error("Dein Unternehmensprofil muss zuerst geprueft werden.");
 
   const supabase = createSupabaseAdminClient();
+  const categories = await getLocalServiceCategories();
+  const categoryMap = new Map(categories.map((category) => [category.id, category]));
+  const blocked = input.categories
+    .map((id) => categoryMap.get(id))
+    .filter((category): category is LocalServiceCategory => Boolean(category))
+    .filter((category) => !isCategoryAllowedForBusiness(category, me.businessProfile));
+  if (blocked.length) {
+    throw new Error(`Diese Kategorie passt nicht zu deinem Firmenprofil: ${blocked.map((category) => category.name).join(", ")}.`);
+  }
+
   const { data: provider, error } = await supabase
     .from("local_service_provider_profiles")
     .upsert(
@@ -358,6 +419,9 @@ export const createLocalServiceProject = async (input: {
   country: string;
   radiusKm?: number | null;
   contactPreference: "platform_chat" | "phone_after_acceptance" | "platform_visit";
+  requestType?: "private" | "company" | "subcontract";
+  allowSameCategorySubcontract?: boolean;
+  subcontractScope?: string | null;
 }) => {
   const profile = await getCurrentUserProfile();
   if (!profile) throw new Error("Bitte zuerst einloggen.");
@@ -366,6 +430,27 @@ export const createLocalServiceProject = async (input: {
   const supabase = createSupabaseAdminClient();
   const { data: category } = await supabase.from("local_service_categories").select("*").eq("id", input.categoryId).maybeSingle();
   const budgetCents = moneyToCents(input.budgetEuro);
+  const me = await getLocalServiceMe();
+  const requesterBusinessId = input.requestType && input.requestType !== "private" ? me?.businessProfile?.id ?? null : null;
+  if (input.requestType && input.requestType !== "private") {
+    if (!me?.businessProfile || me.businessProfile.verificationStatus !== "verified") {
+      throw new Error("Firmen- oder Subunternehmerauftraege brauchen ein verifiziertes Unternehmensprofil.");
+    }
+  }
+
+  let ownProviderCategoryIds = new Set<string>();
+  if (me?.providerProfile) {
+    ownProviderCategoryIds = new Set(me.providerProfile.categories.map((item) => item.id));
+  }
+  const sameCategoryAsOwnBusiness = ownProviderCategoryIds.has(input.categoryId);
+  const subcontract = input.requestType === "subcontract" && input.allowSameCategorySubcontract;
+  if (sameCategoryAsOwnBusiness && input.requestType !== "private" && !subcontract) {
+    throw new Error("Gleiche Dienstleistungskategorie ist nur als eindeutig markierter Subunternehmerauftrag moeglich.");
+  }
+  if (subcontract && (!input.subcontractScope || input.subcontractScope.trim().length < 20)) {
+    throw new Error("Bitte beschreibe das Bauvorhaben und die Subunternehmerleistung sichtbar fuer angefragte Anbieter.");
+  }
+
   const { data: project, error } = await supabase
     .from("local_service_projects")
     .insert({
@@ -382,6 +467,10 @@ export const createLocalServiceProject = async (input: {
       country: input.country,
       radius_km: input.radiusKm ?? 10,
       contact_preference: input.contactPreference,
+      requester_business_profile_id: requesterBusinessId,
+      request_type: input.requestType ?? "private",
+      allow_same_category_subcontract: Boolean(subcontract),
+      subcontract_scope: input.subcontractScope || null,
       status: "open",
     })
     .select("id")
@@ -395,6 +484,7 @@ export const createLocalServiceProject = async (input: {
     .limit(50);
 
   const matchingProviders = (providers ?? []).filter((provider: any) =>
+    provider.id !== me?.providerProfile?.id &&
     (provider.local_service_provider_categories ?? []).some((item: any) => item.category_id === input.categoryId),
   );
 

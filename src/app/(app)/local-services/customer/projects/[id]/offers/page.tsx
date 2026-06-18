@@ -33,6 +33,7 @@ export default async function LocalServiceProjectOffersPage({ params }: { params
           <Info label="Kategorie" value={project.category?.name ?? "Offen"} />
           <Info label="Budget" value={formatLocalServiceMoney(project.budgetCents)} />
           <Info label="Ort" value={project.city ?? "Offen"} />
+          <Info label="Typ" value={project.requestType === "subcontract" ? "Subunternehmer" : project.requestType === "company" ? "Firma" : "Privat"} />
           <Info label="Status" value={project.status} />
         </div>
       </section>

@@ -15,6 +15,9 @@ const schema = z.object({
   country: z.string().min(2).max(40),
   radiusKm: z.number().int().min(1).max(100).nullable().optional(),
   contactPreference: z.enum(["platform_chat", "phone_after_acceptance", "platform_visit"]),
+  requestType: z.enum(["private", "company", "subcontract"]).default("private"),
+  allowSameCategorySubcontract: z.boolean().default(false),
+  subcontractScope: z.string().max(2000).nullable().optional(),
 });
 
 export async function GET() {

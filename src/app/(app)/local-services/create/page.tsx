@@ -16,7 +16,7 @@ export default async function LocalServiceCreatePage() {
       <Link href="/local-services" className="inline-flex items-center gap-2 text-sm font-bold text-hm-inkSoft hover:text-hm-ink">
         <ChevronLeft className="h-4 w-4" /> Zurueck zu Dienstleistungen
       </Link>
-      <LocalServiceProjectWizard categories={categories} />
+      <LocalServiceProjectWizard categories={categories} me={me} />
     </main>
   );
 }
