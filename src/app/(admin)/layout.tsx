@@ -11,6 +11,7 @@ const adminItems = [
   { href: "/admin/finance", labelKey: "finance" },
   { href: "/admin/partners", labelKey: "partners" },
   { href: "/admin/partners-program", labelKey: "partnersProgram" },
+  { href: "/admin/local-services", labelKey: "localServices" },
   { href: "/admin/codes", labelKey: "codes" },
   { href: "/admin/scanners", labelKey: "scanners" },
   { href: "/admin/moderation", labelKey: "moderation" },

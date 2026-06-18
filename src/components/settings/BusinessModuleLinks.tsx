@@ -37,7 +37,7 @@ const moduleConfig: Record<BusinessModuleKey, {
   local_services: {
     title: "Lokale Dienstleistungen",
     detail: "Angebote, Leads und regionale Services",
-    href: "/business/profile?module=local_services",
+    href: "/local-services",
     icon: Wrench,
   },
   ai_marketplace: {

@@ -12,7 +12,7 @@ type ProfileAccess = {
 };
 
 const publicPrefixes = ["/", "/event", "/login", "/register", "/reset-password", "/impressum", "/agb", "/datenschutz", "/partner", "/demo-admin", "/logout", "/profile", "/profile/edit", "/settings"] as const;
-const appPrefixes = ["/feed", "/watch", "/create", "/explore", "/events", "/checkout", "/tickets", "/friends", "/chat", "/notifications", "/u", "/profile/edit", "/settings", "/onboarding", "/verify"] as const;
+const appPrefixes = ["/feed", "/watch", "/create", "/explore", "/events", "/checkout", "/tickets", "/friends", "/chat", "/notifications", "/u", "/profile/edit", "/settings", "/onboarding", "/verify", "/local-services"] as const;
 const datingPrefixes = ["/dating"] as const;
 const businessPrefixes = ["/business"] as const;
 const scannerPrefixes = ["/scanner"] as const;
@@ -21,7 +21,7 @@ const unverifiedAllowedPrefixes = ["/profile", "/profile/edit", "/settings", "/v
 const authApiPrefixes = ["/api/auth", "/auth"] as const;
 const publicApiPrefixes = ["/api/webhooks", "/api/cron", "/api/paypal/capture"] as const;
 const setupApiPrefixes = ["/api/profile", "/api/settings"] as const;
-const verifiedApiPrefixes = ["/api/chat", "/api/social", "/api/dating", "/api/business", "/api/events", "/api/tickets"] as const;
+const verifiedApiPrefixes = ["/api/chat", "/api/social", "/api/dating", "/api/business", "/api/events", "/api/tickets", "/api/local-services"] as const;
 const adminApiPrefixes = ["/api/admin"] as const;
 const scannerApiPrefixes = ["/api/scanner"] as const;
 
