@@ -51,6 +51,7 @@ export type BusinessMe = {
 
 export type BusinessCandidate = {
   userId: string;
+  username: string | null;
   name: string;
   city: string | null;
   verified: boolean;
@@ -163,6 +164,7 @@ const mapCandidate = (
   me: BusinessProfile | null = null,
 ): BusinessCandidate => ({
   userId: business.user_id,
+  username: profile?.username ?? null,
   name: profile?.first_name || profile?.username || "HotMess",
   city: profile?.city ?? null,
   verified: profile?.verification_status === "verified",
@@ -286,4 +288,3 @@ export const getJobListing = async (id: string): Promise<JobListing | null> => {
   const jobs = await getJobListings();
   return jobs.find((job) => job.id === id) ?? null;
 };
-
