@@ -27,6 +27,19 @@ export default async function LocalServiceCompanyDashboardPage() {
         </div>
       </section>
 
+      <section className="rounded-card border border-hm-business/20 bg-hm-business/5 p-5 shadow-luxury">
+        <p className="hm-label text-hm-business">Anbieter-Kosten</p>
+        <h2 className="hm-display mt-2 text-3xl text-hm-ink">Nur fuer dein Anbieterprofil sichtbar.</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <Metric label="Leadkauf" value="pro Lead" />
+          <Metric label="Provision" value="8 %" />
+          <Metric label="Auszahlung" value="nach Kundenfreigabe" />
+        </div>
+        <p className="mt-4 text-sm leading-6 text-hm-inkSoft">
+          Kunden sehen diese internen Plattformkosten nicht. Sie sehen nur Angebotspreis, Auftragsstatus und die geschuetzte Abwicklung.
+        </p>
+      </section>
+
       <section className="grid gap-4 lg:grid-cols-2">
         <LeadList title="Neue Leads" leads={available} empty="Keine neuen passenden Auftraege." />
         <LeadList title="Gekaufte Leads" leads={purchased} empty="Noch keine gekauften Leads." />

@@ -30,12 +30,10 @@ export default async function LocalServiceCheckoutPage({ params }: { params: Pro
         <p className="hm-label mt-5">Sicherer Checkout</p>
         <h1 className="hm-display mt-2 text-4xl text-hm-ink">Auftrag verbindlich buchen</h1>
         <div className="mt-5 grid gap-3 rounded-xl bg-hm-ivory p-4">
-          <Line label="Auftragssumme" value={formatLocalServiceMoney(order.totalAmountCents)} />
-          <Line label="HotMess Servicefee" value={formatLocalServiceMoney(order.serviceFeeCents)} />
-          <Line label="Auszahlung Anbieter" value={formatLocalServiceMoney(order.payoutAmountCents)} />
+          <Line label="Gesamtpreis fuer dich" value={formatLocalServiceMoney(order.totalAmountCents)} />
           <Line label="Status" value={order.status} />
         </div>
-        <p className="mt-4 text-sm leading-6 text-hm-inkSoft">MVP-Checkout markiert den Auftrag als bezahlt. Stripe Connect / Treuhand kann spaeter an diesen Punkt angeschlossen werden.</p>
+        <p className="mt-4 text-sm leading-6 text-hm-inkSoft">Nach Abschluss wird der Auftrag gestartet und die weitere Abstimmung laeuft ueber HotMess.</p>
         <div className="mt-6"><LocalServiceCheckoutButton orderId={order.id} /></div>
       </section>
     </main>

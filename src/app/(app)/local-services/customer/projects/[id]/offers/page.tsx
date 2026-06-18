@@ -64,7 +64,7 @@ export default async function LocalServiceProjectOffersPage({ params }: { params
               {offer.status === "sent" ? <div className="mt-4"><OfferAcceptButton offer={offer} /></div> : null}
             </article>
           )) : (
-            <p className="rounded-xl bg-hm-ivory px-4 py-6 text-sm text-hm-inkSoft">Noch keine Angebote. Sobald ein Anbieter deinen Lead kauft und ein Angebot sendet, erscheint es hier.</p>
+            <p className="rounded-xl bg-hm-ivory px-4 py-6 text-sm text-hm-inkSoft">Noch keine Angebote. Sobald ein passender Anbieter ein Angebot sendet, erscheint es hier.</p>
           )}
         </div>
       </section>

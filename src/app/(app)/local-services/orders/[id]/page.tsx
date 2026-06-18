@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { DisputeForm, OrderActionButtons, ReviewForm } from "@/components/local-services/LocalServicesForms";
-import { formatLocalServiceMoney, getLocalServiceOrder } from "@/features/local-services/service";
+import { formatLocalServiceMoney, getLocalServiceMe, getLocalServiceOrder } from "@/features/local-services/service";
 
 export const dynamic = "force-dynamic";
 
 export default async function LocalServiceOrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const order = await getLocalServiceOrder(id);
+  const [order, me] = await Promise.all([getLocalServiceOrder(id), getLocalServiceMe()]);
 
   if (!order) {
     return (
@@ -30,9 +30,18 @@ export default async function LocalServiceOrderPage({ params }: { params: Promis
         <h1 className="hm-display mt-2 text-4xl text-hm-ink">{formatLocalServiceMoney(order.totalAmountCents)}</h1>
         <div className="mt-5 grid gap-3 sm:grid-cols-4">
           <Info label="Status" value={order.status} />
-          <Info label="Provision" value={formatLocalServiceMoney(order.commissionAmountCents)} />
-          <Info label="Servicefee" value={formatLocalServiceMoney(order.serviceFeeCents)} />
-          <Info label="Auszahlung" value={formatLocalServiceMoney(order.payoutAmountCents)} />
+          <Info label="Gesamtpreis" value={formatLocalServiceMoney(order.totalAmountCents)} />
+          {me?.providerProfile?.id === order.providerId ? (
+            <>
+              <Info label="Plattformprovision" value={formatLocalServiceMoney(order.commissionAmountCents)} />
+              <Info label="Auszahlung" value={formatLocalServiceMoney(order.payoutAmountCents)} />
+            </>
+          ) : (
+            <>
+              <Info label="Abwicklung" value="HotMess" />
+              <Info label="Kontakt" value="geschuetzt" />
+            </>
+          )}
         </div>
         <div className="mt-6"><OrderActionButtons orderId={order.id} status={order.status} /></div>
       </section>
