@@ -1,4 +1,4 @@
-const CACHE_VERSION = "hotmess-pwa-v2";
+const CACHE_VERSION = "hotmess-pwa-v3";
 const STATIC_CACHE = `${CACHE_VERSION}:static`;
 const IMAGE_CACHE = `${CACHE_VERSION}:images`;
 
@@ -22,11 +22,19 @@ const NETWORK_ONLY_PREFIXES = [
   "/api",
   "/profile",
   "/settings",
+  "/connect",
+  "/friends",
+  "/explore",
   "/chat",
   "/dating",
   "/business",
   "/events",
   "/tickets",
+  "/local-services",
+  "/services",
+  "/benefits",
+  "/creator",
+  "/digital-ai",
   "/login",
   "/register",
   "/reset-password",

@@ -65,6 +65,10 @@ export default async function ConnectPage() {
               Hallo {firstName}. Hier bedienst du den vollen Connect-Kreis: Menschen finden, schreiben, Anfragen
               bearbeiten, Dating und Business getrennt nutzen, Event-Kontakte aufbauen und Services verbinden.
             </p>
+            <div className="mt-5 inline-flex w-fit items-center gap-2 rounded-pill border border-hm-gold/30 bg-hm-champagne px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-hm-ink">
+              <CheckCircle2 className="h-4 w-4 text-hm-goldDeep" />
+              Connect Vollleistung aktiv
+            </div>
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               <HeroButton href="/chat" icon={<Send className="h-4 w-4" />} label="Inbox oeffnen" />
               <HeroButton href="/explore/people" icon={<Search className="h-4 w-4" />} label="Menschen entdecken" />
