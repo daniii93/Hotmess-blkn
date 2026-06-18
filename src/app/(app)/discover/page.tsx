@@ -74,6 +74,7 @@ export default async function DiscoverPage() {
             <HeroButton href="/explore/people" icon={<UserRound className="h-4 w-4" />} label="Menschen finden" />
             <HeroButton href="/create" icon={<PlusCircle className="h-4 w-4" />} label="Beitrag erstellen" />
             <HeroButton href="/services" icon={<Wrench className="h-4 w-4" />} label="Dienstleistung suchen" />
+            <HeroButton href="/creator" icon={<Sparkles className="h-4 w-4" />} label="Creator Wissen" />
           </div>
         </div>
       </section>
@@ -225,6 +226,7 @@ export default async function DiscoverPage() {
             <MiniRow href="/verify" icon={<CheckCircle2 className="h-4 w-4" />} title="Verifizierung als Plattformregel" text="Nicht verifiziert bedeutet: nicht sichtbar und kein aktiver Zugang." />
             <MiniRow href="/services" icon={<Wrench className="h-4 w-4" />} title="Dienstleistungen erweitert" text="Kunden- und Anbieteransicht sind getrennt." />
             <MiniRow href="/benefits" icon={<Bell className="h-4 w-4" />} title="Benefits vorbereitet" text="Member-Vorteile werden als eigener Bereich aufgebaut." />
+            <MiniRow href="/creator" icon={<Sparkles className="h-4 w-4" />} title="Creator aufgebaut" text="Verifizierte Experten, Coachings, Kurse und digitale Produkte werden sicher gebuendelt." />
           </div>
         </Section>
       </div>
