@@ -16,6 +16,7 @@ import {
   Ticket,
   UserCog,
   Users,
+  WalletCards,
 } from "lucide-react";
 import { LogoutButton } from "@/components/profile/LogoutButton";
 import { BusinessModuleLinks, type BusinessModuleState } from "@/components/settings/BusinessModuleLinks";
@@ -72,6 +73,7 @@ export default async function SettingsPage() {
         <SettingsLink icon={Shield} title="Trust-Signale" detail="Verifizierung, Anbieterstatus und echte Plattformsignale" href="/trust" />
         <SettingsLink icon={Heart} title="HotMess Plus" detail="Membership, Vorteile und Premium-Signale" href="/membership" />
         <SettingsLink icon={UserCog} title="Rollen & Freigaben" detail="Dating, Business, Dienstleister, Creator, Digital & AI" href="/membership" />
+        <SettingsLink icon={Users} title="Communities" detail="Gruppen, Events, Business und Fachraeume" href="/communities" />
       </SettingsGroup>
 
       <SettingsGroup title="Inhalt & Anzeige">
@@ -85,6 +87,7 @@ export default async function SettingsPage() {
       </SettingsGroup>
 
       <SettingsGroup title="Tickets & Events">
+        <SettingsLink icon={WalletCards} title="Wallet" detail="Tickets, Codes, Add-ons, Auftraege und Benefits" href="/wallet" />
         <SettingsLink icon={Ticket} title="Meine Tickets" detail="QR-Tickets, Hotel-Codes, Add-ons" href="/tickets" />
         <SettingsLink icon={CalendarDays} title="Meine Events & Warteliste" detail="Besuchte Events und offene Plaetze" href="/events" />
       </SettingsGroup>
@@ -98,6 +101,7 @@ export default async function SettingsPage() {
         <SettingsLink icon={FileText} title="Datenschutz" detail="DSGVO und Privatsphaere" href="/datenschutz" />
         <SettingsLink icon={FileText} title="Impressum" detail="Braun Gruppe GmbH" href="/impressum" />
         {profile.role === "admin" ? <SettingsLink icon={Shield} title="Admin-Dashboard" detail="Zone F" href="/admin" /> : null}
+        {profile.role === "admin" ? <SettingsLink icon={Shield} title="Platform OS" detail="Recommendations, Communities, Analytics, Graph, Wallet" href="/admin/platform" /> : null}
         {profile.role === "scanner" ? <SettingsLink icon={Shield} title="Scanner" detail="Zone E" href="/scanner" /> : null}
       </SettingsGroup>
 

@@ -16,15 +16,18 @@ import {
   Ticket,
   UserRound,
   UsersRound,
+  WalletCards,
   Wrench,
 } from "lucide-react";
 import { getDiscoverData } from "@/features/discover/service";
 import { formatEventDate } from "@/features/events/format";
+import { getRecommendationData } from "@/features/recommendations/service";
+import { PersonalizedSection } from "@/components/recommendations/PersonalizedSection";
 
 export const dynamic = "force-dynamic";
 
 export default async function DiscoverPage() {
-  const data = await getDiscoverData();
+  const [data, recommendationData] = await Promise.all([getDiscoverData(), getRecommendationData()]);
   const firstName = data.profile?.first_name ?? data.profile?.username ?? "HotMess";
   const city = data.profile?.city ?? null;
   const isAdmin = data.profile?.role === "admin";
@@ -78,9 +81,13 @@ export default async function DiscoverPage() {
             <HeroButton href="/creator" icon={<Sparkles className="h-4 w-4" />} label="Creator Wissen" />
             <HeroButton href="/digital-ai" icon={<Bot className="h-4 w-4" />} label="Digital & AI" />
             <HeroButton href="/membership" icon={<Gift className="h-4 w-4" />} label="HotMess Plus" />
+            <HeroButton href="/communities" icon={<UsersRound className="h-4 w-4" />} label="Communities" />
+            <HeroButton href="/wallet" icon={<WalletCards className="h-4 w-4" />} label="Wallet" />
           </div>
         </div>
       </section>
+
+      <PersonalizedSection items={recommendationData.recommendations.slice(0, 6)} emptyText={recommendationData.empty} />
 
       <Section title="Persoenliche Empfehlungen" href="/explore" cta="Mehr entdecken">
         <div className="grid gap-4 md:grid-cols-3">
@@ -233,6 +240,8 @@ export default async function DiscoverPage() {
             <MiniRow href="/digital-ai" icon={<Bot className="h-4 w-4" />} title="Digital & AI aufgebaut" text="Gepruefte digitale Loesungen, Automatisierungen und KI-Angebote werden sicher gebuendelt." />
             <MiniRow href="/trust" icon={<CheckCircle2 className="h-4 w-4" />} title="Trust-System vorbereitet" text="Vertrauen basiert auf echten Signalen, nicht auf Fake-Badges oder Social Credit." />
             <MiniRow href="/membership" icon={<Gift className="h-4 w-4" />} title="Membership vorbereitet" text="HotMess Plus buendelt Vorteile, Rollen und Premium-Signale ohne unfertige Zahlungen." />
+            <MiniRow href="/communities" icon={<UsersRound className="h-4 w-4" />} title="Community Layer vorbereitet" text="Bestehende Gruppen, Events und Fachbereiche werden sicher verbunden." />
+            <MiniRow href="/wallet" icon={<WalletCards className="h-4 w-4" />} title="Wallet vorbereitet" text="Persoenliche Uebersicht fuer Tickets, Codes, Auftraege und Vorteile." />
           </div>
         </Section>
       </div>
@@ -248,6 +257,8 @@ export default async function DiscoverPage() {
           <HeroButton href="/local-services/create" icon={<Wrench className="h-4 w-4" />} label="Auftrag erstellen" />
           <HeroButton href="/digital-ai" icon={<Bot className="h-4 w-4" />} label="Digital & AI" />
           <HeroButton href="/membership" icon={<Gift className="h-4 w-4" />} label="Membership" />
+          <HeroButton href="/communities" icon={<UsersRound className="h-4 w-4" />} label="Communities" />
+          <HeroButton href="/wallet" icon={<WalletCards className="h-4 w-4" />} label="Wallet" />
           <HeroButton href="/profile/edit" icon={<UserRound className="h-4 w-4" />} label="Profil bearbeiten" />
           {isProvider ? <HeroButton href="/local-services/company/dashboard" icon={<Wrench className="h-4 w-4" />} label="Anbieter-Dashboard" /> : null}
           {isScanner ? <HeroButton href="/scanner" icon={<CheckCircle2 className="h-4 w-4" />} label="Scanner" /> : null}

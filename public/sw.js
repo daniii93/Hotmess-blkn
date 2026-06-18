@@ -30,6 +30,8 @@ const NETWORK_ONLY_PREFIXES = [
   "/business",
   "/events",
   "/tickets",
+  "/wallet",
+  "/communities",
   "/local-services",
   "/services",
   "/benefits",
