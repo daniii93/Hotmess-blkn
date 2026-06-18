@@ -33,6 +33,8 @@ const NETWORK_ONLY_PREFIXES = [
   "/local-services",
   "/services",
   "/benefits",
+  "/membership",
+  "/trust",
   "/creator",
   "/digital-ai",
   "/login",

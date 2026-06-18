@@ -29,6 +29,7 @@ const adminDemoLinks = [
   ["Codes", "/admin/codes", "Rabattcodes und Bulk-Generator"],
   ["Scanner", "/admin/scanners", "Scanner-Zugänge je Event"],
   ["Moderation", "/admin/moderation", "Meldungen und Sanktionen"],
+  ["Quality Control", "/admin/quality", "Trust, Rollen, Risiken, Monetarisierung"],
   ["Broadcast", "/admin/broadcast", "Segmentierte Push/E-Mail Kampagnen"],
   ["Analytics", "/admin/analytics", "Nutzer, Events, Dating, Business"],
   ["Settings", "/admin/settings", "Feature Flags, Inhalte, Admin-Team"],
@@ -227,6 +228,7 @@ export function QuickActions() {
     { label: "Event erstellen", href: "/admin/events" },
     { label: "Verifikationen", href: "/admin/users/verifications" },
     { label: "Broadcast", href: "/admin/broadcast" },
+    { label: "Quality Control", href: "/admin/quality" },
     { label: "Moderation", href: "/admin/moderation" },
   ];
   return (

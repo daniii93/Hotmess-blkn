@@ -77,6 +77,7 @@ export default async function DiscoverPage() {
             <HeroButton href="/services" icon={<Wrench className="h-4 w-4" />} label="Dienstleistung suchen" />
             <HeroButton href="/creator" icon={<Sparkles className="h-4 w-4" />} label="Creator Wissen" />
             <HeroButton href="/digital-ai" icon={<Bot className="h-4 w-4" />} label="Digital & AI" />
+            <HeroButton href="/membership" icon={<Gift className="h-4 w-4" />} label="HotMess Plus" />
           </div>
         </div>
       </section>
@@ -230,6 +231,8 @@ export default async function DiscoverPage() {
             <MiniRow href="/benefits" icon={<Bell className="h-4 w-4" />} title="Benefits vorbereitet" text="Member-Vorteile werden als eigener Bereich aufgebaut." />
             <MiniRow href="/creator" icon={<Sparkles className="h-4 w-4" />} title="Creator aufgebaut" text="Verifizierte Experten, Coachings, Kurse und digitale Produkte werden sicher gebuendelt." />
             <MiniRow href="/digital-ai" icon={<Bot className="h-4 w-4" />} title="Digital & AI aufgebaut" text="Gepruefte digitale Loesungen, Automatisierungen und KI-Angebote werden sicher gebuendelt." />
+            <MiniRow href="/trust" icon={<CheckCircle2 className="h-4 w-4" />} title="Trust-System vorbereitet" text="Vertrauen basiert auf echten Signalen, nicht auf Fake-Badges oder Social Credit." />
+            <MiniRow href="/membership" icon={<Gift className="h-4 w-4" />} title="Membership vorbereitet" text="HotMess Plus buendelt Vorteile, Rollen und Premium-Signale ohne unfertige Zahlungen." />
           </div>
         </Section>
       </div>
@@ -244,6 +247,7 @@ export default async function DiscoverPage() {
           <HeroButton href="/business" icon={<Briefcase className="h-4 w-4" />} label="Business oeffnen" />
           <HeroButton href="/local-services/create" icon={<Wrench className="h-4 w-4" />} label="Auftrag erstellen" />
           <HeroButton href="/digital-ai" icon={<Bot className="h-4 w-4" />} label="Digital & AI" />
+          <HeroButton href="/membership" icon={<Gift className="h-4 w-4" />} label="Membership" />
           <HeroButton href="/profile/edit" icon={<UserRound className="h-4 w-4" />} label="Profil bearbeiten" />
           {isProvider ? <HeroButton href="/local-services/company/dashboard" icon={<Wrench className="h-4 w-4" />} label="Anbieter-Dashboard" /> : null}
           {isScanner ? <HeroButton href="/scanner" icon={<CheckCircle2 className="h-4 w-4" />} label="Scanner" /> : null}

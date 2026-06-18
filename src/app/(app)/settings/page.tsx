@@ -68,6 +68,12 @@ export default async function SettingsPage() {
         <BusinessModuleLinks modules={businessModules} businessEnabled={profile.businessEnabled} />
       </SettingsGroup>
 
+      <SettingsGroup title="Membership & Vertrauen">
+        <SettingsLink icon={Shield} title="Trust-Signale" detail="Verifizierung, Anbieterstatus und echte Plattformsignale" href="/trust" />
+        <SettingsLink icon={Heart} title="HotMess Plus" detail="Membership, Vorteile und Premium-Signale" href="/membership" />
+        <SettingsLink icon={UserCog} title="Rollen & Freigaben" detail="Dating, Business, Dienstleister, Creator, Digital & AI" href="/membership" />
+      </SettingsGroup>
+
       <SettingsGroup title="Inhalt & Anzeige">
         <SettingsLink icon={Globe2} title="Sprache" detail="Deutsch · Srpski-Hrvatski · Italiano" href="/settings/display" />
         <SettingsLink icon={FileText} title="Gespeicherte Beitraege" detail="Private Sammlung" href="/feed?saved=1" />
