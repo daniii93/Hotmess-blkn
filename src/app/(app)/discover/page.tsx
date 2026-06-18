@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   Bell,
+  Bot,
   Briefcase,
   CalendarDays,
   CheckCircle2,
@@ -75,6 +76,7 @@ export default async function DiscoverPage() {
             <HeroButton href="/create" icon={<PlusCircle className="h-4 w-4" />} label="Beitrag erstellen" />
             <HeroButton href="/services" icon={<Wrench className="h-4 w-4" />} label="Dienstleistung suchen" />
             <HeroButton href="/creator" icon={<Sparkles className="h-4 w-4" />} label="Creator Wissen" />
+            <HeroButton href="/digital-ai" icon={<Bot className="h-4 w-4" />} label="Digital & AI" />
           </div>
         </div>
       </section>
@@ -227,6 +229,7 @@ export default async function DiscoverPage() {
             <MiniRow href="/services" icon={<Wrench className="h-4 w-4" />} title="Dienstleistungen erweitert" text="Kunden- und Anbieteransicht sind getrennt." />
             <MiniRow href="/benefits" icon={<Bell className="h-4 w-4" />} title="Benefits vorbereitet" text="Member-Vorteile werden als eigener Bereich aufgebaut." />
             <MiniRow href="/creator" icon={<Sparkles className="h-4 w-4" />} title="Creator aufgebaut" text="Verifizierte Experten, Coachings, Kurse und digitale Produkte werden sicher gebuendelt." />
+            <MiniRow href="/digital-ai" icon={<Bot className="h-4 w-4" />} title="Digital & AI aufgebaut" text="Gepruefte digitale Loesungen, Automatisierungen und KI-Angebote werden sicher gebuendelt." />
           </div>
         </Section>
       </div>
@@ -240,6 +243,7 @@ export default async function DiscoverPage() {
           <HeroButton href="/tickets" icon={<Ticket className="h-4 w-4" />} label="Ticket anzeigen" />
           <HeroButton href="/business" icon={<Briefcase className="h-4 w-4" />} label="Business oeffnen" />
           <HeroButton href="/local-services/create" icon={<Wrench className="h-4 w-4" />} label="Auftrag erstellen" />
+          <HeroButton href="/digital-ai" icon={<Bot className="h-4 w-4" />} label="Digital & AI" />
           <HeroButton href="/profile/edit" icon={<UserRound className="h-4 w-4" />} label="Profil bearbeiten" />
           {isProvider ? <HeroButton href="/local-services/company/dashboard" icon={<Wrench className="h-4 w-4" />} label="Anbieter-Dashboard" /> : null}
           {isScanner ? <HeroButton href="/scanner" icon={<CheckCircle2 className="h-4 w-4" />} label="Scanner" /> : null}
