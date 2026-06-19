@@ -19,7 +19,7 @@ const verifyGroupTargets = async (supabase: ReturnType<typeof createSupabaseAdmi
           .map((id) => `and(blocker_id.eq.${currentUserId},blocked_id.eq.${id}),and(blocker_id.eq.${id},blocked_id.eq.${currentUserId})`)
           .join(","),
       ),
-    supabase.from("profiles").select("id,first_name,last_name,username,who_can_add_to_groups,is_banned").in("id", userIds),
+    supabase.from("profiles").select("id,first_name,last_name,username,who_can_add_to_groups,is_banned,verification_status").in("id", userIds),
     supabase.from("follows").select("follower_id,following_id").in("follower_id", userIds).eq("following_id", currentUserId),
   ]);
 
@@ -32,6 +32,7 @@ const verifyGroupTargets = async (supabase: ReturnType<typeof createSupabaseAdmi
   const followers = new Set((followerRows ?? []).map((row) => row.follower_id));
   for (const target of profiles ?? []) {
     if (target.is_banned) return { ok: false, error: "Ein ausgewaehltes Konto ist nicht verfuegbar." };
+    if (target.verification_status !== "verified") return { ok: false, error: "Gruppen sind nur mit verifizierten Nutzern moeglich." };
     if ((target as any).who_can_add_to_groups === "followers" && !followers.has(target.id)) {
       const name = `${target.first_name ?? ""} ${target.last_name ?? ""}`.trim() || target.username;
       return { ok: false, error: `${name} erlaubt Gruppen-Einladungen nur von Followern.` };
@@ -56,10 +57,26 @@ export async function POST(request: Request) {
 
   if (userIds.length === 1) {
     const targetUserId = userIds[0];
-    const [{ data: followsTarget }, { data: targetFollows }] = await Promise.all([
+    const [{ data: followsTarget }, { data: targetFollows }, { data: block }, { data: targetProfile }] = await Promise.all([
       supabase.from("follows").select("follower_id").eq("follower_id", profile.id).eq("following_id", targetUserId).maybeSingle(),
       supabase.from("follows").select("follower_id").eq("follower_id", targetUserId).eq("following_id", profile.id).maybeSingle(),
+      supabase
+        .from("blocks")
+        .select("blocker_id")
+        .or(`and(blocker_id.eq.${profile.id},blocked_id.eq.${targetUserId}),and(blocker_id.eq.${targetUserId},blocked_id.eq.${profile.id})`)
+        .maybeSingle(),
+      supabase.from("profiles").select("id,is_banned,verification_status,who_can_message").eq("id", targetUserId).maybeSingle(),
     ]);
+
+    if (block) return NextResponse.json({ error: "Dieser Chat ist wegen einer Blockierung nicht moeglich." }, { status: 403 });
+    if (!targetProfile || targetProfile.is_banned || targetProfile.verification_status !== "verified") {
+      return NextResponse.json({ error: "Dieses Konto ist nicht verfuegbar." }, { status: 404 });
+    }
+    if (targetProfile.who_can_message === "off") return NextResponse.json({ error: "Diese Person nimmt aktuell keine neuen Nachrichtenanfragen an." }, { status: 403 });
+    if (targetProfile.who_can_message === "followers" && !targetFollows) {
+      return NextResponse.json({ error: "Diese Person erlaubt Nachrichten nur von Personen, denen sie folgt." }, { status: 403 });
+    }
+
     const isFriend = Boolean(followsTarget && targetFollows);
     const { data: conversationId, error: directError } = await supabase.rpc("create_direct_conversation", {
       p_user_a: profile.id,
@@ -87,15 +104,37 @@ export async function POST(request: Request) {
     }
 
     if (!isFriend) {
-      await supabase.from("message_requests").insert({
-        conversation_id: conversationId,
-        requester_id: profile.id,
-        target_id: targetUserId,
-        from_user_id: profile.id,
-        to_user_id: targetUserId,
-        first_message: parsed.data.message || "Neue Chat-Anfrage",
-        status: "pending",
-      });
+      const { data: existingRequest, error: existingRequestError } = await supabase
+        .from("message_requests")
+        .select("id")
+        .eq("from_user_id", profile.id)
+        .eq("to_user_id", targetUserId)
+        .maybeSingle();
+
+      if (existingRequestError) return NextResponse.json({ error: existingRequestError.message }, { status: 400 });
+
+      if (existingRequest) {
+        const { error: requestUpdateError } = await supabase
+          .from("message_requests")
+          .update({
+            conversation_id: conversationId,
+            first_message: parsed.data.message || "Neue Chat-Anfrage",
+            status: "pending",
+          })
+          .eq("id", existingRequest.id);
+        if (requestUpdateError) return NextResponse.json({ error: requestUpdateError.message }, { status: 400 });
+      } else {
+        const { error: requestInsertError } = await supabase.from("message_requests").insert({
+          conversation_id: conversationId,
+          requester_id: profile.id,
+          target_id: targetUserId,
+          from_user_id: profile.id,
+          to_user_id: targetUserId,
+          first_message: parsed.data.message || "Neue Chat-Anfrage",
+          status: "pending",
+        });
+        if (requestInsertError) return NextResponse.json({ error: requestInsertError.message }, { status: 400 });
+      }
     }
 
     return NextResponse.json({ ok: true, conversationId });

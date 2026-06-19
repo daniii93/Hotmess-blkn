@@ -10,11 +10,13 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { normalizeUsername, usernameRuleText } from "@/lib/username";
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().min(3, "Bitte E-Mail oder Benutzername eingeben."),
   password: z.string().min(8),
 });
 
-const registerSchema = loginSchema.extend({
+const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
   firstName: z.string().min(2).max(40),
   lastName: z.string().min(2).max(40),
   username: z.string().min(3).max(30).regex(/^[a-z0-9._]+$/),
@@ -52,7 +54,11 @@ const authErrorMessage = (errorMessage: string, mode: "login" | "register") => {
   }
 
   if (normalized.includes("invalid login credentials")) {
-    return "E-Mail oder Passwort ist nicht korrekt.";
+    return "E-Mail/Benutzername oder Passwort ist nicht korrekt.";
+  }
+
+  if (normalized.includes("benutzername") || normalized.includes("passwort")) {
+    return errorMessage;
   }
 
   if (normalized.includes("email address") && normalized.includes("invalid")) {
@@ -174,21 +180,27 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
     }
 
     const loginValues = values as LoginValues;
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginValues.email,
-      password: loginValues.password,
-    });
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        identifier: loginValues.email,
+        password: loginValues.password,
+      }),
+    }).catch(() => null);
 
-    if (error) {
+    if (!response?.ok) {
+      const payload = response ? await response.json().catch(() => null) as { error?: string } | null : null;
       setStatus("error");
-      setMessage(authErrorMessage(error.message, mode));
+      setMessage(authErrorMessage(payload?.error ?? "Login fehlgeschlagen.", mode));
       return;
     }
 
     setStatus("success");
-    await syncServerSession(supabase);
-    window.location.assign(returnTo);
+    setMessage("Login erfolgreich. Du wirst weitergeleitet ...");
     router.refresh();
+    window.location.assign(returnTo);
   };
 
   const handleOAuth = async (provider: "google" | "apple") => {
@@ -264,8 +276,18 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
         </div>
       ) : null}
       <label className="grid gap-2 text-sm font-medium text-hm-ink">
-        {labels.email}
-        <input type="email" className="rounded-pill border border-hm-border bg-hm-ivory px-4 py-3" {...form.register("email")} />
+        {isRegister ? labels.email : "E-Mail oder Benutzername"}
+        <input
+          type={isRegister ? "email" : "text"}
+          inputMode={isRegister ? "email" : "text"}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          autoComplete={isRegister ? "email" : "username"}
+          className="rounded-pill border border-hm-border bg-hm-ivory px-4 py-3"
+          {...form.register("email")}
+        />
+        {form.formState.errors.email?.message ? <span className="text-xs font-semibold text-red-700">{form.formState.errors.email.message}</span> : null}
       </label>
       <label className="grid gap-2 text-sm font-medium text-hm-ink">
         {labels.password}
@@ -286,6 +308,7 @@ export function AuthForm({ mode, returnTo = "/feed", labels }: AuthFormProps) {
             {passwordVisible ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
           </button>
         </span>
+        {form.formState.errors.password?.message ? <span className="text-xs font-semibold text-red-700">{form.formState.errors.password.message}</span> : null}
       </label>
       {message ? (
         <p className={`rounded-card px-4 py-3 text-sm ${status === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"}`}>
